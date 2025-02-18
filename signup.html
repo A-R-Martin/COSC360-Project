@@ -3,16 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Create your MarketPlace account to start buying and selling">
+    <meta name="keywords" content="sign up, register, create account, marketplace">
     <title>Sign Up - COSC 360 Project</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
+        <nav class="main-nav">
+            <div class="logo">
+                <a href="index.html">Home</a>
+            </div>
+            <div class="nav-links">
+                <a href="catalog.html">Guest Catalogue</a>
+                <a href="member-catalog.html">Member Catalog</a>
+                <div class="auth-links">
+                    <a href="signin.html">Sign In</a>
+                    <a href="signup.html" class="btn-primary active">Sign Up</a>
+                </div>
+            </div>
+        </nav>
     </header>
     <main>
+        <section class="auth-container">
+            <div class="auth-form">
+                <h1>Create Account</h1>
+                <form id="signup-form">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm Password</label>
+                        <input type="password" id="confirm-password" name="confirm-password" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Create Account</button>
+                </form>
+                <p class="auth-links">
+                    Already have an account? <a href="signin.html">Sign In</a>
+                </p>
+            </div>
+        </section>
     </main>
-    <footer>
-    </footer>
     <script src="scripts.js"></script>
 </body>
 </html> 
