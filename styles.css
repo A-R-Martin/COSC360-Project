@@ -685,3 +685,24 @@ textarea:focus {
     max-width: 1200px;
     margin: 0 auto;
 }
+
+.password-requirements {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.password-requirements li {
+    margin: 0.25rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.password-requirements li:before {
+    content: "•";
+    position: absolute;
+    left: 0.5rem;
+    color: #999;
+}

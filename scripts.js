@@ -8,7 +8,7 @@ const VALIDATION_PATTERNS = {
 const VALIDATION_MESSAGES = {
     required: 'This field is required',
     email: 'Please enter a valid email address',
-    password: 'Password must be at least 8 characters long and include uppercase, lowercase, number and special character',
+    password: 'Password must be at least 8 characters long and include uppercase, lowercase, number and special character (@$!%*?&)',
     username: 'Username must be between 3-30 characters and can only contain letters, numbers, underscores and hyphens',
     passwordMatch: 'Passwords do not match',
 };
@@ -62,13 +62,15 @@ function validateField(input) {
                 break;
                 
             case input.id === 'password' && input.form.id === 'signup-form':
+            case input.id === 'new-password':
                 if (!VALIDATION_PATTERNS.password.test(input.value)) {
                     input.setCustomValidity(VALIDATION_MESSAGES.password);
                 }
                 break;
                 
             case input.id === 'confirm-password':
-                if (input.value !== input.form.querySelector('#password').value) {
+                const passwordField = input.form.querySelector('#password, #new-password');
+                if (passwordField && input.value !== passwordField.value) {
                     input.setCustomValidity(VALIDATION_MESSAGES.passwordMatch);
                 }
                 break;
@@ -249,6 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const memberCatalogContainer = document.getElementById('member-catalog-books-container');
     if (memberCatalogContainer) {
         renderBookCards(featuredBooks, 'member-catalog-books-container');
+    }
 
     // Initialize search functionality
     const searchInput = document.querySelector('.search-input');

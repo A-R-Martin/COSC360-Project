@@ -84,14 +84,19 @@
                             <label for="new-password">New Password</label>
                             <input type="password" id="new-password" name="new-password" required
                                    minlength="8"
-                                   pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$"
-                                   title="Password must be at least 8 characters long and include both letters and numbers">
+                                   pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+                                   title="Password must be at least 8 characters long and include uppercase, lowercase, number and special character">
+                            <ul class="password-requirements">
+                                <li>At least 8 characters long</li>
+                                <li>At least one uppercase letter</li>
+                                <li>At least one lowercase letter</li>
+                                <li>At least one number</li>
+                                <li>At least one special character (@$!%*?&)</li>
+                            </ul>
                         </div>
                         <div class="form-group">
                             <label for="confirm-password">Confirm New Password</label>
-                            <input type="password" id="confirm-password" name="confirm-password" required
-                                   minlength="8"
-                                   title="Please confirm your new password">
+                            <input type="password" id="confirm-password" name="confirm-password" required>
                         </div>
                         <div class="form-actions">
                             <button type="submit" class="btn-primary" id="change-password">Update Password</button>
