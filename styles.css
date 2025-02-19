@@ -459,3 +459,32 @@ textarea:focus {
     text-align: center;
     justify-content: center;
 }
+
+/* Form Validation Styles */
+.error-message {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* Only show validation styles when form has been attempted */
+.was-validated input:invalid,
+.was-validated textarea:invalid,
+.was-validated select:invalid {
+    border-color: #dc3545;
+}
+
+/* Only show green borders when form is fully valid */
+.was-validated.form-valid input:valid,
+.was-validated.form-valid textarea:valid,
+.was-validated.form-valid select:valid {
+    border-color: #28a745;
+}
+
+.was-validated input:invalid:focus,
+.was-validated textarea:invalid:focus,
+.was-validated select:invalid:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
