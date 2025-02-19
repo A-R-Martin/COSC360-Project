@@ -128,7 +128,8 @@ body {
 }
 
 .btn-primary:hover {
-    background-color: darken(var(--primary-color), 10%);
+    background-color: #333333;
+    color: var(--white);
 }
 
 /* Forms */
@@ -304,10 +305,10 @@ footer {}
 }
 
 .btn-secondary {
-    background-color: var(--light-gray);
-    color: var(--text-color);
+    background-color: transparent;
+    color: var(--primary-color);
     padding: 0.75rem var(--spacing-lg);
-    border: none;
+    border: 2px solid var(--primary-color);
     border-radius: var(--border-radius);
     cursor: pointer;
     text-decoration: none;
@@ -317,7 +318,7 @@ footer {}
 }
 
 .btn-secondary:hover {
-    background-color: var(--dark-gray);
+    background-color: var(--primary-color);
     color: var(--white);
 }
 
@@ -570,7 +571,7 @@ textarea:focus {
 }
 
 .btn-details:hover {
-    background: #333;
+    background-color: #333333;
 }
 
 /* Container for book cards */
@@ -602,6 +603,13 @@ textarea:focus {
     max-width: 600px;
     margin: 0 auto;
     color: var(--secondary-color);
+}
+
+.hero-buttons {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+    justify-content: center;
 }
 
 /* Featured Books Section */
@@ -723,4 +731,45 @@ textarea:focus {
 .password-requirements li.invalid:before {
     content: "•";
     color: #999;
+}
+
+.btn {
+    padding: 0.75rem var(--spacing-lg);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    font-weight: 600;
+    transition: var(--transition-default);
+    min-width: 150px;
+    text-align: center;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: 2px solid var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #333333;
+    color: var(--white);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: var(--primary-color);
+    padding: 0.75rem var(--spacing-lg);
+    border: 2px solid var(--primary-color);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    font-weight: 600;
+    transition: var(--transition-default);
+}
+
+.btn-secondary:hover {
+    background-color: var(--primary-color);
+    color: var(--white);
 }
