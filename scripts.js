@@ -19,13 +19,25 @@ document.addEventListener('DOMContentLoaded', () => {
     forms.forEach(form => {
         // Handle input validation on typing
         form.querySelectorAll('input, textarea, select').forEach(input => {
-            input.addEventListener('input', () => {
-                if (form.classList.contains('was-validated')) {
-                    removeError(input);
-                    form.classList.remove('form-valid');
-                    validateField(input);
-                }
-            });
+            if (input.id === 'password' || input.id === 'new-password') {
+                // Add real-time password requirement checking
+                input.addEventListener('input', () => {
+                    checkPasswordRequirements(input);
+                    if (form.classList.contains('was-validated')) {
+                        removeError(input);
+                        form.classList.remove('form-valid');
+                        validateField(input);
+                    }
+                });
+            } else {
+                input.addEventListener('input', () => {
+                    if (form.classList.contains('was-validated')) {
+                        removeError(input);
+                        form.classList.remove('form-valid');
+                        validateField(input);
+                    }
+                });
+            }
         });
 
         // Handle form submission
@@ -41,6 +53,36 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
+function checkPasswordRequirements(input) {
+    const requirements = {
+        length: { regex: /.{8,}/, index: 0 },
+        uppercase: { regex: /[A-Z]/, index: 1 },
+        lowercase: { regex: /[a-z]/, index: 2 },
+        number: { regex: /[0-9]/, index: 3 },
+        special: { regex: /[@$!%*?&]/, index: 4 }
+    };
+
+    const password = input.value;
+    const requirementsList = input.parentNode.querySelector('.password-requirements');
+    
+    if (!requirementsList) return;
+
+    const items = requirementsList.getElementsByTagName('li');
+    
+    Object.keys(requirements).forEach(req => {
+        const isValid = requirements[req].regex.test(password);
+        const item = items[requirements[req].index];
+        
+        if (isValid) {
+            item.classList.remove('invalid');
+            item.classList.add('valid');
+        } else {
+            item.classList.remove('valid');
+            item.classList.add('invalid');
+        }
+    });
+}
 
 function validateField(input) {
     input.setCustomValidity('');
@@ -100,8 +142,16 @@ function validateFile(input) {
 }
 
 function validateForm(form) {
-    return Array.from(form.querySelectorAll('input, textarea, select'))
+    const isValid = Array.from(form.querySelectorAll('input, textarea, select'))
         .every(input => validateField(input));
+        
+    if (!isValid) {
+        console.log(`Form validation failed for ${form.id}`);
+    } else {
+        console.log(`Form validation successful for ${form.id}`);
+    }
+    
+    return isValid;
 }
 
 function removeError(input) {
@@ -118,13 +168,23 @@ function showError(input) {
 }
 
 function handleFormSubmit(form) {
+    console.log(`Form submission started for: ${form.id}`);
     const formActions = {
-        'signin-form': () => console.log('Sign in form submitted'),
-        'signup-form': () => console.log('Sign up form submitted'),
-        'profile-form': () => console.log('Profile form submitted')
+        'signin-form': () => {
+            console.log('Sign in form submitted successfully');
+            // TODO: Implement sign in logic
+        },
+        'signup-form': () => {
+            console.log('Sign up form submitted successfully');
+            // TODO: Implement sign up logic
+        },
+        'profile-form': () => {
+            console.log('Profile form submitted successfully');
+            // TODO: Implement profile update logic
+        }
     };
 
-    (formActions[form.id] || (() => console.log('Form submitted:', form.id)))();
+    (formActions[form.id] || (() => console.log(`Form ${form.id} submitted successfully`)))();
 }
 
 // Book Card Component
@@ -182,15 +242,22 @@ class BookCard {
     }
 
     handleViewDetails() {
-        // TODO: Implement book details view once clicked, maybe a full screen card popup to borrow the book? not sure yet
         console.log(`Viewing details for book: ${this.isbn}`);
+        console.log(`Title: ${this.title}`);
+        console.log(`Author: ${this.author}`);
+        console.log(`Price: $${this.price}`);
+        // TODO: Implement book details view
     }
 }
 
 // Helper function to render book cards in a container
 function renderBookCards(books, containerId) {
+    console.log(`Rendering ${books.length} books in container: ${containerId}`);
     const container = document.getElementById(containerId);
-    if (!container) return;
+    if (!container) {
+        console.log(`Container ${containerId} not found`);
+        return;
+    }
 
     container.innerHTML = ''; // Clear existing content
     
@@ -198,6 +265,7 @@ function renderBookCards(books, containerId) {
         const bookCard = new BookCard(bookData);
         container.appendChild(bookCard.createCard());
     });
+    console.log(`Successfully rendered ${books.length} book cards`);
 }
 
 // Sample featured books data with ratings
