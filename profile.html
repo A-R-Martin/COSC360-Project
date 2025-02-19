@@ -71,6 +71,78 @@
                         </div>
                     </form>
                 </div>
+
+                <div class="profile-section">
+                    <h2>Change Password</h2>
+                    <form id="password-form" class="password-change-form" novalidate>
+                        <div class="form-group">
+                            <label for="current-password">Current Password</label>
+                            <input type="password" id="current-password" name="current-password" required
+                                   title="Please enter your current password">
+                        </div>
+                        <div class="form-group">
+                            <label for="new-password">New Password</label>
+                            <input type="password" id="new-password" name="new-password" required
+                                   minlength="8"
+                                   pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$"
+                                   title="Password must be at least 8 characters long and include both letters and numbers">
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm-password">Confirm New Password</label>
+                            <input type="password" id="confirm-password" name="confirm-password" required
+                                   minlength="8"
+                                   title="Please confirm your new password">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary" id="change-password">Update Password</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="profile-section">
+                    <h2>My Borrowed Books</h2>
+                    <div class="data-table">
+                        <table id="borrowed-books">
+                            <thead>
+                                <tr>
+                                    <th>Book Title</th>
+                                    <th>Owner</th>
+                                    <th>Borrowed Date</th>
+                                    <th>Due Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- TODO: Populate with borrowed books from db -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h2>My Library (Books Available for Borrowing)</h2>
+                    <div class="data-table">
+                        <table id="owned-books">
+                            <thead>
+                                <tr>
+                                    <th>Book Title</th>
+                                    <th>Author</th>
+                                    <th>Status</th>
+                                    <th>Current Borrower</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- TODO: Populate with owned books from db -->
+                            </tbody>
+                        </table>
+                        <div class="button-container" style="margin-top: 1rem;">
+                            <button class="btn-primary" id="add-book">Add New Book</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="profile-section">
                     <h2>Reading History</h2>
                     <div class="data-table">
@@ -85,14 +157,10 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- TODO: not mentioned in requirements but can have an added check to user accounts when books are either returned or borrowed -->
+                                <!-- TODO: Populate with reading history from db -->
                             </tbody>
                         </table>
                     </div>
-                </div>
-                <div class="profile-section">
-                    <h2>Account Settings</h2>
-                    <!-- TODO: Account settings later tbd by what we end up doing with the backend -->
                 </div>
             </div>
         </section>
