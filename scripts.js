@@ -231,8 +231,41 @@ const featuredBooks = [
 
 // Initialize featured books on home page
 document.addEventListener('DOMContentLoaded', () => {
+    // For featured books on home page
     const featuredContainer = document.getElementById('featured-books-container');
     if (featuredContainer) {
         renderBookCards(featuredBooks, 'featured-books-container');
+    }
+
+    // For now both guest and member pages render books the same, need to make a third details page that pulls fromdb
+    // and has dynamic button for wheteher or not user is able to grab book or not
+    // Guest catalog page render
+    const catalogContainer = document.getElementById('catalog-books-container');
+    if (catalogContainer) {
+        renderBookCards(featuredBooks, 'catalog-books-container');
+    }
+
+    // Member catalog page render
+    const memberCatalogContainer = document.getElementById('member-catalog-books-container');
+    if (memberCatalogContainer) {
+        renderBookCards(featuredBooks, 'member-catalog-books-container');
+
+    // Initialize search functionality
+    const searchInput = document.querySelector('.search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredBooks = featuredBooks.filter(book => 
+                book.title.toLowerCase().includes(searchTerm) ||
+                book.author.toLowerCase().includes(searchTerm) ||
+                book.isbn.includes(searchTerm)
+            );
+            
+            // Determine which container to update
+            const container = document.querySelector('.books-container');
+            if (container) {
+                renderBookCards(filteredBooks, container.id);
+            }
+        });
     }
 });

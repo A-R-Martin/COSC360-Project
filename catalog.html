@@ -28,19 +28,23 @@
     </header>
     <main>
         <section class="catalog-header">
-            <h1>Browse Items</h1>
-            <div class="catalog-filters">
-                <input type="search" placeholder="Search items..." class="search-input">
-                <select class="category-select">
-                    <option value="">All Categories</option>
-                    <option value="title">Book Title</option>
-                    <option value="author">Author</option>
-                    <option value="isbn">ISBN</option>
-                </select>
+            <div class="container">
+                <h1>Browse Items</h1>
+                <div class="catalog-filters">
+                    <input type="search" placeholder="Search items..." class="search-input">
+                    <select class="category-select">
+                        <option value="">All Categories</option>
+                        <option value="title">Book Title</option>
+                        <option value="author">Author</option>
+                        <option value="isbn">ISBN</option>
+                    </select>
+                </div>
             </div>
         </section>
         <section class="catalog-grid">
             <!-- TODO: Add book 'cards' here later once the js files setup -->
+            <div id="catalog-books-container" class="books-container">
+            </div>
         </section>
     </main>
     <footer>
