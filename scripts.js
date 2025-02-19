@@ -124,3 +124,115 @@ function handleFormSubmit(form) {
 
     (formActions[form.id] || (() => console.log('Form submitted:', form.id)))();
 }
+
+// Book Card Component
+class BookCard {
+    constructor(bookData) {
+        this.title = bookData.title;
+        this.author = bookData.author;
+        this.cover = bookData.cover;
+        this.price = bookData.price;
+        this.isbn = bookData.isbn;
+        this.description = bookData.description;
+        this.rating = bookData.rating || 0;
+    }
+
+    createStarRating() {
+        const roundedRating = Math.round(this.rating);
+        let stars = '';
+        
+        // Add full stars
+        for (let i = 0; i < roundedRating; i++) {
+            stars += '★';
+        }
+        
+        // Add empty stars
+        for (let i = 0; i < 5 - roundedRating; i++) {
+            stars += '☆';
+        }
+        
+        return `<div class="book-rating">${stars} <span class="rating-number">(${this.rating.toFixed(1)})</span></div>`;
+    }
+
+    createCard() {
+        const card = document.createElement('div');
+        card.className = 'book-card';
+        card.innerHTML = `
+            <div class="book-card-cover">
+                <img src="${this.cover}" alt="${this.title}" loading="lazy">
+            </div>
+            <div class="book-card-content">
+                <h3 class="book-title">${this.title}</h3>
+                <p class="book-author">By ${this.author}</p>
+                ${this.createStarRating()}
+                <p class="book-price">$${this.price.toFixed(2)}</p>
+                <p class="book-description">${this.description}</p>
+                <button class="btn-details" data-isbn="${this.isbn}">View Details</button>
+            </div>
+        `;
+
+        // Add event listener for the details button
+        card.querySelector('.btn-details').addEventListener('click', () => {
+            this.handleViewDetails();
+        });
+
+        return card;
+    }
+
+    handleViewDetails() {
+        // TODO: Implement book details view once clicked, maybe a full screen card popup to borrow the book? not sure yet
+        console.log(`Viewing details for book: ${this.isbn}`);
+    }
+}
+
+// Helper function to render book cards in a container
+function renderBookCards(books, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = ''; // Clear existing content
+    
+    books.forEach(bookData => {
+        const bookCard = new BookCard(bookData);
+        container.appendChild(bookCard.createCard());
+    });
+}
+
+// Sample featured books data with ratings
+const featuredBooks = [
+    {
+        title: "The Great Gatsby",
+        author: "F. Scott Fitzgerald",
+        cover: "sample-image.avif",
+        price: 9.99,
+        isbn: "978-0743273565",
+        description: "A story of the fabulously wealthy Jay Gatsby and his powerful love for the beautiful Daisy Buchanan.",
+        rating: 4.5
+    },
+    {
+        title: "To Kill a Mockingbird",
+        author: "Harper Lee",
+        cover: "sample-image.avif",
+        price: 12.99,
+        isbn: "978-0446310789",
+        description: "The unforgettable novel of a childhood in a sleepy Southern town and the crisis of conscience that rocked it.",
+        rating: 5.0
+    },
+    {
+        title: "1984",
+        author: "George Orwell",
+        cover: "sample-image.avif",
+        price: 10.99,
+        isbn: "978-0451524935",
+        description: "A dystopian social science fiction novel and cautionary tale about the dangers of totalitarianism.",
+        rating: 4.7
+    }
+];
+
+// Initialize featured books on home page
+document.addEventListener('DOMContentLoaded', () => {
+    const featuredContainer = document.getElementById('featured-books-container');
+    if (featuredContainer) {
+        renderBookCards(featuredBooks, 'featured-books-container');
+    }
+});
