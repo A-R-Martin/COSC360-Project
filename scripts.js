@@ -8,7 +8,7 @@ const VALIDATION_PATTERNS = {
 const VALIDATION_MESSAGES = {
     required: 'This field is required',
     email: 'Please enter a valid email address',
-    password: 'Password must be at least 8 characters long and include uppercase, lowercase, number and special character (@$!%*?&)',
+    password: 'Please fill all password requirements',
     username: 'Username must be between 3-30 characters and can only contain letters, numbers, underscores and hyphens',
     passwordMatch: 'Passwords do not match',
 };
@@ -51,6 +51,97 @@ document.addEventListener('DOMContentLoaded', () => {
                 handleFormSubmit(form);
             }
         });
+    });
+
+    // Profile page buttons
+    const saveProfileBtn = document.getElementById('save-profile');
+    if (saveProfileBtn) {
+        saveProfileBtn.addEventListener('click', () => {
+            console.log('Save profile button clicked');
+            // TODO: Implement save profile functionality
+        });
+    }
+
+    const removeProfileImageBtn = document.getElementById('remove-profile-image');
+    if (removeProfileImageBtn) {
+        removeProfileImageBtn.addEventListener('click', () => {
+            console.log('Remove profile image button clicked');
+            // TODO: Implement profile image removal
+        });
+    }
+
+    const updateProfileBtn = document.getElementById('update-profile');
+    if (updateProfileBtn) {
+        updateProfileBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('Update profile button clicked');
+            // TODO: Implement profile update functionality
+        });
+    }
+
+    const addBookBtn = document.getElementById('add-book');
+    if (addBookBtn) {
+        addBookBtn.addEventListener('click', () => {
+            console.log('Add book button clicked');
+            // TODO: Implement add book functionality
+        });
+    }
+
+    // Admin page buttons
+    const exportDataBtn = document.getElementById('export-data');
+    if (exportDataBtn) {
+        exportDataBtn.addEventListener('click', () => {
+            console.log('Export data button clicked');
+            // TODO: Implement data export functionality
+        });
+    }
+
+    // Book card action buttons (for catalog pages)
+    document.addEventListener('click', (e) => {
+        if (e.target.matches('.btn-details')) {
+            const isbn = e.target.dataset.isbn;
+            console.log(`View details clicked for book ISBN: ${isbn}`);
+            // TODO: Implement book details view
+        }
+        
+        if (e.target.matches('.btn-borrow')) {
+            const isbn = e.target.dataset.isbn;
+            console.log(`Borrow clicked for book ISBN: ${isbn}`);
+            // TODO: Implement book borrowing
+        }
+        
+        if (e.target.matches('.btn-return')) {
+            const isbn = e.target.dataset.isbn;
+            console.log(`Return clicked for book ISBN: ${isbn}`);
+            // TODO: Implement book return
+        }
+    });
+
+    // Admin table action buttons
+    document.addEventListener('click', (e) => {
+        if (e.target.matches('.btn-edit-user')) {
+            const userId = e.target.dataset.userId;
+            console.log(`Edit user clicked for user ID: ${userId}`);
+            // TODO: Implement user edit functionality
+        }
+        
+        if (e.target.matches('.btn-suspend-user')) {
+            const userId = e.target.dataset.userId;
+            console.log(`Suspend user clicked for user ID: ${userId}`);
+            // TODO: Implement user suspension
+        }
+        
+        if (e.target.matches('.btn-edit-book')) {
+            const isbn = e.target.dataset.isbn;
+            console.log(`Edit book clicked for ISBN: ${isbn}`);
+            // TODO: Implement book edit functionality
+        }
+        
+        if (e.target.matches('.btn-delete-book')) {
+            const isbn = e.target.dataset.isbn;
+            console.log(`Delete book clicked for ISBN: ${isbn}`);
+            // TODO: Implement book deletion
+        }
     });
 });
 
