@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Browse our marketplace catalog for items available for purchase">
-    <meta name="keywords" content="catalog, items, products, marketplace, browse">
-    <title>Catalog - COSC 360 Project</title>
+    <meta name="description" content="Browse our extensive collection of books available to all visitors">
+    <meta name="keywords" content="library catalog, book collection, public books, book search, browse books">
+    <title>Book Catalog - Virtual Library</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
         <nav class="main-nav">
             <div class="logo">
-                <a href="index.html">Home</a>
+                <a href="index.html" class="nav-button">Home</a>
             </div>
             <div class="nav-links">
-                <a href="catalog.html" class="active">Guest Catalogue</a>
-                <a href="member-catalog.html">Member Catalog</a>
+                <a href="catalog.html" class="nav-button active">Guest Catalogue</a>
+                <a href="member-catalog.html" class="nav-button">Member Catalog</a>
                 <div class="auth-links">
-                    <a href="signin.html">Sign In</a>
-                    <a href="signup.html" class="btn-primary">Sign Up</a>
+                    <a href="signin.html" class="nav-button">Sign In</a>
+                    <a href="signup.html" class="nav-button">Sign Up</a>
                 </div>
             </div>
         </nav>
@@ -31,10 +31,9 @@
                 <input type="search" placeholder="Search items..." class="search-input">
                 <select class="category-select">
                     <option value="">All Categories</option>
-                    <option value="electronics">Electronics</option>
-                    <option value="clothing">Clothing</option>
-                    <option value="books">Books</option>
-                    <option value="home">Home & Garden</option>
+                    <option value="title">Book Title</option>
+                    <option value="author">Author</option>
+                    <option value="isbn">ISBN</option>
                 </select>
             </div>
         </section>

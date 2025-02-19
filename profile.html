@@ -3,23 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Manage your MarketPlace profile and account settings">
-    <meta name="keywords" content="profile, account settings, marketplace account">
-    <title>Profile - COSC 360 Project</title>
+    <meta name="description" content="Manage your Virtual Library profile, track your borrowed books, and update your reading preferences">
+    <meta name="keywords" content="library profile, reading history, borrowed books, reader preferences, virtual library account">
+    <title>My Profile - Virtual Library</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
         <nav class="main-nav">
             <div class="logo">
-                <a href="index.html">Home</a>
+                <a href="index.html" class="nav-button">Home</a>
             </div>
             <div class="nav-links">
-                <a href="catalog.html">Guest Catalogue</a>
-                <a href="member-catalog.html">Member Catalog</a>
+                <a href="catalog.html" class="nav-button">Guest Catalogue</a>
+                <a href="member-catalog.html" class="nav-button">Member Catalog</a>
                 <div class="auth-links">
-                    <a href="profile.html" class="active">My Profile</a>
-                    <button class="btn-secondary" id="logout-btn">Sign Out</button>
+                    <a href="admin.html" class="nav-button">Admin</a>
+                    <a href="profile.html" class="nav-button active">Profile</a>
+                    <a href="signin.html" class="nav-button">Sign In</a>
+                    <a href="signup.html" class="nav-button">Sign Up</a>
                 </div>
             </div>
         </nav>
@@ -33,14 +35,17 @@
             <div class="profile-content">
                 <div class="profile-section">
                     <h2>Profile Information</h2>
-                    <form id="profile-form">
-                        <div class="form-group">
-                            <label for="profile-image">Profile Image</label>
-                            <div class="profile-image-container">
-                                <img id="current-profile-image" src="placeholder-profile.jpg" alt="Profile Image">
+                    <div class="profile-image-container">
+                        <img id="current-profile-image" src="placeholder-profile.jpg" alt="Profile Image">
+                        <div class="profile-image-actions">
+                            <div class="upload-btn-wrapper">
+                                <button type="button" class="btn-primary">Choose Image</button>
                                 <input type="file" id="profile-image" name="profile-image" accept="image/*">
                             </div>
+                            <button type="button" class="btn-danger" id="remove-profile-image">Remove Picture</button>
                         </div>
+                    </div>
+                    <form id="profile-form">
                         <div class="form-group">
                             <label for="username">Username</label>
                             <input type="text" id="username" name="username" required>
@@ -53,31 +58,33 @@
                             <label for="bio">Bio</label>
                             <textarea id="bio" name="bio" rows="4"></textarea>
                         </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary" id="update-profile">Update Profile</button>
+                        </div>
                     </form>
                 </div>
                 <div class="profile-section">
+                    <h2>Reading History</h2>
+                    <div class="data-table">
+                        <table id="reading-history">
+                            <thead>
+                                <tr>
+                                    <th>Book Title</th>
+                                    <th>Author</th>
+                                    <th>Borrowed Date</th>
+                                    <th>Return Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- TODO: not mentioned in requirements but can have an added check to user accounts when books are either returned or borrowed -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="profile-section">
                     <h2>Account Settings</h2>
-                    <form id="settings-form">
-                        <div class="form-group">
-                            <label for="notifications">Email Notifications</label>
-                            <div class="checkbox-group">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" name="notifications" value="messages">
-                                    New messages
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox" name="notifications" value="sales">
-                                    Sales updates
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <button type="button" class="btn-secondary" id="change-password">Change Password</button>
-                        </div>
-                        <div class="form-group">
-                            <button type="button" class="btn-danger" id="delete-account">Delete Account</button>
-                        </div>
-                    </form>
+                    <!-- TODO: Account settings later tbd by what we end up doing with the backend -->
                 </div>
             </div>
         </section>
