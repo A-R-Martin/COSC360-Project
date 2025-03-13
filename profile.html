@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Manage your Virtual Library profile, track your borrowed books, and update your reading preferences">
+    <meta name="keywords" content="library profile, reading history, borrowed books, reader preferences, virtual library account">
+    <title>My Profile - Virtual Library</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav class="main-nav">
+            <div class="logo">
+                <a href="index.html" class="nav-button">Home</a>
+            </div>
+            <div class="nav-links">
+                <a href="catalog.html" class="nav-button">Guest Catalogue</a>
+                <a href="member-catalog.html" class="nav-button">Member Catalog</a>
+                <div class="auth-links">
+                    <a href="admin.html" class="nav-button">Admin</a>
+                    <a href="profile.html" class="nav-button active">Profile</a>
+                    <a href="signin.html" class="nav-button">Sign In</a>
+                    <a href="signup.html" class="nav-button">Sign Up</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <section class="profile-container">
+            <div class="profile-header">
+                <h1>My Profile</h1>
+                <button class="btn-primary" id="save-profile">Save Changes</button>
+            </div>
+            <div class="profile-content">
+                <div class="profile-section">
+                    <h2>Profile Information</h2>
+                    <div class="profile-image-container">
+                        <img id="current-profile-image" src="placeholder-profile.jpg" alt="Profile Image">
+                        <div class="profile-image-actions">
+                            <div class="upload-btn-wrapper">
+                                <button type="button" class="btn-primary">Choose Image</button>
+                                <input type="file" id="profile-image" name="profile-image" 
+                                       accept="image/jpeg,image/png,image/gif"
+                                       title="Please select an image file (JPG, PNG, or GIF)">
+                            </div>
+                            <button type="button" class="btn-danger" id="remove-profile-image">Remove Picture</button>
+                        </div>
+                    </div>
+                    <form id="profile-form" novalidate>
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" name="username" required
+                                   minlength="3" maxlength="30" 
+                                   pattern="^[a-zA-Z0-9_-]+$"
+                                   title="Username must be between 3-30 characters and can only contain letters, numbers, underscores and hyphens">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required
+                                   pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                                   title="Please enter a valid email address">
+                        </div>
+                        <div class="form-group">
+                            <label for="bio">Bio</label>
+                            <textarea id="bio" name="bio" rows="4" maxlength="500"
+                                    title="Bio can be up to 500 characters long"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary" id="update-profile">Update Profile</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="profile-section">
+                    <h2>Change Password</h2>
+                    <form id="password-form" class="password-change-form" novalidate>
+                        <div class="form-group">
+                            <label for="current-password">Current Password</label>
+                            <input type="password" id="current-password" name="current-password" required
+                                   title="Please enter your current password">
+                        </div>
+                        <div class="form-group">
+                            <label for="new-password">New Password</label>
+                            <input type="password" id="new-password" name="new-password" required
+                                   minlength="8"
+                                   pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+                                   title="Password must be at least 8 characters long and include uppercase, lowercase, number and special character">
+                            <ul class="password-requirements">
+                                <li>At least 8 characters long</li>
+                                <li>At least one uppercase letter</li>
+                                <li>At least one lowercase letter</li>
+                                <li>At least one number</li>
+                                <li>At least one special character (@$!%*?&)</li>
+                            </ul>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm-password">Confirm New Password</label>
+                            <input type="password" id="confirm-password" name="confirm-password" required>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary" id="change-password">Update Password</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="profile-section">
+                    <h2>My Borrowed Books</h2>
+                    <div class="data-table">
+                        <table id="borrowed-books">
+                            <thead>
+                                <tr>
+                                    <th>Book Title</th>
+                                    <th>Owner</th>
+                                    <th>Borrowed Date</th>
+                                    <th>Due Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- TODO: Populate with borrowed books from db -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h2>My Library (Books Available for Borrowing)</h2>
+                    <div class="data-table">
+                        <table id="owned-books">
+                            <thead>
+                                <tr>
+                                    <th>Book Title</th>
+                                    <th>Author</th>
+                                    <th>Status</th>
+                                    <th>Current Borrower</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- TODO: Populate with owned books from db -->
+                            </tbody>
+                        </table>
+                        <div class="button-container" style="margin-top: 1rem;">
+                            <button class="btn-primary" id="add-book">Add New Book</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h2>Reading History</h2>
+                    <div class="data-table">
+                        <table id="reading-history">
+                            <thead>
+                                <tr>
+                                    <th>Book Title</th>
+                                    <th>Author</th>
+                                    <th>Borrowed Date</th>
+                                    <th>Return Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- TODO: Populate with reading history from db -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script src="scripts.js"></script>
+</body>
+</html> 
