@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Join Virtual Library to unlock full access to our digital collection and exclusive member features">
+    <meta name="keywords" content="library membership, create account, virtual library registration, new reader, join library">
+    <title>Sign Up - Virtual Library</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav class="main-nav">
+            <div class="logo">
+                <a href="index.html" class="nav-button">Home</a>
+            </div>
+            <div class="nav-links">
+                <a href="catalog.html" class="nav-button">Guest Catalogue</a>
+                <a href="member-catalog.html" class="nav-button">Member Catalog</a>
+                <div class="auth-links">
+                    <a href="admin.html" class="nav-button">Admin</a>
+                    <a href="profile.html" class="nav-button">Profile</a>
+                    <a href="signin.html" class="nav-button">Sign In</a>
+                    <a href="signup.html" class="nav-button active">Sign Up</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <section class="auth-container">
+            <div class="auth-form">
+                <h1>Create Account</h1>
+                <form id="signup-form" novalidate>
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" required 
+                               minlength="3" maxlength="30" 
+                               pattern="^[a-zA-Z0-9_-]+$"
+                               title="Username must be between 3-30 characters and can only contain letters, numbers, underscores and hyphens">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required
+                               pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                               title="Please enter a valid email address">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required
+                               minlength="8"
+                               pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+                               title="Password must be at least 8 characters long and include uppercase, lowercase, number and special character">
+                        <ul class="password-requirements">
+                            <li>At least 8 characters long</li>
+                            <li>At least one uppercase letter</li>
+                            <li>At least one lowercase letter</li>
+                            <li>At least one number</li>
+                            <li>At least one special character (@$!%*?&)</li>
+                        </ul>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm Password</label>
+                        <input type="password" id="confirm-password" name="confirm-password" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Create Account</button>
+                </form>
+                <p class="auth-links">
+                    Already have an account? <a href="signin.html">Sign In</a>
+                </p>
+            </div>
+        </section>
+    </main>
+    <script src="scripts.js"></script>
+</body>
+</html> 
