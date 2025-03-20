@@ -83,23 +83,7 @@ if (!empty($_POST)) {  // This is the important change - check for any POST data
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <nav class="main-nav">
-            <div class="logo">
-                <a href="index.php" class="nav-button">Home</a>
-            </div>
-            <div class="nav-links">
-                <a href="catalog.php" class="nav-button">Guest Catalogue</a>
-                <a href="member-catalog.php" class="nav-button">Member Catalog</a>
-                <div class="auth-links">
-                    <a href="admin.php" class="nav-button">Admin</a>
-                    <a href="profile.php" class="nav-button">Profile</a>
-                    <a href="signin.php" class="nav-button active">Sign In</a>
-                    <a href="signup.php" class="nav-button">Sign Up</a>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <?php include 'nav.php'; ?>
     <main>
         <section class="auth-container">
             <div class="auth-form">
@@ -119,8 +103,13 @@ if (!empty($_POST)) {  // This is the important change - check for any POST data
                     </div>
                     <div class="form-group">
                         <label for="password">Password</label>
-                        <input type="password" id="password" name="password" required
-                               title="Please enter your password">
+                        <div class="password-field">
+                            <input type="password" id="password" name="password" required
+                                   title="Please enter your password">
+                            <button type="button" class="toggle-password" aria-label="Toggle password visibility">
+                                <span class="show-password">👁️</span>
+                            </button>
+                        </div>
                     </div>
                     <button type="submit" class="btn-primary">Sign In</button>
                 </form>
@@ -131,5 +120,50 @@ if (!empty($_POST)) {  // This is the important change - check for any POST data
         </section>
     </main>
     <script src="scripts.js"></script>
+    <script>
+        // Password visibility toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const togglePassword = document.querySelector('.toggle-password');
+            const passwordInput = document.getElementById('password');
+            
+            // Add styles for password field
+            const style = document.createElement('style');
+            style.textContent = `
+                .password-field {
+                    position: relative;
+                    display: flex;
+                    align-items: center;
+                }
+                .toggle-password {
+                    position: absolute;
+                    right: 10px;
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    color: #777;
+                    font-size: 16px;
+                    padding: 0;
+                    display: flex;
+                    align-items: center;
+                }
+                .toggle-password:hover, .toggle-password:focus {
+                    color: #333;
+                    outline: none;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Toggle password visibility
+            if (togglePassword) {
+                togglePassword.addEventListener('click', function() {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    
+                    // Change the icon/text based on password visibility
+                    this.querySelector('.show-password').textContent = type === 'password' ? '👁️' : '🔒';
+                });
+            }
+        });
+    </script>
 </body>
 </html> 

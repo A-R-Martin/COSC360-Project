@@ -12,23 +12,7 @@ session_start();
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <nav class="main-nav">
-            <div class="logo">
-                <a href="index.php" class="nav-button active">Home</a>
-            </div>
-            <div class="nav-links">
-                <a href="catalog.php" class="nav-button">Guest Catalogue</a>
-                <a href="member-catalog.php" class="nav-button">Member Catalog</a>
-                <div class="auth-links">
-                    <a href="admin.php" class="nav-button">Admin</a>
-                    <a href="profile.php" class="nav-button">Profile</a>
-                    <a href="signin.php" class="nav-button">Sign In</a>
-                    <a href="signup.php" class="nav-button">Sign Up</a>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <?php include 'nav.php'; ?>
     <main>
         <section class="hero">
             <div class="container">
