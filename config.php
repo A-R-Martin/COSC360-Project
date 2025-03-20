@@ -1,8 +1,8 @@
 <?php
 // Database configuration
 $db_host = "localhost";
-$db_user = "root"; // Default XAMPP username
-$db_pass = ""; // Default empty password for XAMPP
+$db_user = "root";
+$db_pass = "";
 $db_name = "virtual_library";
 
 // Create database connection
@@ -27,7 +27,7 @@ define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'gif']);
 
 // Error reporting
 error_reporting(E_ALL);
-ini_set('display_errors', 1); // Set to 1 during development, 0 in production
+ini_set('display_errors', 0); // 1 in dev, 0 in prod
 ini_set('log_errors', 1);
 ini_set('error_log', 'error.log');
 

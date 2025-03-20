@@ -1,5 +1,17 @@
 <?php
 session_start();
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Include database connection
+require_once 'db_connect.php';
+
+// Small debug element for development
+echo "<div style='background:#f8f8f8; border:1px solid #ccc; padding:5px; margin-bottom:10px; font-size:11px; font-family:monospace;'>";
+echo "DB: " . ($conn ? "Connected" : "Failed") . " | ";
+echo "POST: " . (empty($_POST) ? "No" : "Yes");
+echo "</div>";
+
 // Check if user is already logged in
 if (isset($_SESSION['user_id'])) {
     // Redirect to profile page if already logged in
@@ -9,30 +21,54 @@ if (isset($_SESSION['user_id'])) {
 
 // Initialize error message variable
 $error_message = "";
+$email = "";
 
 // Process login form if submitted
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Here you would connect to your database and verify the user
-    // This is a placeholder for the actual login logic
+if (!empty($_POST)) {  // This is the important change - check for any POST data
+    // Get form inputs
+    $email = isset($_POST['email']) ? trim($_POST['email']) : '';
+    $password = isset($_POST['password']) ? $_POST['password'] : '';
     
-    // Example validation
-    if (empty($_POST['email']) || empty($_POST['password'])) {
+    // Validate inputs
+    if (empty($email) || empty($password)) {
         $error_message = "Email and password are required";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error_message = "Please enter a valid email address";
     } else {
-        // Placeholder for database connection and verification
-        // In a real application, you would:
-        // 1. Connect to database
-        // 2. Sanitize inputs
-        // 3. Query for user with email
-        // 4. Verify password hash
-        // 5. Set session variables if successful
+        // Sanitize input
+        $email = mysqli_real_escape_string($conn, $email);
         
-        // For now, we'll just redirect to simulate a successful login
-        // Replace this with actual authentication logic
-        $_SESSION['user_id'] = 1; // Example user ID
-        $_SESSION['username'] = "User"; // Example username
-        header("Location: profile.php");
-        exit();
+        // Query for user with email
+        $sql = "SELECT * FROM users WHERE email = '$email'";
+        $result = mysqli_query($conn, $sql);
+        
+        if (mysqli_num_rows($result) == 1) {
+            // User found
+            $user = mysqli_fetch_assoc($result);
+            
+            // Verify password
+            if (password_verify($password, $user['password'])) {
+                // Debug successful login (only for development)
+                echo "<div style='background:#e8f5e9; border:1px solid #2e7d32; padding:10px; margin:10px 0; font-family:monospace;'>";
+                echo "<strong>Login Successful!</strong> User ID: " . $user['user_id'] . " | Username: " . $user['username'];
+                echo "</div>";
+                
+                // Password is correct, set session variables
+                $_SESSION['user_id'] = $user['user_id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['role'] = $user['role'];
+                
+                // Redirect to profile page
+                header("Location: profile.php");
+                exit();
+            } else {
+                // Password is incorrect
+                $error_message = "Invalid email or password";
+            }
+        } else {
+            // User not found
+            $error_message = "Invalid email or password";
+        }
     }
 }
 ?>
@@ -73,11 +109,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <?php echo $error_message; ?>
                     </div>
                 <?php endif; ?>
-                <form id="signin-form" method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" novalidate>
+                <form id="signin-form" method="post" action="">
                     <div class="form-group">
                         <label for="email">Email</label>
                         <input type="email" id="email" name="email" required
                                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                               value="<?php echo htmlspecialchars($email); ?>"
                                title="Please enter a valid email address">
                     </div>
                     <div class="form-group">
