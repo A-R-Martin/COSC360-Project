@@ -1,0 +1,55 @@
+# Security settings
+<IfModule mod_headers.c>
+    # Set strict-transport-security header to force HTTPS
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    
+    # Set X-Content-Type-Options to prevent MIME type sniffing
+    Header always set X-Content-Type-Options "nosniff"
+    
+    # Set X-Frame-Options to prevent clickjacking
+    Header always set X-Frame-Options "SAMEORIGIN"
+    
+    # Set X-XSS-Protection to enable XSS filtering
+    Header always set X-XSS-Protection "1; mode=block"
+    
+    # Set Content-Security-Policy to prevent XSS attacks
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'"
+</IfModule>
+
+# Disable directory browsing
+Options -Indexes
+
+# Protect hidden files from being viewed
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Protect important files from direct access
+<FilesMatch "^(config\.php|database\.sql)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# URL rewrites for clean URLs
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    
+    # Handle HTTP 403 errors
+    ErrorDocument 403 /index.php
+    
+    # Handle HTTP 404 errors
+    ErrorDocument 404 /index.php
+    
+    # Redirect www to non-www
+    RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+    RewriteRule ^(.*)$ http://%1/$1 [R=301,L]
+    
+    # Redirect trailing slashes
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)/$ /$1 [R=301,L]
+</IfModule>
+
+# Disable server signature
+ServerSignature Off 
