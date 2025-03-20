@@ -1,3 +1,6 @@
+<?php
+session_start();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,16 +15,16 @@
     <header>
         <nav class="main-nav">
             <div class="logo">
-                <a href="index.html" class="nav-button">Home</a>
+                <a href="index.php" class="nav-button">Home</a>
             </div>
             <div class="nav-links">
-                <a href="catalog.html" class="nav-button active">Guest Catalogue</a>
-                <a href="member-catalog.html" class="nav-button">Member Catalog</a>
+                <a href="catalog.php" class="nav-button active">Guest Catalogue</a>
+                <a href="member-catalog.php" class="nav-button">Member Catalog</a>
                 <div class="auth-links">
-                    <a href="admin.html" class="nav-button">Admin</a>
-                    <a href="profile.html" class="nav-button">Profile</a>
-                    <a href="signin.html" class="nav-button">Sign In</a>
-                    <a href="signup.html" class="nav-button">Sign Up</a>
+                    <a href="admin.php" class="nav-button">Admin</a>
+                    <a href="profile.php" class="nav-button">Profile</a>
+                    <a href="signin.php" class="nav-button">Sign In</a>
+                    <a href="signup.php" class="nav-button">Sign Up</a>
                 </div>
             </div>
         </nav>

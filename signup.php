@@ -1,3 +1,46 @@
+<?php
+session_start();
+// Check if user is already logged in
+if (isset($_SESSION['user_id'])) {
+    // Redirect to profile page if already logged in
+    header("Location: profile.php");
+    exit();
+}
+
+// Initialize variables
+$error_message = "";
+$success_message = "";
+
+// Process registration form if submitted
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Here you would connect to your database and register the user
+    // This is a placeholder for the actual registration logic
+    
+    // Example validation
+    if (empty($_POST['username']) || empty($_POST['email']) || empty($_POST['password']) || empty($_POST['confirm-password'])) {
+        $error_message = "All fields are required";
+    } elseif ($_POST['password'] !== $_POST['confirm-password']) {
+        $error_message = "Passwords do not match";
+    } else {
+        // Placeholder for database connection and user creation
+        // In a real application, you would:
+        // 1. Connect to database
+        // 2. Sanitize inputs
+        // 3. Hash password
+        // 4. Check if username/email already exists
+        // 5. Insert new user record
+        // 6. Set session variables if successful
+        
+        // For now, we'll just set a success message
+        $success_message = "Account created successfully! You can now sign in.";
+        
+        // Redirect to sign in page after successful registration
+        // Uncomment this in a real application:
+        // header("Location: signin.php");
+        // exit();
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,16 +55,16 @@
     <header>
         <nav class="main-nav">
             <div class="logo">
-                <a href="index.html" class="nav-button">Home</a>
+                <a href="index.php" class="nav-button">Home</a>
             </div>
             <div class="nav-links">
-                <a href="catalog.html" class="nav-button">Guest Catalogue</a>
-                <a href="member-catalog.html" class="nav-button">Member Catalog</a>
+                <a href="catalog.php" class="nav-button">Guest Catalogue</a>
+                <a href="member-catalog.php" class="nav-button">Member Catalog</a>
                 <div class="auth-links">
-                    <a href="admin.html" class="nav-button">Admin</a>
-                    <a href="profile.html" class="nav-button">Profile</a>
-                    <a href="signin.html" class="nav-button">Sign In</a>
-                    <a href="signup.html" class="nav-button active">Sign Up</a>
+                    <a href="admin.php" class="nav-button">Admin</a>
+                    <a href="profile.php" class="nav-button">Profile</a>
+                    <a href="signin.php" class="nav-button">Sign In</a>
+                    <a href="signup.php" class="nav-button active">Sign Up</a>
                 </div>
             </div>
         </nav>
@@ -30,7 +73,17 @@
         <section class="auth-container">
             <div class="auth-form">
                 <h1>Create Account</h1>
-                <form id="signup-form" novalidate>
+                <?php if (!empty($error_message)): ?>
+                    <div class="error-message">
+                        <?php echo $error_message; ?>
+                    </div>
+                <?php endif; ?>
+                <?php if (!empty($success_message)): ?>
+                    <div class="success-message">
+                        <?php echo $success_message; ?>
+                    </div>
+                <?php endif; ?>
+                <form id="signup-form" method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" novalidate>
                     <div class="form-group">
                         <label for="username">Username</label>
                         <input type="text" id="username" name="username" required 
@@ -65,7 +118,7 @@
                     <button type="submit" class="btn-primary">Create Account</button>
                 </form>
                 <p class="auth-links">
-                    Already have an account? <a href="signin.html">Sign In</a>
+                    Already have an account? <a href="signin.php">Sign In</a>
                 </p>
             </div>
         </section>
