@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Browse our extensive collection of books available to all visitors">
+    <meta name="keywords" content="library catalog, book collection, public books, book search, browse books">
+    <title>Book Catalog - Virtual Library</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav class="main-nav">
+            <div class="logo">
+                <a href="index.html" class="nav-button">Home</a>
+            </div>
+            <div class="nav-links">
+                <a href="catalog.html" class="nav-button active">Guest Catalogue</a>
+                <a href="member-catalog.html" class="nav-button">Member Catalog</a>
+                <div class="auth-links">
+                    <a href="admin.html" class="nav-button">Admin</a>
+                    <a href="profile.html" class="nav-button">Profile</a>
+                    <a href="signin.html" class="nav-button">Sign In</a>
+                    <a href="signup.html" class="nav-button">Sign Up</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <section class="catalog-header">
+            <div class="container">
+                <h1>Browse Items</h1>
+                <div class="catalog-filters">
+                    <input type="search" placeholder="Search items..." class="search-input">
+                    <select class="category-select">
+                        <option value="">All Categories</option>
+                        <option value="title">Book Title</option>
+                        <option value="author">Author</option>
+                        <option value="isbn">ISBN</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+        <section class="catalog-grid">
+            <!-- TODO: Add book 'cards' here later once the js files setup -->
+            <div id="catalog-books-container" class="books-container">
+            </div>
+        </section>
+    </main>
+    <footer>
+    </footer>
+    <script src="scripts.js"></script>
+</body>
+</html> 

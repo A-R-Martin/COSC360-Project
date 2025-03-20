@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Library administration dashboard for managing books, users, and library operations">
+    <meta name="keywords" content="library admin, book management, user management, library dashboard, circulation management">
+    <title>Admin Dashboard - Virtual Library</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <nav class="main-nav">
+            <div class="logo">
+                <a href="index.html" class="nav-button">Home</a>
+            </div>
+            <div class="nav-links">
+                <a href="catalog.html" class="nav-button">Guest Catalogue</a>
+                <a href="member-catalog.html" class="nav-button">Member Catalog</a>
+                <div class="auth-links">
+                    <a href="admin.html" class="nav-button active">Admin</a>
+                    <a href="profile.html" class="nav-button">Profile</a>
+                    <a href="signin.html" class="nav-button">Sign In</a>
+                    <a href="signup.html" class="nav-button">Sign Up</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <section class="admin-container">
+            <div class="admin-header">
+                <h1>Admin Dashboard</h1>
+                <div class="admin-actions">
+                    <button class="btn-primary" id="export-data">Export Data</button>
+                </div>
+            </div>
+            <div class="admin-content">
+                <div class="admin-section">
+                    <h2>User Management</h2>
+                    <div class="catalog-filters">
+                        <input type="search" placeholder="Search users..." class="search-input">
+                        <select class="category-select">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="suspended">Suspended</option>
+                        </select>
+                    </div>
+                    <div class="data-table">
+                        <table id="users-table">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Join Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- User data will be dynamically loaded -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="admin-section">
+                    <h2>Book Management</h2>
+                    <div class="catalog-filters">
+                        <input type="search" placeholder="Search books..." class="search-input">
+                        <select class="category-select">
+                            <option value="">All Categories</option>
+                            <option value="title">Book Title</option>
+                            <option value="author">Author</option>
+                            <option value="isbn">ISBN</option>
+                        </select>
+                    </div>
+                    <div class="data-table">
+                        <table id="books-table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Author</th>
+                                    <th>ISBN</th>
+                                    <th>Status</th>
+                                    <th>Current Borrower</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Book data will be dynamically loaded -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="admin-section">
+                    <h2>Library Analytics</h2>
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <h3>Total Users</h3>
+                            <p class="analytics-value" id="total-users">0</p>
+                        </div>
+                        <div class="analytics-card">
+                            <h3>Active Books</h3>
+                            <p class="analytics-value" id="active-books">0</p>
+                        </div>
+                        <div class="analytics-card">
+                            <h3>Books Borrowed</h3>
+                            <p class="analytics-value" id="borrowed-books">0</p>
+                        </div>
+                        <div class="analytics-card">
+                            <h3>Overdue Books</h3>
+                            <p class="analytics-value" id="overdue-books">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script src="scripts.js"></script>
+</body>
+
+</html>
