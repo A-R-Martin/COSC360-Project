@@ -1,3 +1,6 @@
+<?php
+session_start();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,31 +12,15 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <nav class="main-nav">
-            <div class="logo">
-                <a href="index.html" class="nav-button active">Home</a>
-            </div>
-            <div class="nav-links">
-                <a href="catalog.html" class="nav-button">Guest Catalogue</a>
-                <a href="member-catalog.html" class="nav-button">Member Catalog</a>
-                <div class="auth-links">
-                    <a href="admin.html" class="nav-button">Admin</a>
-                    <a href="profile.html" class="nav-button">Profile</a>
-                    <a href="signin.html" class="nav-button">Sign In</a>
-                    <a href="signup.html" class="nav-button">Sign Up</a>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <?php include 'nav.php'; ?>
     <main>
         <section class="hero">
             <div class="container">
                 <h1>Welcome to Virtual Library</h1>
                 <p>Discover, borrow, and share books with readers around the world!</p>
                 <div class="hero-buttons">
-                    <a href="signup.html" class="btn btn-primary">Get Started</a>
-                    <a href="signin.html" class="btn btn-secondary">Sign In</a>
+                    <a href="signup.php" class="btn btn-primary">Get Started</a>
+                    <a href="signin.php" class="btn btn-secondary">Sign In</a>
                 </div>
             </div>
         </section>

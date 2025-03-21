@@ -1,3 +1,12 @@
+<?php
+session_start();
+
+// Redirect to member catalog if already logged in
+if (isset($_SESSION['user_id'])) {
+    header("Location: member-catalog.php");
+    exit();
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,23 +18,7 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <nav class="main-nav">
-            <div class="logo">
-                <a href="index.html" class="nav-button">Home</a>
-            </div>
-            <div class="nav-links">
-                <a href="catalog.html" class="nav-button active">Guest Catalogue</a>
-                <a href="member-catalog.html" class="nav-button">Member Catalog</a>
-                <div class="auth-links">
-                    <a href="admin.html" class="nav-button">Admin</a>
-                    <a href="profile.html" class="nav-button">Profile</a>
-                    <a href="signin.html" class="nav-button">Sign In</a>
-                    <a href="signup.html" class="nav-button">Sign Up</a>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <?php include 'nav.php'; ?>
     <main>
         <section class="catalog-header">
             <div class="container">
