@@ -76,9 +76,10 @@ include 'includes/header.php';
             
             <div class="book-detail-content">
                 <div class="book-detail-cover">
-                    <img src="<?php echo htmlspecialchars($book['cover'] ?? 'uploads/covers/default-cover.svg'); ?>" 
+                    <img src="<?php echo htmlspecialchars($book['cover'] ?? 'sample-image.avif'); ?>" 
                          alt="<?php echo htmlspecialchars($book['title']); ?>" 
-                         class="book-cover">
+                         class="book-cover"
+                         onerror="this.src='sample-image.avif'; this.onerror=null;">
                 </div>
                 
                 <div class="book-detail-info">

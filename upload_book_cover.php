@@ -43,6 +43,10 @@ if (isset($_FILES['book_cover']) && $_FILES['book_cover']['error'] === UPLOAD_ER
             $newFileName = uniqid('cover_', true) . '.' . $fileExt;
             $uploadDir = 'uploads/covers/';
             
+            if (substr($uploadDir, -1) !== '/') {
+                $uploadDir .= '/';
+            }
+            
             // Create directory structure if it doesn't exist
             if (!file_exists($uploadDir)) {
                 if (!mkdir($uploadDir, 0755, true)) {
@@ -77,6 +81,8 @@ if (isset($_FILES['book_cover']) && $_FILES['book_cover']['error'] === UPLOAD_ER
                             'file_path' => $uploadPath
                         ]
                     ];
+                    
+                    error_log("Book cover uploaded successfully: $uploadPath");
                 }
             } else {
                 $response['message'] = 'Error uploading file. Please try again.';

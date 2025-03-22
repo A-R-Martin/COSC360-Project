@@ -42,13 +42,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Handle form submission
         form.addEventListener('submit', (event) => {
+            if (form.hasAttribute('data-custom-submit')) {
+                console.log(`Skipping generic handler for form ${form.id} - has custom handler`);
+                return;
+            }
+            
             event.preventDefault();
+            console.log('Generic form submit handler triggered for form:', form.id);
             form.classList.remove('was-validated', 'form-valid');
             form.classList.add('was-validated');
             
-            if (validateForm(form)) {
+            const isValid = validateForm(form);
+            console.log(`Form ${form.id} validation result:`, isValid);
+            
+            if (isValid) {
                 form.classList.add('form-valid');
+                console.log(`Calling handleFormSubmit for form ${form.id}`);
                 handleFormSubmit(form);
+            } else {
+                console.log(`Form ${form.id} validation failed`);
             }
         });
     });
@@ -124,6 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Add book form found with ID:', addBookForm.id);
         
         addBookForm.addEventListener('submit', async (e) => {
+            console.log('*** ADD BOOK FORM SPECIFIC HANDLER TRIGGERED ***');
             try {
                 e.preventDefault();
                 console.log('Add book form submitted');
@@ -430,6 +443,17 @@ function removeError(input) {
     errorMessage?.remove();
 }
 
+function displayError(input, message) {
+    // Remove any existing error first
+    removeError(input);
+    
+    // Create and add new error message
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = message;
+    input.parentNode.appendChild(errorDiv);
+}
+
 function showError(input) {
     removeError(input);
     const errorDiv = document.createElement('div');
@@ -456,6 +480,9 @@ function handleFormSubmit(form) {
         // Handle profile update
         console.log('Profile form submitted');
         form.submit();
+    } else if (formId === 'add-book-form') {
+        console.log('Add book form submission handled by dedicated event listener');
+        return; // Return early to prevent duplicate submission
     } else {
         // Default behavior
         console.log('Unknown form submitted');
@@ -469,12 +496,45 @@ class BookCard {
         this.bookId = bookData.book_id;
         this.title = bookData.title;
         this.author = bookData.author;
-        this.cover = bookData.cover;
+        this.cover = bookData.cover || 'sample-image.avif';
         this.description = bookData.description;
         this.isbn = bookData.isbn;
         // Ensure rating is a number
         this.rating = parseFloat(bookData.rating) || 0;
         this.status = bookData.status || 'available';
+        
+        // Fix the cover path if needed
+        this.fixCoverPath();
+    }
+    
+    fixCoverPath() {
+        // If cover is null or undefined, set a placeholder
+        if (!this.cover) {
+            this.cover = 'sample-image.avif';
+            return;
+        }
+        
+        // Check if the path already includes http:// or https:// or is an absolute path
+        if (this.cover.startsWith('http://') || this.cover.startsWith('https://') || this.cover.startsWith('/')) {
+            return; // Path is already correct
+        }
+        
+        if (this.cover === 'null' || this.cover === 'undefined') {
+            this.cover = 'sample-image.avif';
+            return;
+        }
+        
+        // Log for debugging
+        console.log('Original cover path:', this.cover);
+        
+        if (this.cover.startsWith('./')) {
+            this.cover = this.cover.substring(2);
+        } else if (this.cover.startsWith('../')) {
+            this.cover = this.cover.substring(3);
+        }
+        
+        // Log for debugging
+        console.log('Processed cover path:', this.cover);
     }
 
     createStarRating() {
@@ -505,7 +565,7 @@ class BookCard {
         
         card.innerHTML = `
             <div class="book-card-cover">
-                <img src="${this.cover}" alt="${this.title}" loading="lazy">
+                <img src="${this.cover}" alt="${this.title}" loading="lazy" onerror="this.src='sample-image.avif'; this.onerror=null;" class="book-cover-img">
             </div>
             <div class="book-card-content">
                 <div class="book-card-top">
@@ -541,11 +601,29 @@ function renderBookCards(books, containerId) {
         return;
     }
     
+    // Debug book data
+    console.log('Book data sample:', books[0]);
+    
     books.forEach(bookData => {
+        // Add image path debugging
+        if (bookData.cover) {
+            console.log(`Book "${bookData.title}" has cover path: ${bookData.cover}`);
+        } else {
+            console.log(`Book "${bookData.title}" has no cover path`);
+        }
+        
         const bookCard = new BookCard(bookData);
         container.appendChild(bookCard.createCard());
     });
     console.log(`Successfully rendered ${books.length} book cards`);
+    
+    // Add image loading error event listeners
+    document.querySelectorAll('.book-cover-img').forEach(img => {
+        img.addEventListener('error', function() {
+            console.log(`Image failed to load: ${this.src}`);
+            this.src = 'sample-image.avif';
+        });
+    });
 }
 
 // Sample featured books data with ratings

@@ -140,6 +140,21 @@ if ($method === 'GET') {
         $stmt->execute();
         $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
+        // Process book data to validate cover images
+        foreach ($books as &$book) {
+            // If cover is set, make sure it exists or set a default
+            if (isset($book['cover']) && $book['cover']) {
+                // Check if the file exists (if it's a relative path)
+                if (!filter_var($book['cover'], FILTER_VALIDATE_URL) && !file_exists($book['cover'])) {
+                    // File doesn't exist, set to default
+                    $book['cover'] = 'sample-image.avif';
+                }
+            } else {
+                // No cover set, use default
+                $book['cover'] = 'sample-image.avif';
+            }
+        }
+        
         // Success response
         $response = [
             'status' => 'success',

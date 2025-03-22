@@ -26,7 +26,7 @@ if (!isset($_SESSION['user_id'])) {
                 <a href="profile.php" class="btn-secondary">Back to Profile</a>
             </div>
             
-            <form id="add-book-form" class="styled-form" enctype="multipart/form-data" novalidate>
+            <form id="add-book-form" class="styled-form" enctype="multipart/form-data" novalidate data-custom-submit="true">
                 <div class="form-group">
                     <label for="title">Book Title <span class="required">*</span></label>
                     <input type="text" id="title" name="title" required
@@ -111,7 +111,7 @@ if (!isset($_SESSION['user_id'])) {
                 
                 <div class="form-actions">
                     <button type="button" class="btn-secondary" id="cancel-add-book">Cancel</button>
-                    <button type="submit" class="btn-primary" id="submit-add-book" onclick="console.log('Submit button clicked directly')">Add Book</button>
+                    <button type="submit" class="btn-primary" id="submit-add-book" onclick="console.log('FORM SUBMIT BUTTON CLICKED');">Add Book</button>
                 </div>
             </form>
             
