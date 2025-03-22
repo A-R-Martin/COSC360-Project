@@ -175,13 +175,27 @@ else if ($method === 'POST') {
     
     // Get JSON data from request body
     $json = file_get_contents('php://input');
+    if (empty($json)) {
+        $response = [
+            'status' => 'error',
+            'message' => 'No data received. Empty request body.',
+            'data' => null
+        ];
+        echo json_encode($response);
+        exit;
+    }
+    
     $data = json_decode($json, true);
     
     if (!$data) {
         $response = [
             'status' => 'error',
-            'message' => 'Invalid JSON data',
-            'data' => null
+            'message' => 'Invalid JSON data: ' . json_last_error_msg(),
+            'data' => [
+                'received_data' => $json,
+                'json_error' => json_last_error(),
+                'json_error_msg' => json_last_error_msg()
+            ]
         ];
         echo json_encode($response);
         exit;
@@ -191,8 +205,10 @@ else if ($method === 'POST') {
     $book_id = isset($data['book_id']) ? (int)$data['book_id'] : 0;
     $user_id = $_SESSION['user_id'];
     
-    // For add book action, we don't need book_id validation
-    if ($action !== 'add' && !$book_id) {
+    // Log the action for debugging
+    error_log("API action: $action, user_id: $user_id, data: " . json_encode($data));
+    
+    if ($action !== 'add' && $action !== 'test' && !$book_id) {
         $response = [
             'status' => 'error',
             'message' => 'Book ID is required',
@@ -223,12 +239,23 @@ else if ($method === 'POST') {
                 $year_published = isset($data['year']) ? (int)$data['year'] : null;
                 $genre = isset($data['genre']) ? $data['genre'] : null;
                 $cover_image = isset($data['cover_image']) ? $data['cover_image'] : null;
+                $rating = isset($data['rating']) ? floatval($data['rating']) : null;
+                
+                // Validate rating if provided
+                if ($rating !== null && ($rating < 0 || $rating > 5)) {
+                    $response = [
+                        'status' => 'error',
+                        'message' => 'Rating must be between 0 and 5',
+                        'data' => null
+                    ];
+                    break;
+                }
                 
                 // Insert new book
-                $insertSql = "INSERT INTO books (title, author, description, isbn, year_published, genre, cover_image, status) 
-                             VALUES (?, ?, ?, ?, ?, ?, ?, 'available')";
+                $insertSql = "INSERT INTO books (title, author, description, isbn, year_published, genre, cover_image, rating, status) 
+                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'available')";
                 $insertStmt = $conn->prepare($insertSql);
-                $insertStmt->execute([$title, $author, $description, $isbn, $year_published, $genre, $cover_image]);
+                $insertStmt->execute([$title, $author, $description, $isbn, $year_published, $genre, $cover_image, $rating]);
                 
                 $newBookId = $conn->lastInsertId();
                 
@@ -487,6 +514,21 @@ else if ($method === 'POST') {
                     'message' => 'Invalid action',
                     'data' => null
                 ];
+                
+                // Special case for test action
+                if ($action === 'test') {
+                    $response = [
+                        'status' => 'success',
+                        'message' => 'API connection test successful',
+                        'data' => [
+                            'received_data' => $data,
+                            'user_id' => $user_id,
+                            'session_active' => isset($_SESSION['user_id']),
+                            'php_version' => PHP_VERSION,
+                            'datetime' => date('Y-m-d H:i:s')
+                        ]
+                    ];
+                }
         }
     } catch (PDOException $e) {
         // Rollback transaction on error

@@ -86,6 +86,17 @@ if (!isset($_SESSION['user_id'])) {
                 </div>
                 
                 <div class="form-group">
+                    <label for="rating">Rating</label>
+                    <div class="rating-input-container">
+                        <input type="number" id="rating" name="rating" 
+                               min="0" max="5" step="0.1" 
+                               placeholder="0.0 - 5.0"
+                               title="Book rating from 0 to 5 stars">
+                        <small class="form-text">Enter a rating between 0 and 5 (e.g., 4.5)</small>
+                    </div>
+                </div>
+                
+                <div class="form-group">
                     <label for="book-cover">Book Cover Image</label>
                     <div class="file-input-container">
                         <input type="file" id="book-cover" name="book_cover" 
@@ -100,14 +111,142 @@ if (!isset($_SESSION['user_id'])) {
                 
                 <div class="form-actions">
                     <button type="button" class="btn-secondary" id="cancel-add-book">Cancel</button>
-                    <button type="submit" class="btn-primary" id="submit-add-book">Add Book</button>
+                    <button type="submit" class="btn-primary" id="submit-add-book" onclick="console.log('Submit button clicked directly')">Add Book</button>
                 </div>
             </form>
             
             <div id="form-response-message" class="alert" style="display: none;"></div>
+            
+            <!-- Debugging Tools -->
+            <div class="debug-tools" style="margin-top: 2rem; padding: 1rem; background: #f8f8f8; border-radius: 4px;">
+                <h3>Debugging Tools</h3>
+                <p>If you're having trouble submitting the form, you can use these debugging tools:</p>
+                <button type="button" id="debug-submit-btn" class="btn-secondary">Debug Form Data</button>
+                <button type="button" id="manual-submit-btn" class="btn-secondary" style="margin-left: 1rem">Manual API Submit</button>
+                <div id="debug-output" style="margin-top: 1rem; padding: 1rem; background: #efefef; white-space: pre-wrap; font-family: monospace;"></div>
+            </div>
         </section>
     </main>
     
     <script src="scripts.js"></script>
+    <script>
+        // Additional debugging script
+        document.getElementById('debug-submit-btn')?.addEventListener('click', function() {
+            const debugOutput = document.getElementById('debug-output');
+            
+            try {
+                // Collect form data
+                const titleInput = document.getElementById('title');
+                const authorInput = document.getElementById('author');
+                const descriptionInput = document.getElementById('description');
+                const isbnInput = document.getElementById('isbn');
+                const yearInput = document.getElementById('year');
+                const genreInput = document.getElementById('genre');
+                const ratingInput = document.getElementById('rating');
+                const bookCoverInput = document.getElementById('book-cover');
+                
+                const debugData = {
+                    title: titleInput?.value?.trim() || 'Not found',
+                    author: authorInput?.value?.trim() || 'Not found',
+                    description: descriptionInput?.value?.trim() || 'Not found',
+                    isbn: isbnInput?.value?.trim() || 'Not found',
+                    year: yearInput?.value || 'Not found',
+                    genre: genreInput?.value || 'Not found',
+                    rating: ratingInput?.value || 'Not found',
+                    hasCoverFile: bookCoverInput?.files?.length > 0 ? 'Yes' : 'No',
+                    fileInfo: bookCoverInput?.files?.length > 0 ? {
+                        name: bookCoverInput.files[0].name,
+                        type: bookCoverInput.files[0].type,
+                        size: bookCoverInput.files[0].size + ' bytes'
+                    } : 'N/A',
+                    formId: document.getElementById('add-book-form')?.id || 'Not found',
+                    sessionStatus: '<?php echo isset($_SESSION["user_id"]) ? "Logged in (ID: ".$_SESSION["user_id"].")" : "Not logged in"; ?>'
+                };
+                
+                debugOutput.textContent = "Form Data Debug:\n" + JSON.stringify(debugData, null, 2);
+                
+                // Test if fetch is working
+                debugOutput.textContent += "\n\nTesting API connection...";
+                
+                fetch('api_books.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({action: 'test'})
+                })
+                .then(response => {
+                    debugOutput.textContent += "\nAPI Response Status: " + response.status;
+                    return response.text();
+                })
+                .then(text => {
+                    debugOutput.textContent += "\nAPI Response Text: " + text;
+                })
+                .catch(error => {
+                    debugOutput.textContent += "\nAPI Error: " + error.message;
+                });
+                
+            } catch (error) {
+                debugOutput.textContent = "Error collecting debug data: " + error.message;
+            }
+        });
+        
+        // Manual submit button
+        document.getElementById('manual-submit-btn')?.addEventListener('click', async function() {
+            const debugOutput = document.getElementById('debug-output');
+            debugOutput.textContent = "Attempting manual submission...";
+            
+            try {
+                // Collect form data
+                const titleInput = document.getElementById('title');
+                const authorInput = document.getElementById('author');
+                const descriptionInput = document.getElementById('description');
+                const isbnInput = document.getElementById('isbn');
+                const yearInput = document.getElementById('year');
+                const genreInput = document.getElementById('genre');
+                const ratingInput = document.getElementById('rating');
+                
+                // Create book data object
+                const bookData = {
+                    action: 'add',
+                    title: titleInput.value.trim(),
+                    author: authorInput.value.trim(),
+                    description: descriptionInput.value.trim(),
+                    isbn: isbnInput.value.trim(),
+                    year: yearInput.value,
+                    genre: genreInput.value,
+                    rating: ratingInput.value ? parseFloat(ratingInput.value) : null
+                };
+                
+                debugOutput.textContent += "\nPrepared book data:\n" + JSON.stringify(bookData, null, 2);
+                
+                // Submit directly to API
+                debugOutput.textContent += "\n\nSubmitting to API...";
+                
+                const response = await fetch('api_books.php', {
+                    method: 'POST', 
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bookData)
+                });
+                
+                debugOutput.textContent += "\nAPI Response Status: " + response.status;
+                
+                const result = await response.json();
+                debugOutput.textContent += "\nAPI Response Data:\n" + JSON.stringify(result, null, 2);
+                
+                if (result.status === 'success') {
+                    debugOutput.textContent += "\n\nBook added successfully! Book ID: " + result.data.book_id;
+                } else {
+                    debugOutput.textContent += "\n\nError adding book: " + result.message;
+                }
+                
+            } catch (error) {
+                debugOutput.textContent += "\n\nError in manual submission: " + error.message;
+                console.error('Manual submission error:', error);
+            }
+        });
+    </script>
 </body>
 </html> 

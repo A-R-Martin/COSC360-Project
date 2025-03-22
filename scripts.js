@@ -120,98 +120,153 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Form submission
     if (addBookForm) {
+        // Log that the form was found
+        console.log('Add book form found with ID:', addBookForm.id);
+        
         addBookForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            // Validate form
-            const titleInput = document.getElementById('title');
-            const authorInput = document.getElementById('author');
-            
-            // Check required fields
-            if (!titleInput.value.trim()) {
-                showFormMessage('Please enter a book title', 'error');
-                titleInput.focus();
-                return;
-            }
-            
-            if (!authorInput.value.trim()) {
-                showFormMessage('Please enter an author name', 'error');
-                authorInput.focus();
-                return;
-            }
-            
-            // Create form data
-            const formData = new FormData();
-            const bookData = {
-                action: 'add',
-                title: titleInput.value.trim(),
-                author: authorInput.value.trim(),
-                description: document.getElementById('description').value.trim(),
-                isbn: document.getElementById('isbn').value.trim(),
-                year: document.getElementById('year').value,
-                genre: document.getElementById('genre').value
-            };
-            
-            // First, upload the book cover if provided
-            let coverPath = null;
-            if (bookCoverInput.files.length > 0) {
-                const coverFormData = new FormData();
-                coverFormData.append('book_cover', bookCoverInput.files[0]);
-                
-                try {
-                    showFormMessage('Uploading cover image...', 'info');
-                    const coverResponse = await fetch('upload_book_cover.php', {
-                        method: 'POST',
-                        body: coverFormData
-                    });
-                    
-                    const coverResult = await coverResponse.json();
-                    if (coverResult.status === 'success') {
-                        coverPath = coverResult.data.file_path;
-                    } else {
-                        showFormMessage('Error uploading cover: ' + coverResult.message, 'error');
-                        return;
-                    }
-                } catch (error) {
-                    showFormMessage('Error uploading cover: ' + error.message, 'error');
-                    return;
-                }
-            }
-            
-            // Add cover path to book data if available
-            if (coverPath) {
-                bookData.cover_image = coverPath;
-            }
-            
-            // Submit book data
             try {
-                showFormMessage('Adding book to library...', 'info');
-                const response = await fetch('api_books.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(bookData)
+                e.preventDefault();
+                console.log('Add book form submitted');
+                
+                // Validate form
+                const titleInput = document.getElementById('title');
+                const authorInput = document.getElementById('author');
+                const isbnInput = document.getElementById('isbn');
+                const ratingInput = document.getElementById('rating');
+                
+                console.log('Form elements:', {
+                    title: titleInput?.value,
+                    author: authorInput?.value
                 });
                 
-                const result = await response.json();
-                if (result.status === 'success') {
-                    showFormMessage('Book added successfully!', 'success');
-                    // Reset form
-                    addBookForm.reset();
-                    coverPreview.style.display = 'none';
-                    
-                    // Redirect to profile after 2 seconds
-                    setTimeout(() => {
-                        window.location.href = 'profile.php';
-                    }, 2000);
-                } else {
-                    showFormMessage('Error adding book: ' + result.message, 'error');
+                // Check required fields
+                if (!titleInput || !titleInput.value.trim()) {
+                    showFormMessage('Please enter a book title', 'error');
+                    if (titleInput) titleInput.focus();
+                    return;
                 }
-            } catch (error) {
-                showFormMessage('Error adding book: ' + error.message, 'error');
+                
+                if (!authorInput || !authorInput.value.trim()) {
+                    showFormMessage('Please enter an author name', 'error');
+                    if (authorInput) authorInput.focus();
+                    return;
+                }
+                
+                // Validate ISBN if provided (must be 10 or 13 digits)
+                const isbnValue = isbnInput ? isbnInput.value.trim() : '';
+                if (isbnValue && !/^(\d{10}|\d{13})$/.test(isbnValue)) {
+                    showFormMessage('ISBN must be exactly 10 or 13 digits', 'error');
+                    isbnInput.focus();
+                    return;
+                }
+                
+                // Validate rating if provided
+                const ratingValue = ratingInput ? ratingInput.value.trim() : '';
+                if (ratingValue) {
+                    const rating = parseFloat(ratingValue);
+                    if (isNaN(rating) || rating < 0 || rating > 5) {
+                        showFormMessage('Rating must be a number between 0 and 5', 'error');
+                        ratingInput.focus();
+                        return;
+                    }
+                }
+                
+                // Create book data object
+                const bookData = {
+                    action: 'add',
+                    title: titleInput.value.trim(),
+                    author: authorInput.value.trim(),
+                    description: document.getElementById('description')?.value?.trim() || '',
+                    isbn: isbnValue,
+                    year: document.getElementById('year')?.value || '',
+                    genre: document.getElementById('genre')?.value || '',
+                    rating: ratingValue ? parseFloat(ratingValue) : null
+                };
+                
+                console.log('Book data to submit:', bookData);
+                
+                // First, upload the book cover if provided
+                let coverPath = null;
+                const bookCoverInput = document.getElementById('book-cover');
+                const coverPreview = document.getElementById('cover-preview');
+                
+                if (bookCoverInput && bookCoverInput.files.length > 0) {
+                    const coverFormData = new FormData();
+                    coverFormData.append('book_cover', bookCoverInput.files[0]);
+                    
+                    try {
+                        showFormMessage('Uploading cover image...', 'info');
+                        console.log('Uploading cover image...');
+                        const coverResponse = await fetch('upload_book_cover.php', {
+                            method: 'POST',
+                            body: coverFormData
+                        });
+                        
+                        const coverResult = await coverResponse.json();
+                        console.log('Cover upload response:', coverResult);
+                        if (coverResult.status === 'success') {
+                            coverPath = coverResult.data.file_path;
+                        } else {
+                            showFormMessage('Error uploading cover: ' + coverResult.message, 'error');
+                            return;
+                        }
+                    } catch (error) {
+                        console.error('Error uploading cover:', error);
+                        showFormMessage('Error uploading cover: ' + error.message, 'error');
+                        return;
+                    }
+                }
+                
+                // Add cover path to book data if available
+                if (coverPath) {
+                    bookData.cover_image = coverPath;
+                }
+                
+                // Submit book data
+                try {
+                    showFormMessage('Adding book to library...', 'info');
+                    console.log('Submitting book data to API:', bookData);
+                    const response = await fetch('api_books.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(bookData)
+                    });
+                    
+                    console.log('API response status:', response.status);
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`API error (${response.status}): ${errorText}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('API response data:', result);
+                    
+                    if (result.status === 'success') {
+                        showFormMessage('Book added successfully!', 'success');
+                        // Reset form
+                        addBookForm.reset();
+                        if (coverPreview) coverPreview.style.display = 'none';
+                        
+                        // Redirect to profile after 2 seconds
+                        setTimeout(() => {
+                            window.location.href = 'profile.php';
+                        }, 2000);
+                    } else {
+                        showFormMessage('Error adding book: ' + result.message, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error submitting book data:', error);
+                    showFormMessage('Error adding book: ' + error.message, 'error');
+                }
+            } catch (err) {
+                console.error('Global form submission error:', err);
+                showFormMessage('An unexpected error occurred: ' + err.message, 'error');
             }
         });
+    } else {
+        console.warn('Add book form not found on this page');
     }
 
     // Admin page buttons

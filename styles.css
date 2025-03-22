@@ -388,9 +388,9 @@ footer {}
 
 .form-actions {
     display: flex;
-    justify-content: flex-start;
-    gap: var(--spacing-md);
-    margin-top: var(--spacing-lg);
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
 }
 
 .profile-header .btn-primary {
@@ -1088,6 +1088,18 @@ textarea:focus {
     color: #6c757d;
 }
 
+/* Rating input styling */
+.rating-input-container {
+    display: flex;
+    flex-direction: column;
+}
+
+input[type="number"]#rating {
+    width: 100%;
+    max-width: 200px;
+}
+
+/* File input styling */
 .file-input-container {
     display: flex;
     flex-direction: column;
@@ -1103,13 +1115,6 @@ textarea:focus {
     background-color: #f8f9fa;
     border-radius: 4px;
     min-height: 150px;
-}
-
-.form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 1rem;
 }
 
 /* Alert Messages */
