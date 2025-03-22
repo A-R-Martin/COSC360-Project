@@ -83,7 +83,134 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addBookBtn) {
         addBookBtn.addEventListener('click', () => {
             console.log('Add book button clicked');
-            // TODO: Implement add book functionality
+            window.location.href = 'add_book.php';
+        });
+    }
+
+    // Add book form handlers
+    const addBookForm = document.getElementById('add-book-form');
+    const bookCoverInput = document.getElementById('book-cover');
+    const coverPreview = document.getElementById('cover-preview');
+    const cancelAddBookBtn = document.getElementById('cancel-add-book');
+    
+    // Book cover preview
+    if (bookCoverInput) {
+        bookCoverInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    coverPreview.src = e.target.result;
+                    coverPreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                coverPreview.src = '#';
+                coverPreview.style.display = 'none';
+            }
+        });
+    }
+    
+    // Cancel button
+    if (cancelAddBookBtn) {
+        cancelAddBookBtn.addEventListener('click', () => {
+            window.location.href = 'profile.php';
+        });
+    }
+    
+    // Form submission
+    if (addBookForm) {
+        addBookForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Validate form
+            const titleInput = document.getElementById('title');
+            const authorInput = document.getElementById('author');
+            
+            // Check required fields
+            if (!titleInput.value.trim()) {
+                showFormMessage('Please enter a book title', 'error');
+                titleInput.focus();
+                return;
+            }
+            
+            if (!authorInput.value.trim()) {
+                showFormMessage('Please enter an author name', 'error');
+                authorInput.focus();
+                return;
+            }
+            
+            // Create form data
+            const formData = new FormData();
+            const bookData = {
+                action: 'add',
+                title: titleInput.value.trim(),
+                author: authorInput.value.trim(),
+                description: document.getElementById('description').value.trim(),
+                isbn: document.getElementById('isbn').value.trim(),
+                year: document.getElementById('year').value,
+                genre: document.getElementById('genre').value
+            };
+            
+            // First, upload the book cover if provided
+            let coverPath = null;
+            if (bookCoverInput.files.length > 0) {
+                const coverFormData = new FormData();
+                coverFormData.append('book_cover', bookCoverInput.files[0]);
+                
+                try {
+                    showFormMessage('Uploading cover image...', 'info');
+                    const coverResponse = await fetch('upload_book_cover.php', {
+                        method: 'POST',
+                        body: coverFormData
+                    });
+                    
+                    const coverResult = await coverResponse.json();
+                    if (coverResult.status === 'success') {
+                        coverPath = coverResult.data.file_path;
+                    } else {
+                        showFormMessage('Error uploading cover: ' + coverResult.message, 'error');
+                        return;
+                    }
+                } catch (error) {
+                    showFormMessage('Error uploading cover: ' + error.message, 'error');
+                    return;
+                }
+            }
+            
+            // Add cover path to book data if available
+            if (coverPath) {
+                bookData.cover_image = coverPath;
+            }
+            
+            // Submit book data
+            try {
+                showFormMessage('Adding book to library...', 'info');
+                const response = await fetch('api_books.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bookData)
+                });
+                
+                const result = await response.json();
+                if (result.status === 'success') {
+                    showFormMessage('Book added successfully!', 'success');
+                    // Reset form
+                    addBookForm.reset();
+                    coverPreview.style.display = 'none';
+                    
+                    // Redirect to profile after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = 'profile.php';
+                    }, 2000);
+                } else {
+                    showFormMessage('Error adding book: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showFormMessage('Error adding book: ' + error.message, 'error');
+            }
         });
     }
 
@@ -438,3 +565,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+/**
+ * Display form message
+ */
+function showFormMessage(message, type = 'info') {
+    const messageDiv = document.getElementById('form-response-message');
+    if (messageDiv) {
+        messageDiv.textContent = message;
+        messageDiv.className = 'alert';
+        messageDiv.classList.add(`alert-${type}`);
+        messageDiv.style.display = 'block';
+        
+        // Scroll to message
+        messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}

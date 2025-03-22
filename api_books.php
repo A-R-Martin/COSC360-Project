@@ -191,7 +191,8 @@ else if ($method === 'POST') {
     $book_id = isset($data['book_id']) ? (int)$data['book_id'] : 0;
     $user_id = $_SESSION['user_id'];
     
-    if (!$book_id) {
+    // For add book action, we don't need book_id validation
+    if ($action !== 'add' && !$book_id) {
         $response = [
             'status' => 'error',
             'message' => 'Book ID is required',
@@ -203,6 +204,44 @@ else if ($method === 'POST') {
     
     try {
         switch ($action) {
+            case 'add':
+                // Required fields
+                if (empty($data['title']) || empty($data['author'])) {
+                    $response = [
+                        'status' => 'error',
+                        'message' => 'Title and author are required',
+                        'data' => null
+                    ];
+                    break;
+                }
+                
+                // Get book data
+                $title = $data['title'];
+                $author = $data['author'];
+                $description = isset($data['description']) ? $data['description'] : null;
+                $isbn = isset($data['isbn']) ? $data['isbn'] : null;
+                $year_published = isset($data['year']) ? (int)$data['year'] : null;
+                $genre = isset($data['genre']) ? $data['genre'] : null;
+                $cover_image = isset($data['cover_image']) ? $data['cover_image'] : null;
+                
+                // Insert new book
+                $insertSql = "INSERT INTO books (title, author, description, isbn, year_published, genre, cover_image, status) 
+                             VALUES (?, ?, ?, ?, ?, ?, ?, 'available')";
+                $insertStmt = $conn->prepare($insertSql);
+                $insertStmt->execute([$title, $author, $description, $isbn, $year_published, $genre, $cover_image]);
+                
+                $newBookId = $conn->lastInsertId();
+                
+                $response = [
+                    'status' => 'success',
+                    'message' => 'Book added successfully',
+                    'data' => [
+                        'book_id' => $newBookId,
+                        'title' => $title
+                    ]
+                ];
+                break;
+                
             case 'borrow':
                 // Check if the book is available
                 $checkSql = "SELECT status FROM books WHERE book_id = ?";
