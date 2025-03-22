@@ -24,51 +24,37 @@ $error_message = "";
 $email = "";
 
 // Process login form if submitted
-if (!empty($_POST)) {  // This is the important change - check for any POST data
-    // Get form inputs
-    $email = isset($_POST['email']) ? trim($_POST['email']) : '';
-    $password = isset($_POST['password']) ? $_POST['password'] : '';
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
     
-    // Validate inputs
-    if (empty($email) || empty($password)) {
-        $error_message = "Email and password are required";
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error_message = "Please enter a valid email address";
-    } else {
-        // Sanitize input
-        $email = mysqli_real_escape_string($conn, $email);
+    // Prepare SQL statement
+    $sql = "SELECT * FROM users WHERE email = :email";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute(['email' => $email]);
+    
+    if ($stmt->rowCount() == 1) {
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        // Query for user with email
-        $sql = "SELECT * FROM users WHERE email = '$email'";
-        $result = mysqli_query($conn, $sql);
-        
-        if (mysqli_num_rows($result) == 1) {
-            // User found
-            $user = mysqli_fetch_assoc($result);
+        if (password_verify($password, $user['password'])) {
+            // Debug successful login (only for development)
+            echo "<div style='background:#e8f5e9; border:1px solid #2e7d32; padding:10px; margin:10px 0; font-family:monospace;'>";
+            echo "<strong>Login Successful!</strong> User ID: " . $user['user_id'] . " | Username: " . $user['username'];
+            echo "</div>";
             
-            // Verify password
-            if (password_verify($password, $user['password'])) {
-                // Debug successful login (only for development)
-                echo "<div style='background:#e8f5e9; border:1px solid #2e7d32; padding:10px; margin:10px 0; font-family:monospace;'>";
-                echo "<strong>Login Successful!</strong> User ID: " . $user['user_id'] . " | Username: " . $user['username'];
-                echo "</div>";
-                
-                // Password is correct, set session variables
-                $_SESSION['user_id'] = $user['user_id'];
-                $_SESSION['username'] = $user['username'];
-                $_SESSION['role'] = $user['role'];
-                
-                // Redirect to profile page
-                header("Location: profile.php");
-                exit();
-            } else {
-                // Password is incorrect
-                $error_message = "Invalid email or password";
-            }
+            // Password is correct, set session variables
+            $_SESSION['user_id'] = $user['user_id'];
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['role'] = $user['role'];
+            
+            // Redirect to profile page
+            header("Location: profile.php");
+            exit();
         } else {
-            // User not found
             $error_message = "Invalid email or password";
         }
+    } else {
+        $error_message = "Invalid email or password";
     }
 }
 ?>

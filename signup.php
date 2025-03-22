@@ -18,8 +18,8 @@ echo "POST data received: " . (empty($_POST) ? "No" : "Yes") . "<br>";
 echo "Database connection: " . ($conn ? "OK" : "FAILED") . "<br>";
 
 // Check if users table exists
-$result = mysqli_query($conn, "SHOW TABLES LIKE 'users'");
-echo "Users table exists: " . (mysqli_num_rows($result) > 0 ? "Yes" : "No") . "<br>";
+$result = $conn->query("SHOW TABLES LIKE 'users'");
+echo "Users table exists: " . ($result->rowCount() > 0 ? "Yes" : "No") . "<br>";
 echo "</div>";
 
 // Check if user is already logged in
@@ -36,67 +36,57 @@ $username = "";
 $email = "";
 
 // Process registration form if submitted
-if (!empty($_POST)) {  // This is the important change - check for any POST data
-    // Get form inputs
-    $username = isset($_POST['username']) ? trim($_POST['username']) : '';
-    $email = isset($_POST['email']) ? trim($_POST['email']) : '';
-    $password = isset($_POST['password']) ? $_POST['password'] : '';
-    $confirm_password = isset($_POST['confirm-password']) ? $_POST['confirm-password'] : '';
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $username = trim($_POST['username']);
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
+    $confirm_password = $_POST['confirm_password'];
     
-    // Enhanced validation
+    // Validate inputs
     if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
         $error_message = "All fields are required";
-    } elseif (!preg_match('/^[a-zA-Z0-9_-]{3,30}$/', $username)) {
-        $error_message = "Username must be between 3-30 characters and can only contain letters, numbers, underscores and hyphens";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error_message = "Please enter a valid email address";
-    } elseif (strlen($password) < 8) {
-        $error_message = "Password must be at least 8 characters long";
-    } elseif (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
-        $error_message = "Password must include uppercase, lowercase, number and special character";
     } elseif ($password !== $confirm_password) {
         $error_message = "Passwords do not match";
     } else {
-        // Sanitize inputs for database insertion
-        $username = mysqli_real_escape_string($conn, $username);
-        $email = mysqli_real_escape_string($conn, $email);
-        
-        // Check if username already exists
-        $check_username = mysqli_query($conn, "SELECT * FROM users WHERE username = '$username'");
-        if (mysqli_num_rows($check_username) > 0) {
+        // Check if username exists
+        $stmt = $conn->prepare("SELECT * FROM users WHERE username = :username");
+        $stmt->execute(['username' => $username]);
+        if ($stmt->rowCount() > 0) {
             $error_message = "Username already exists";
         } else {
-            // Check if email already exists
-            $check_email = mysqli_query($conn, "SELECT * FROM users WHERE email = '$email'");
-            if (mysqli_num_rows($check_email) > 0) {
+            // Check if email exists
+            $stmt = $conn->prepare("SELECT * FROM users WHERE email = :email");
+            $stmt->execute(['email' => $email]);
+            if ($stmt->rowCount() > 0) {
                 $error_message = "Email already exists";
             } else {
                 // Hash password
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
                 
-                // Insert new user with default role of 'user'
-                $insert_query = "INSERT INTO users (username, email, password, role) VALUES ('$username', '$email', '$hashed_password', 'user')";
-                $result = mysqli_query($conn, $insert_query);
-                
-                if ($result) {
-                    // Show successful insertion details
-                    echo "<div style='background:#e8f5e9; border:1px solid #2e7d32; padding:10px; margin:10px 0; font-family:monospace;'>";
-                    echo "<strong>Success!</strong> User created with ID: " . mysqli_insert_id($conn);
+                // Insert new user
+                $insert_query = "INSERT INTO users (username, email, password, role) VALUES (:username, :email, :password, 'user')";
+                try {
+                    $stmt = $conn->prepare($insert_query);
+                    $stmt->execute([
+                        'username' => $username,
+                        'email' => $email,
+                        'password' => $hashed_password
+                    ]);
+                    
+                    echo "<div class='alert alert-success'>";
+                    echo "<strong>Success!</strong> User created with ID: " . $conn->lastInsertId();
                     echo "</div>";
                     
-                    $success_message = "Account created successfully! You can now sign in.";
-                    // Clear form data
-                    $username = $email = "";
-                    
-                    // Redirect to signin page after 2 seconds
-                    header("refresh:2;url=signin.php");
-                } else {
-                    // Show error details
-                    echo "<div style='background:#ffebee; border:1px solid #c62828; padding:10px; margin:10px 0; font-family:monospace;'>";
-                    echo "<strong>DB Error:</strong> " . mysqli_error($conn);
+                    // Redirect to signin page
+                    header("Location: signin.php");
+                    exit();
+                } catch (PDOException $e) {
+                    $error_message = "Error: " . $e->getMessage();
+                    echo "<div class='alert alert-danger'>";
+                    echo "<strong>DB Error:</strong> " . $e->getMessage();
                     echo "</div>";
-                    
-                    $error_message = "Error: " . mysqli_error($conn);
                 }
             }
         }
@@ -176,7 +166,7 @@ if (!empty($_POST)) {  // This is the important change - check for any POST data
                     </div>
                     <div class="form-group">
                         <label for="confirm-password">Confirm Password</label>
-                        <input type="password" id="confirm-password" name="confirm-password" required>
+                        <input type="password" id="confirm-password" name="confirm_password" required>
                     </div>
                     <button type="submit" class="btn-primary">Create Account</button>
                 </form>

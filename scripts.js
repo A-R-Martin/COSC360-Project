@@ -99,21 +99,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Book card action buttons (for catalog pages)
     document.addEventListener('click', (e) => {
         if (e.target.matches('.btn-details')) {
-            const isbn = e.target.dataset.isbn;
-            console.log(`View details clicked for book ISBN: ${isbn}`);
-            // TODO: Implement book details view
-        }
-        
-        if (e.target.matches('.btn-borrow')) {
-            const isbn = e.target.dataset.isbn;
-            console.log(`Borrow clicked for book ISBN: ${isbn}`);
-            // TODO: Implement book borrowing
-        }
-        
-        if (e.target.matches('.btn-return')) {
-            const isbn = e.target.dataset.isbn;
-            console.log(`Return clicked for book ISBN: ${isbn}`);
-            // TODO: Implement book return
+            const bookId = e.target.getAttribute('data-book-id');
+            console.log('View details clicked for book ID:', bookId);
+            // Go to the book detail page
+            window.location.href = `book_detail.php?id=${bookId}`;
+        } else if (e.target.matches('.btn-borrow')) {
+            const bookId = e.target.getAttribute('data-book-id');
+            console.log('Borrow clicked for book ID:', bookId);
+            // TODO: Implement borrow functionality
+        } else if (e.target.matches('.btn-reserve')) {
+            const bookId = e.target.getAttribute('data-book-id');
+            console.log('Reserve clicked for book ID:', bookId);
+            // TODO: Implement reserve functionality
         }
     });
 
@@ -176,56 +173,58 @@ function checkPasswordRequirements(input) {
 }
 
 function validateField(input) {
-    input.setCustomValidity('');
+    const errorMessages = [];
     
-    // Required field validation
-    if (input.hasAttribute('required') && !input.value.trim()) {
-        input.setCustomValidity(VALIDATION_MESSAGES.required);
-        showError(input);
-        return false;
+    // Check required fields
+    if (input.required && !input.value.trim()) {
+        errorMessages.push(VALIDATION_MESSAGES.required);
     }
     
-    // Type-specific validation
-    if (input.value.trim()) {
-        switch(true) {
-            case input.type === 'email':
-                if (!VALIDATION_PATTERNS.email.test(input.value)) {
-                    input.setCustomValidity(VALIDATION_MESSAGES.email);
-                }
-                break;
-                
-            case input.id === 'password' && input.form.id === 'signup-form':
-            case input.id === 'new-password':
-                if (!VALIDATION_PATTERNS.password.test(input.value)) {
-                    input.setCustomValidity(VALIDATION_MESSAGES.password);
-                }
-                break;
-                
-            case input.id === 'confirm-password':
-                const passwordField = input.form.querySelector('#password, #new-password');
-                if (passwordField && input.value !== passwordField.value) {
-                    input.setCustomValidity(VALIDATION_MESSAGES.passwordMatch);
-                }
-                break;
-                
-            case input.id === 'username':
-                if (!VALIDATION_PATTERNS.username.test(input.value)) {
-                    input.setCustomValidity(VALIDATION_MESSAGES.username);
-                }
-                break;
-                
-            case input.type === 'file' && input.files.length > 0:
-                validateFile(input);
-                break;
+    // Email validation
+    if (input.type === 'email' && input.value.trim() && !VALIDATION_PATTERNS.email.test(input.value)) {
+        errorMessages.push(VALIDATION_MESSAGES.email);
+    }
+    
+    // Username validation
+    if (input.id === 'username' && input.value.trim() && !VALIDATION_PATTERNS.username.test(input.value)) {
+        errorMessages.push(VALIDATION_MESSAGES.username);
+    }
+    
+    // Password validation
+    if ((input.id === 'password' || input.id === 'new-password') && input.value.trim() && !VALIDATION_PATTERNS.password.test(input.value)) {
+        errorMessages.push(VALIDATION_MESSAGES.password);
+    }
+    
+    // Confirm password validation
+    if (input.id === 'confirm-password' || input.id === 'confirm-new-password') {
+        const passwordField = input.id === 'confirm-password' 
+            ? document.getElementById('password') 
+            : document.getElementById('new-password');
+        
+        if (passwordField && input.value !== passwordField.value) {
+            errorMessages.push(VALIDATION_MESSAGES.passwordMatch);
         }
     }
     
-    if (!input.validity.valid) {
-        showError(input);
+    // Add or remove validation classes based on result
+    if (errorMessages.length > 0) {
+        input.classList.add('is-invalid');
+        input.classList.remove('is-valid');
+        
+        // Create or update error messages
+        errorMessages.forEach((message) => {
+            displayError(input, message);
+        });
+        
         return false;
+    } else if (input.value.trim()) {
+        input.classList.add('is-valid');
+        input.classList.remove('is-invalid');
+        removeError(input);
+        return true;
     }
     
-    return true;
+    return !input.required;
 }
 
 function validateFile(input) {
@@ -233,14 +232,13 @@ function validateFile(input) {
 }
 
 function validateForm(form) {
-    const isValid = Array.from(form.querySelectorAll('input, textarea, select'))
-        .every(input => validateField(input));
-        
-    if (!isValid) {
-        console.log(`Form validation failed for ${form.id}`);
-    } else {
-        console.log(`Form validation successful for ${form.id}`);
-    }
+    let isValid = true;
+    const formFields = form.querySelectorAll('input, textarea, select');
+    
+    formFields.forEach((field) => {
+        const fieldIsValid = validateField(field);
+        isValid = isValid && fieldIsValid;
+    });
     
     return isValid;
 }
@@ -259,35 +257,42 @@ function showError(input) {
 }
 
 function handleFormSubmit(form) {
-    console.log(`Form submission started for: ${form.id}`);
-    const formActions = {
-        'signin-form': () => {
-            console.log('Sign in form submitted successfully');
-            // TODO: Implement sign in logic
-        },
-        'signup-form': () => {
-            console.log('Sign up form submitted successfully');
-            // TODO: Implement sign up logic
-        },
-        'profile-form': () => {
-            console.log('Profile form submitted successfully');
-            // TODO: Implement profile update logic
-        }
-    };
-
-    (formActions[form.id] || (() => console.log(`Form ${form.id} submitted successfully`)))();
+    console.log('Form is valid, submitting...');
+    
+    // Identify form by ID and handle accordingly
+    const formId = form.id;
+    
+    if (formId === 'signup-form') {
+        // Handle signup
+        console.log('Signup form submitted');
+        form.submit();
+    } else if (formId === 'signin-form') {
+        // Handle signin
+        console.log('Signin form submitted');
+        form.submit();
+    } else if (formId === 'profile-form') {
+        // Handle profile update
+        console.log('Profile form submitted');
+        form.submit();
+    } else {
+        // Default behavior
+        console.log('Unknown form submitted');
+        form.submit();
+    }
 }
 
-// Book Card Component
+// Book Card Component - Generic version for reuse
 class BookCard {
     constructor(bookData) {
+        this.bookId = bookData.book_id;
         this.title = bookData.title;
         this.author = bookData.author;
         this.cover = bookData.cover;
-        this.price = bookData.price;
-        this.isbn = bookData.isbn;
         this.description = bookData.description;
-        this.rating = bookData.rating || 0;
+        this.isbn = bookData.isbn;
+        // Ensure rating is a number
+        this.rating = parseFloat(bookData.rating) || 0;
+        this.status = bookData.status || 'available';
     }
 
     createStarRating() {
@@ -310,34 +315,31 @@ class BookCard {
     createCard() {
         const card = document.createElement('div');
         card.className = 'book-card';
+        
+        // Create shortened description (first 100 characters)
+        const shortDescription = this.description 
+            ? (this.description.length > 100 ? this.description.substring(0, 100) + '...' : this.description)
+            : 'No description available';
+        
         card.innerHTML = `
             <div class="book-card-cover">
                 <img src="${this.cover}" alt="${this.title}" loading="lazy">
             </div>
             <div class="book-card-content">
-                <h3 class="book-title">${this.title}</h3>
-                <p class="book-author">By ${this.author}</p>
-                ${this.createStarRating()}
-                <p class="book-price">$${this.price.toFixed(2)}</p>
-                <p class="book-description">${this.description}</p>
-                <button class="btn-details" data-isbn="${this.isbn}">View Details</button>
+                <div class="book-card-top">
+                    <h3 class="book-title">${this.title}</h3>
+                    <p class="book-author">By ${this.author}</p>
+                    ${this.createStarRating()}
+                    <p class="book-description">${shortDescription}</p>
+                    <p class="book-status ${this.status}">${this.status.toUpperCase()}</p>
+                </div>
+                <div class="book-card-bottom">
+                    <button class="btn-details" data-book-id="${this.bookId}">View Details</button>
+                </div>
             </div>
         `;
 
-        // Add event listener for the details button
-        card.querySelector('.btn-details').addEventListener('click', () => {
-            this.handleViewDetails();
-        });
-
         return card;
-    }
-
-    handleViewDetails() {
-        console.log(`Viewing details for book: ${this.isbn}`);
-        console.log(`Title: ${this.title}`);
-        console.log(`Author: ${this.author}`);
-        console.log(`Price: $${this.price}`);
-        // TODO: Implement book details view
     }
 }
 
@@ -351,6 +353,11 @@ function renderBookCards(books, containerId) {
     }
 
     container.innerHTML = ''; // Clear existing content
+    
+    if (books.length === 0) {
+        container.innerHTML = '<div class="no-results">No books found</div>';
+        return;
+    }
     
     books.forEach(bookData => {
         const bookCard = new BookCard(bookData);
