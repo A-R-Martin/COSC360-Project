@@ -1,0 +1,236 @@
+<?php
+session_start();
+require_once 'db_connect.php';
+
+// Get book ID from URL
+$book_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+// Redirect if no book ID provided
+if (!$book_id) {
+    header('Location: catalog.php');
+    exit;
+}
+
+// Check if user is logged in
+$is_logged_in = isset($_SESSION['user_id']);
+$user_id = $is_logged_in ? $_SESSION['user_id'] : null;
+
+// Get book details from the database
+try {
+    $sql = "SELECT *, cover_image as cover FROM books WHERE book_id = :book_id";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute(['book_id' => $book_id]);
+    $book = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$book) {
+        // Book not found
+        header('Location: catalog.php');
+        exit;
+    }
+    
+    // If user is logged in, check if they have a relationship with this book
+    $user_book_status = null;
+    if ($is_logged_in) {
+        $statusSql = "SELECT status, borrow_date, return_date, reserve_date, cancel_date 
+                     FROM user_books 
+                     WHERE user_id = :user_id AND book_id = :book_id 
+                     ORDER BY id DESC LIMIT 1";
+        $statusStmt = $conn->prepare($statusSql);
+        $statusStmt->execute([
+            'user_id' => $user_id,
+            'book_id' => $book_id
+        ]);
+        $user_book = $statusStmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($user_book) {
+            $user_book_status = $user_book['status'];
+        }
+    }
+    
+} catch (PDOException $e) {
+    // Database error
+    $error = "Database error: " . $e->getMessage();
+}
+
+// Set page title
+$page_title = $book ? $book['title'] : "Book Not Found";
+
+// Include header
+include 'includes/header.php';
+?>
+
+<main class="container">
+    <?php if (isset($error)): ?>
+        <div class="error-container">
+            <p class="error-message"><?php echo $error; ?></p>
+            <a href="catalog.php" class="btn btn-primary">Back to Catalog</a>
+        </div>
+    <?php elseif ($book): ?>
+        <div class="book-detail">
+            <div class="book-detail-header">
+                <a href="<?php echo $is_logged_in ? 'member-catalog.php' : 'catalog.php'; ?>" class="back-link">
+                    &larr; Back to Catalog
+                </a>
+                <h1><?php echo htmlspecialchars($book['title']); ?></h1>
+            </div>
+            
+            <div class="book-detail-content">
+                <div class="book-detail-cover">
+                    <img src="<?php echo htmlspecialchars($book['cover'] ?? 'uploads/covers/default-cover.svg'); ?>" 
+                         alt="<?php echo htmlspecialchars($book['title']); ?>" 
+                         class="book-cover">
+                </div>
+                
+                <div class="book-detail-info">
+                    <div class="book-meta">
+                        <p class="book-author">By <strong><?php echo htmlspecialchars($book['author']); ?></strong></p>
+                        <p class="book-isbn">ISBN: <?php echo htmlspecialchars($book['isbn']); ?></p>
+                        <p class="book-genre">Genre: <?php echo htmlspecialchars($book['genre']); ?></p>
+                        <p class="book-year">Year: <?php echo htmlspecialchars($book['year_published']); ?></p>
+                        <div class="book-rating">
+                            <?php
+                            $rating = (float)$book['rating'];
+                            $fullStars = floor($rating);
+                            $halfStar = $rating - $fullStars >= 0.5;
+                            
+                            // Display full stars
+                            for ($i = 0; $i < $fullStars; $i++) {
+                                echo '<span class="star full">★</span>';
+                            }
+                            
+                            // Display half star if needed
+                            if ($halfStar) {
+                                echo '<span class="star half">★</span>';
+                                $i++;
+                            }
+                            
+                            // Display empty stars
+                            for (; $i < 5; $i++) {
+                                echo '<span class="star empty">☆</span>';
+                            }
+                            
+                            echo '<span class="rating-value">(' . number_format($rating, 1) . ')</span>';
+                            ?>
+                        </div>
+                    </div>
+                    
+                    <div class="book-status-container">
+                        <span class="book-status <?php echo htmlspecialchars($book['status']); ?>">
+                            <?php echo strtoupper(htmlspecialchars($book['status'])); ?>
+                        </span>
+                        
+                        <?php if ($is_logged_in): ?>
+                            <div class="book-actions">
+                                <?php if ($user_book_status === 'borrowed'): ?>
+                                    <button class="btn btn-return" data-book-id="<?php echo $book_id; ?>">Return Book</button>
+                                    <?php if ($user_book['borrow_date']): ?>
+                                        <p class="borrowed-info">Borrowed on: <?php echo date('M d, Y', strtotime($user_book['borrow_date'])); ?></p>
+                                    <?php endif; ?>
+                                    <?php if ($user_book['return_date']): ?>
+                                        <p class="borrowed-info">Due by: <?php echo date('M d, Y', strtotime($user_book['return_date'])); ?></p>
+                                    <?php endif; ?>
+                                <?php elseif ($user_book_status === 'reserved'): ?>
+                                    <button class="btn btn-cancel" data-book-id="<?php echo $book_id; ?>">Cancel Reservation</button>
+                                    <?php if ($user_book['reserve_date']): ?>
+                                        <p class="reserved-info">Reserved on: <?php echo date('M d, Y', strtotime($user_book['reserve_date'])); ?></p>
+                                    <?php endif; ?>
+                                <?php elseif ($book['status'] === 'available'): ?>
+                                    <button class="btn btn-borrow" data-book-id="<?php echo $book_id; ?>">Borrow Book</button>
+                                <?php elseif ($book['status'] === 'borrowed' && !$user_book_status): ?>
+                                    <button class="btn btn-reserve" data-book-id="<?php echo $book_id; ?>">Reserve Book</button>
+                                <?php endif; ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="login-prompt">
+                                <p>Please <a href="signin.php">sign in</a> to borrow or reserve this book.</p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <div class="book-description">
+                        <h2>Description</h2>
+                        <p><?php echo nl2br(htmlspecialchars($book['description'])); ?></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="action-response" class="action-response"></div>
+        
+        <?php if ($is_logged_in): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Book action buttons
+                const borrowBtn = document.querySelector('.btn-borrow');
+                const returnBtn = document.querySelector('.btn-return');
+                const reserveBtn = document.querySelector('.btn-reserve');
+                const cancelBtn = document.querySelector('.btn-cancel');
+                const responseDiv = document.getElementById('action-response');
+                
+                // Borrow book
+                if (borrowBtn) {
+                    borrowBtn.addEventListener('click', function() {
+                        performBookAction('borrow', <?php echo $book_id; ?>);
+                    });
+                }
+                
+                // Return book
+                if (returnBtn) {
+                    returnBtn.addEventListener('click', function() {
+                        performBookAction('return', <?php echo $book_id; ?>);
+                    });
+                }
+                
+                // Reserve book
+                if (reserveBtn) {
+                    reserveBtn.addEventListener('click', function() {
+                        performBookAction('reserve', <?php echo $book_id; ?>);
+                    });
+                }
+                
+                // Cancel reservation
+                if (cancelBtn) {
+                    cancelBtn.addEventListener('click', function() {
+                        performBookAction('cancel', <?php echo $book_id; ?>);
+                    });
+                }
+                
+                // Function to perform book actions
+                function performBookAction(action, bookId) {
+                    // Show loading state
+                    responseDiv.innerHTML = '<div class="loading">Processing...</div>';
+                    responseDiv.classList.add('visible');
+                    
+                    fetch('api_user_books.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            action: action,
+                            book_id: bookId
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            responseDiv.innerHTML = `<div class="success">${data.message}</div>`;
+                            // Reload the page after 2 seconds to show updated state
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 2000);
+                        } else {
+                            responseDiv.innerHTML = `<div class="error">${data.message}</div>`;
+                        }
+                    })
+                    .catch(error => {
+                        responseDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                    });
+                }
+            });
+        </script>
+        <?php endif; ?>
+    <?php endif; ?>
+</main>
+
+<?php include 'includes/footer.php'; ?> 
