@@ -106,11 +106,15 @@ session_start();
                         <img src="${book.cover}" alt="${book.title}" loading="lazy">
                     </div>
                     <div class="book-card-content">
-                        <h3 class="book-title">${book.title}</h3>
-                        <p class="book-author">By ${book.author}</p>
-                        <div class="book-rating">${stars} <span class="rating-number">(${book.rating.toFixed(1)})</span></div>
-                        <p class="book-description">${shortDescription}</p>
-                        <button class="btn-details" data-book-id="${book.book_id}">View Details</button>
+                        <div class="book-card-top">
+                            <h3 class="book-title">${book.title}</h3>
+                            <p class="book-author">By ${book.author}</p>
+                            <div class="book-rating">${stars} <span class="rating-number">(${book.rating.toFixed(1)})</span></div>
+                            <p class="book-description">${shortDescription}</p>
+                        </div>
+                        <div class="book-card-bottom">
+                            <button class="btn-details" data-book-id="${book.book_id}">View Details</button>
+                        </div>
                     </div>
                 `;
                 

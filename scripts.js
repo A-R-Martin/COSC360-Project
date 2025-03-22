@@ -325,12 +325,16 @@ class BookCard {
                 <img src="${this.cover}" alt="${this.title}" loading="lazy">
             </div>
             <div class="book-card-content">
-                <h3 class="book-title">${this.title}</h3>
-                <p class="book-author">By ${this.author}</p>
-                ${this.createStarRating()}
-                <p class="book-description">${shortDescription}</p>
-                <p class="book-status ${this.status}">${this.status.toUpperCase()}</p>
-                <button class="btn-details" data-book-id="${this.bookId}">View Details</button>
+                <div class="book-card-top">
+                    <h3 class="book-title">${this.title}</h3>
+                    <p class="book-author">By ${this.author}</p>
+                    ${this.createStarRating()}
+                    <p class="book-description">${shortDescription}</p>
+                    <p class="book-status ${this.status}">${this.status.toUpperCase()}</p>
+                </div>
+                <div class="book-card-bottom">
+                    <button class="btn-details" data-book-id="${this.bookId}">View Details</button>
+                </div>
             </div>
         `;
 
