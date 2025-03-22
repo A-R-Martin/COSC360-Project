@@ -19,13 +19,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <a href="index.php" class="nav-button <?php echo ($current_page == 'index.php') ? 'active' : ''; ?>">Home</a>
         </div>
         <div class="nav-links">
-            <?php if ($isLoggedIn): ?>
-                <!-- Show member catalog when logged in -->
-                <a href="member-catalog.php" class="nav-button <?php echo ($current_page == 'member-catalog.php') ? 'active' : ''; ?>">Member Catalog</a>
-            <?php else: ?>
-                <!-- Show guest catalog when logged out -->
-                <a href="catalog.php" class="nav-button <?php echo ($current_page == 'catalog.php') ? 'active' : ''; ?>">Guest Catalogue</a>
-            <?php endif; ?>
+            <a href="catalog.php" class="nav-button <?php echo ($current_page == 'catalog.php') ? 'active' : ''; ?>">Catalog</a>
             <div class="auth-links">
                 <?php if ($isLoggedIn): ?>
                     <!-- Show these links when logged in -->

@@ -15,40 +15,39 @@ function db_log($message) {
 db_log("Attempting to connect to database: Host=$host, User=$username, DB=$database");
 
 try {
-    // Create connection
-    $conn = mysqli_connect($host, $username, $password, $database);
-
-    // Check connection
-    if (!$conn) {
-        db_log("First connection attempt failed: " . mysqli_connect_error());
-        
-        // Try 127.0.0.1 if fail
-        $host = "127.0.0.1";
-        db_log("Trying alternative host: $host");
-        $conn = mysqli_connect($host, $username, $password, $database);
-        
-        if (!$conn) {
-            db_log("Second connection attempt failed: " . mysqli_connect_error());
-            die("Connection failed: " . mysqli_connect_error());
-        }
-    }
-
-    db_log("Successfully connected to database");
-
-    // Set charset to ensure proper encoding
-    mysqli_set_charset($conn, "utf8mb4");
-    db_log("Charset set to utf8mb4");
-
+    // Create PDO connection
+    $dsn = "mysql:host=$host;dbname=$database;charset=utf8mb4";
+    $options = [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES => false,
+    ];
+    
+    $conn = new PDO($dsn, $username, $password, $options);
+    db_log("Successfully connected to database using PDO");
+    
     // Check if the users table exists
-    $result = mysqli_query($conn, "SHOW TABLES LIKE 'users'");
-    if (mysqli_num_rows($result) == 0) {
+    $stmt = $conn->query("SHOW TABLES LIKE 'users'");
+    if ($stmt->rowCount() == 0) {
         db_log("WARNING: 'users' table does not exist in the database");
     } else {
         db_log("'users' table exists in the database");
     }
-} catch (Exception $e) {
-    db_log("Exception caught: " . $e->getMessage());
-    die("Connection error: " . $e->getMessage());
+    
+} catch (PDOException $e) {
+    db_log("Connection failed: " . $e->getMessage());
+    
+    // Try alternative host
+    try {
+        $host = "127.0.0.1";
+        db_log("Trying alternative host: $host");
+        $dsn = "mysql:host=$host;dbname=$database;charset=utf8mb4";
+        $conn = new PDO($dsn, $username, $password, $options);
+        db_log("Successfully connected to database using alternative host");
+    } catch (PDOException $e2) {
+        db_log("Second connection attempt failed: " . $e2->getMessage());
+        die("Connection failed: " . $e2->getMessage());
+    }
 }
 
 // error reporting for development
@@ -64,16 +63,16 @@ if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '127.0.
     db_log("Error reporting disabled for production environment");
 }
 
-// sanitize input
-function sanitize($conn, $input) {
+// sanitize input function
+function sanitize($input) {
     if (is_array($input)) {
         $sanitized = array();
         foreach ($input as $key => $value) {
-            $sanitized[$key] = sanitize($conn, $value);
+            $sanitized[$key] = sanitize($value);
         }
         return $sanitized;
     }
-    return mysqli_real_escape_string($conn, trim($input));
+    return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
 }
 
 function debug($data) {
