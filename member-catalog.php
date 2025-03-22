@@ -234,6 +234,11 @@ if (!isset($_SESSION['user_id'])) {
                     stars += '☆';
                 }
                 
+                // Create shortened description (first 100 characters)
+                const shortDescription = book.description 
+                    ? (book.description.length > 100 ? book.description.substring(0, 100) + '...' : book.description)
+                    : 'No description available';
+                
                 let additionalInfo = '';
                 if (currentView === 'borrowed' && book.return_date) {
                     const returnDate = new Date(book.return_date);
@@ -259,6 +264,7 @@ if (!isset($_SESSION['user_id'])) {
                             <h3 class="book-title">${book.title}</h3>
                             <p class="book-author">By ${book.author}</p>
                             <div class="book-rating">${stars} <span class="rating-number">(${book.rating.toFixed(1)})</span></div>
+                            <p class="book-description">${shortDescription}</p>
                             ${additionalInfo}
                             <p class="book-status ${book.status}">${book.status.toUpperCase()}</p>
                         </div>

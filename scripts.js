@@ -316,9 +316,9 @@ class BookCard {
         card.className = 'book-card';
         
         // Create shortened description (first 100 characters)
-        const shortDescription = this.description.length > 100 
-            ? this.description.substring(0, 100) + '...' 
-            : this.description;
+        const shortDescription = this.description 
+            ? (this.description.length > 100 ? this.description.substring(0, 100) + '...' : this.description)
+            : 'No description available';
         
         card.innerHTML = `
             <div class="book-card-cover">
