@@ -290,7 +290,8 @@ class BookCard {
         this.cover = bookData.cover;
         this.description = bookData.description;
         this.isbn = bookData.isbn;
-        this.rating = bookData.rating || 0;
+        // Ensure rating is a number
+        this.rating = parseFloat(bookData.rating) || 0;
         this.status = bookData.status || 'available';
     }
 

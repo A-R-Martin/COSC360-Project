@@ -1,19 +1,17 @@
 <?php
 session_start();
 
-// Redirect to member catalog if already logged in
-if (isset($_SESSION['user_id'])) {
-    header("Location: member-catalog.php");
-    exit();
-}
+// Check if user is logged in
+$is_logged_in = isset($_SESSION['user_id']);
+// No redirections anymore - just show the appropriate view
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Browse our extensive collection of books available to all visitors">
-    <meta name="keywords" content="library catalog, book collection, public books, book search, browse books">
+    <meta name="description" content="Browse our extensive collection of books available in our library">
+    <meta name="keywords" content="library catalog, book collection, books, browse books">
     <title>Book Catalog - Virtual Library</title>
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -30,44 +28,69 @@ if (isset($_SESSION['user_id'])) {
                             <option value="">All Categories</option>
                         </select>
                     </div>
+
+                    <?php if($is_logged_in): ?>
+                    <!-- Member-specific filters -->
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-filter="all">All Books</button>
+                        <button class="filter-btn" data-filter="borrowed">Borrowed</button>
+                        <button class="filter-btn" data-filter="reserved">Reserved</button>
+                        <button class="filter-btn" data-filter="history">History</button>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </section>
+        
         <section class="catalog-grid">
-            <div class="container">
-                <div id="catalog-books-container" class="books-container">
-                    <div class="loading-indicator">Loading books...</div>
-                </div>
-                <div class="pagination-controls">
-                    <button id="prev-page" class="btn btn-secondary" disabled>Previous</button>
-                    <span id="page-indicator">Page 1</span>
-                    <button id="next-page" class="btn btn-secondary">Next</button>
-                </div>
+            <div id="catalog-books-container" class="books-container">
+                <div class="loading-indicator">Loading books...</div>
+            </div>
+            
+            <div class="pagination-controls" style="display: none;">
+                <button id="prev-page" class="pagination-arrow" disabled>&#8592;</button>
+                <span id="page-indicator">Page 1 of 1</span>
+                <button id="next-page" class="pagination-arrow">&#8594;</button>
             </div>
         </section>
     </main>
-    <footer>
-    </footer>
+    
     <script src="scripts.js"></script>
     <script>
-        // Catalog specific JavaScript
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize variables for pagination
+            // Track current state
             let currentPage = 1;
             let totalPages = 1;
-            const booksPerPage = 6;
+            let booksPerPage = 9;
             let currentSearchTerm = '';
             let currentFilter = '';
+            let currentView = 'all';
+            const isLoggedIn = <?php echo $is_logged_in ? 'true' : 'false'; ?>;
             
-            // Initial load of books
-            loadBooks();
+            // Get book categories for the filter dropdown
+            fetch('api_books.php?categories=true')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success' && data.data) {
+                        const filterSelect = document.getElementById('catalog-filter');
+                        data.data.forEach(category => {
+                            const option = document.createElement('option');
+                            option.value = category;
+                            option.textContent = category;
+                            filterSelect.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => console.error('Error loading categories:', error));
             
             // Search functionality
             const searchInput = document.getElementById('catalog-search');
-            searchInput.addEventListener('input', function() {
-                currentSearchTerm = this.value.trim();
-                currentPage = 1; // Reset to first page on new search
-                loadBooks();
+            searchInput.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    currentSearchTerm = this.value.trim();
+                    currentPage = 1; // Reset to first page on new search
+                    loadBooks();
+                }
             });
             
             // Filter functionality
@@ -77,6 +100,25 @@ if (isset($_SESSION['user_id'])) {
                 currentPage = 1; // Reset to first page on new filter
                 loadBooks();
             });
+            
+            // Member-specific filter buttons
+            if (isLoggedIn) {
+                const filterButtons = document.querySelectorAll('.filter-btn');
+                filterButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        // Remove active class from all buttons
+                        filterButtons.forEach(btn => btn.classList.remove('active'));
+                        
+                        // Add active class to clicked button
+                        this.classList.add('active');
+                        
+                        // Set current view and load books
+                        currentView = this.getAttribute('data-filter');
+                        currentPage = 1; // Reset to first page on view change
+                        loadBooks();
+                    });
+                });
+            }
             
             // Pagination controls
             const prevButton = document.getElementById('prev-page');
@@ -97,7 +139,7 @@ if (isset($_SESSION['user_id'])) {
                 }
             });
             
-            // Function to load books from the API
+            // Function to load books based on current state
             function loadBooks() {
                 const container = document.getElementById('catalog-books-container');
                 container.innerHTML = '<div class="loading-indicator">Loading books...</div>';
@@ -109,42 +151,41 @@ if (isset($_SESSION['user_id'])) {
                     url += `&search=${encodeURIComponent(currentSearchTerm)}`;
                 }
                 
-                // Add filter if present
+                // Add category filter if present
                 if (currentFilter) {
                     url += `&category=${encodeURIComponent(currentFilter)}`;
+                }
+                
+                // Add view filter for logged-in users
+                if (isLoggedIn) {
+                    if (currentView === 'borrowed') {
+                        url += '&status=borrowed';
+                    } else if (currentView === 'reserved') {
+                        url += '&status=reserved';
+                    } else if (currentView === 'history') {
+                        url += '&status=history';
+                    }
                 }
                 
                 fetch(url)
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'success') {
+                            // Update pagination
+                            totalPages = data.total_pages || 1;
+                            updatePagination();
+                            
+                            // Clear container
                             container.innerHTML = '';
                             
                             if (data.data && data.data.length > 0) {
-                                // Format the data for rendering
-                                const books = data.data.map(book => ({
-                                    book_id: book.book_id,
-                                    title: book.title,
-                                    author: book.author,
-                                    cover: book.cover || 'sample-image.avif',
-                                    description: book.description,
-                                    isbn: book.isbn,
-                                    rating: parseFloat(book.rating) || 0,
-                                    status: book.status
-                                }));
-                                
-                                // Render the books
-                                books.forEach(book => {
+                                // Create book cards
+                                data.data.forEach(book => {
                                     const card = createBookCard(book);
                                     container.appendChild(card);
                                 });
-                                
-                                // Update pagination
-                                totalPages = data.total_pages || 1;
-                                updatePagination();
                             } else {
                                 container.innerHTML = '<div class="no-results">No books found</div>';
-                                document.querySelector('.pagination-controls').style.display = 'none';
                             }
                         } else {
                             container.innerHTML = '<div class="error-message">Error loading books: ' + data.message + '</div>';
@@ -163,7 +204,9 @@ if (isset($_SESSION['user_id'])) {
                 
                 // Create star rating
                 let stars = '';
-                const roundedRating = Math.round(book.rating);
+                // Ensure rating is a number
+                const rating = parseFloat(book.rating) || 0;
+                const roundedRating = Math.round(rating);
                 
                 // Add full stars
                 for (let i = 0; i < roundedRating; i++) {
@@ -180,6 +223,25 @@ if (isset($_SESSION['user_id'])) {
                     ? (book.description.length > 100 ? book.description.substring(0, 100) + '...' : book.description)
                     : 'No description available';
                 
+                // Add additional info for member views (borrowed, reserved, history)
+                let additionalInfo = '';
+                if (isLoggedIn) {
+                    if (currentView === 'borrowed' && book.return_date) {
+                        const returnDate = new Date(book.return_date);
+                        additionalInfo = `<p class="return-date">Return by: ${returnDate.toLocaleDateString()}</p>`;
+                    } else if (currentView === 'reserved' && book.reserve_date) {
+                        const reserveDate = new Date(book.reserve_date);
+                        additionalInfo = `<p class="reserve-date">Reserved on: ${reserveDate.toLocaleDateString()}</p>`;
+                    } else if (currentView === 'history' && book.borrow_date && book.return_date) {
+                        const borrowDate = new Date(book.borrow_date);
+                        const returnDate = new Date(book.return_date);
+                        additionalInfo = `
+                            <p class="borrow-date">Borrowed: ${borrowDate.toLocaleDateString()}</p>
+                            <p class="return-date">Returned: ${returnDate.toLocaleDateString()}</p>
+                        `;
+                    }
+                }
+                
                 card.innerHTML = `
                     <div class="book-card-cover">
                         <img src="${book.cover}" alt="${book.title}" loading="lazy">
@@ -188,8 +250,9 @@ if (isset($_SESSION['user_id'])) {
                         <div class="book-card-top">
                             <h3 class="book-title">${book.title}</h3>
                             <p class="book-author">By ${book.author}</p>
-                            <div class="book-rating">${stars} <span class="rating-number">(${book.rating.toFixed(1)})</span></div>
+                            <div class="book-rating">${stars} <span class="rating-number">(${rating.toFixed(1)})</span></div>
                             <p class="book-description">${shortDescription}</p>
+                            ${additionalInfo}
                             <p class="book-status ${book.status}">${book.status.toUpperCase()}</p>
                         </div>
                         <div class="book-card-bottom">
@@ -211,8 +274,11 @@ if (isset($_SESSION['user_id'])) {
                 pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
                 prevButton.disabled = currentPage <= 1;
                 nextButton.disabled = currentPage >= totalPages;
-                document.querySelector('.pagination-controls').style.display = 'flex';
+                document.querySelector('.pagination-controls').style.display = totalPages > 1 ? 'flex' : 'none';
             }
+            
+            // Load books on page load
+            loadBooks();
         });
     </script>
 </body>

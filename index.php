@@ -23,7 +23,7 @@ session_start();
                         <a href="signup.php" class="btn btn-primary">Get Started</a>
                         <a href="signin.php" class="btn btn-secondary">Sign In</a>
                     <?php else: ?>
-                        <a href="member-catalog.php" class="btn btn-primary">Browse Books</a>
+                        <a href="catalog.php" class="btn btn-primary">Browse Books</a>
                         <a href="profile.php" class="btn btn-secondary">My Profile</a>
                     <?php endif; ?>
                 </div>
@@ -84,7 +84,9 @@ session_start();
                 
                 // Create star rating
                 let stars = '';
-                const roundedRating = Math.round(book.rating);
+                // Ensure rating is a number
+                const rating = parseFloat(book.rating) || 0;
+                const roundedRating = Math.round(rating);
                 
                 // Add full stars
                 for (let i = 0; i < roundedRating; i++) {
@@ -109,7 +111,7 @@ session_start();
                         <div class="book-card-top">
                             <h3 class="book-title">${book.title}</h3>
                             <p class="book-author">By ${book.author}</p>
-                            <div class="book-rating">${stars} <span class="rating-number">(${book.rating.toFixed(1)})</span></div>
+                            <div class="book-rating">${stars} <span class="rating-number">(${rating.toFixed(1)})</span></div>
                             <p class="book-description">${shortDescription}</p>
                         </div>
                         <div class="book-card-bottom">
