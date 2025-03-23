@@ -1646,3 +1646,14 @@ input[type="number"]#rating {
 .analytics-category:first-child .analytics-card:nth-child(3) .analytics-value {
     color: #e74c3c; /* Red for Banned Users */
 }
+
+/* Export actions */
+.export-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: center;
+}
+
+.export-actions .filter-select {
+    min-width: 150px;
+}

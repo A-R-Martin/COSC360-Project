@@ -315,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (exportDataBtn) {
         exportDataBtn.addEventListener('click', () => {
             console.log('Export data button clicked');
-            // TODO: Implement data export functionality
+            exportAdminData();
         });
     }
 
@@ -1377,4 +1377,115 @@ function deleteBook(bookId) {
         console.error('Error deleting book:', error);
         showFormMessage('Error deleting book. Please try again later.', 'error');
     });
+}
+
+/**
+ * Export admin data
+ */
+function exportAdminData() {
+    const exportType = document.getElementById('export-type').value || 'all';
+    
+    showFormMessage('Preparing export, please wait...', 'info');
+    
+    fetch(`api_admin.php?action=export_data&type=${exportType}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                let downloadCount = 0;
+                
+                // Generate and download CSV files
+                if (data.data.users && data.data.users.length > 0) {
+                    const usersCSV = convertToCSV(data.data.users);
+                    downloadCSV(usersCSV, `users_export_${timestamp}.csv`);
+                    downloadCount++;
+                }
+                
+                if (data.data.books && data.data.books.length > 0) {
+                    const booksCSV = convertToCSV(data.data.books);
+                    downloadCSV(booksCSV, `books_export_${timestamp}.csv`);
+                    downloadCount++;
+                }
+                
+                if (data.data.analytics && Object.keys(data.data.analytics).length > 0) {
+                    // Convert analytics data to CSV format
+                    const analyticsCSV = convertAnalyticsToCSV(data.data.analytics);
+                    downloadCSV(analyticsCSV, `analytics_export_${timestamp}.csv`);
+                    downloadCount++;
+                }
+                
+                if (downloadCount > 0) {
+                    showFormMessage(`Export completed successfully! ${downloadCount} file(s) downloaded.`, 'success');
+                } else {
+                    showFormMessage('No data available to export for the selected type.', 'info');
+                }
+            } else {
+                console.error('Error exporting data:', data.message);
+                showFormMessage('Error exporting data: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error exporting data:', error);
+            showFormMessage('Error exporting data. Please try again later.', 'error');
+        });
+}
+
+function convertToCSV(data) {
+    if (!data || data.length === 0) return '';
+    
+    // Get headers from first object
+    const headers = Object.keys(data[0]);
+    
+    // Create CSV header row
+    let csv = headers.join(',') + '\n';
+    
+    // Add data rows
+    data.forEach(row => {
+        let csvRow = headers.map(header => {
+            let value = row[header] !== null ? row[header] : '';
+            if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+                value = '"' + value.replace(/"/g, '""') + '"';
+            }
+            return value;
+        }).join(',');
+        csv += csvRow + '\n';
+    });
+    
+    return csv;
+}
+
+function convertAnalyticsToCSV(analytics) {
+    let csv = 'Category,Metric,Value\n';
+    
+    // Add user statistics
+    if (analytics.users) {
+        csv += 'Users,Total,' + analytics.users.total + '\n';
+        csv += 'Users,Active,' + analytics.users.active + '\n';
+        csv += 'Users,Banned,' + analytics.users.banned + '\n';
+    }
+    
+    // Add book statistics
+    if (analytics.books) {
+        csv += 'Books,Total,' + analytics.books.total + '\n';
+        csv += 'Books,Available,' + analytics.books.available + '\n';
+        csv += 'Books,Borrowed,' + analytics.books.borrowed + '\n';
+        csv += 'Books,Reserved,' + analytics.books.reserved + '\n';
+        csv += 'Books,Overdue,' + analytics.books.overdue + '\n';
+    }
+    
+    return csv;
+}
+
+function downloadCSV(csv, filename) {
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.display = 'none';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
