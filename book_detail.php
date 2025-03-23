@@ -116,8 +116,31 @@ include 'includes/header.php';
                     </div>
                     
                     <div class="book-status-container">
-                        <span class="book-status <?php echo htmlspecialchars($book['status']); ?>">
-                            <?php echo strtoupper(htmlspecialchars($book['status'])); ?>
+                        <?php
+                        $display_status = $book['status'];
+                        $is_reserved = false;
+                        
+                        // Check if book is reserved by anyone
+                        if ($is_logged_in) {
+                            $reserveCheckSql = "SELECT COUNT(*) as count FROM user_books 
+                                               WHERE book_id = :book_id AND status = 'reserved'";
+                            $reserveCheckStmt = $conn->prepare($reserveCheckSql);
+                            $reserveCheckStmt->execute(['book_id' => $book_id]);
+                            $is_reserved = $reserveCheckStmt->fetch(PDO::FETCH_ASSOC)['count'] > 0;
+                            
+                            // If book is borrowed but also has reservations, show as RESERVED for other users
+                            if ($is_reserved && $book['status'] === 'borrowed' && $user_book_status !== 'borrowed') {
+                                $display_status = 'reserved';
+                            }
+                            
+                            // If current user has reserved this book, show as RESERVED
+                            if ($user_book_status === 'reserved') {
+                                $display_status = 'reserved';
+                            }
+                        }
+                        ?>
+                        <span class="book-status <?php echo htmlspecialchars($display_status); ?>">
+                            <?php echo strtoupper(htmlspecialchars($display_status)); ?>
                         </span>
                         
                         <?php if ($is_logged_in): ?>
@@ -139,6 +162,7 @@ include 'includes/header.php';
                                     <button class="btn btn-borrow" data-book-id="<?php echo $book_id; ?>">Borrow Book</button>
                                 <?php elseif ($book['status'] === 'borrowed' && !$user_book_status): ?>
                                     <button class="btn btn-reserve" data-book-id="<?php echo $book_id; ?>">Reserve Book</button>
+                                    <p class="book-note">This book is currently borrowed. You will be notified when it becomes available.</p>
                                 <?php endif; ?>
                             </div>
                         <?php else: ?>
@@ -202,13 +226,15 @@ include 'includes/header.php';
                     responseDiv.innerHTML = '<div class="loading">Processing...</div>';
                     responseDiv.classList.add('visible');
                     
+                    const apiAction = action === 'cancel' ? 'cancel_reservation' : action;
+                    
                     fetch('api_user_books.php', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
-                            action: action,
+                            action: apiAction,
                             book_id: bookId
                         })
                     })

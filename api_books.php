@@ -44,6 +44,8 @@ if ($method === 'GET') {
         // Add user_books relation if user is logged in
         if ($user_id) {
             $select .= ", ub.status as user_status, ub.borrow_date, ub.return_date, ub.reserve_date, ub.cancel_date";
+            
+            $select .= ", (SELECT COUNT(*) FROM user_books WHERE book_id = b.book_id AND status = 'reserved') as reservation_count";
         }
         
         $from = "FROM books b";
@@ -152,6 +154,13 @@ if ($method === 'GET') {
             } else {
                 // No cover set, use default
                 $book['cover'] = 'sample-image.avif';
+            }
+            
+            // Add has_reservation flag if reservation_count is available
+            if (isset($book['reservation_count'])) {
+                $book['has_reservation'] = (int)$book['reservation_count'] > 0;
+                // Remove the raw count from the response
+                unset($book['reservation_count']);
             }
         }
         

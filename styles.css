@@ -651,7 +651,7 @@ textarea:focus {
 }
 
 .book-status.reserved {
-    background-color: #ebf5fb;
+    background-color: #e8f4fd;
     color: #3498db;
 }
 
@@ -666,6 +666,11 @@ textarea:focus {
     transition: background-color 0.2s ease;
     height: 2.3rem;
     margin-top: 0.5rem;
+    text-align: center;
+    display: inline-block;
+    text-decoration: none;
+    font-weight: 600;
+    line-height: 1.3rem;
 }
 
 .btn-details:hover {
@@ -1231,4 +1236,16 @@ input[type="number"]#rating {
 /* Form messages */
 .form-message-container {
     margin-bottom: 1rem;
+}
+
+/* Book note styling */
+.book-note {
+    font-size: 0.85rem;
+    color: #666;
+    font-style: italic;
+    margin-top: 5px;
+    padding: 5px 10px;
+    background-color: #f8f9fa;
+    border-left: 3px solid #6c757d;
+    border-radius: 0 3px 3px 0;
 }
