@@ -363,7 +363,51 @@ document.addEventListener('DOMContentLoaded', () => {
             // TODO: Implement book deletion
         }
     });
+
+    // Load admin data if on admin page
+    if (document.querySelector('.admin-container')) {
+        initializeCanvases();
+        loadAdminData();
+        setupAdminEventListeners();
+    }
 });
+
+/**
+ * Initialize canvas elements with proper dimensions
+ */
+function initializeCanvases() {
+    const canvases = document.querySelectorAll('canvas');
+    console.log(`Found ${canvases.length} canvas elements to initialize`);
+    
+    canvases.forEach(canvas => {
+        // Set explicit dimensions if not already set
+        if (!canvas.hasAttribute('width')) {
+            canvas.width = 300;
+        }
+        if (!canvas.hasAttribute('height')) {
+            canvas.height = 200;
+        }
+        
+        // Ensure the canvas is visible
+        canvas.style.display = 'block';
+        
+        // Clear canvas to a white background
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw a placeholder text
+            ctx.fillStyle = '#cccccc';
+            ctx.font = '14px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Loading chart data...', canvas.width / 2, canvas.height / 2);
+        }
+        
+        console.log(`Initialized canvas ${canvas.id}: ${canvas.width}x${canvas.height}`);
+    });
+}
 
 function checkPasswordRequirements(input) {
     const requirements = {
@@ -955,6 +999,7 @@ function updatePassword() {
 document.addEventListener('DOMContentLoaded', () => {
     // Load admin data if on admin page
     if (document.querySelector('.admin-container')) {
+        initializeCanvases();
         loadAdminData();
         setupAdminEventListeners();
     }
@@ -1013,6 +1058,7 @@ function setupAdminEventListeners() {
     // Delegate event handler for user actions
     document.addEventListener('click', handleAdminUserActions);
     
+    // Delegate event handler for book actions
     document.addEventListener('click', handleAdminBookActions);
 }
 
@@ -1181,6 +1227,8 @@ function loadAnalytics() {
                 } else {
                     overdueElement.classList.remove('overdue');
                 }
+                
+                loadChartData();
             } else {
                 console.error('Error loading analytics:', data.message);
             }
@@ -1188,6 +1236,312 @@ function loadAnalytics() {
         .catch(error => {
             console.error('Error loading analytics:', error);
         });
+}
+
+/**
+ * Load chart data for admin dashboard
+ */
+function loadChartData() {
+    // Check if we're on the admin page with charts
+    const chartElements = document.querySelectorAll('canvas[id$="-chart"]');
+    if (chartElements.length === 0) {
+        return;
+    }
+    
+    // Add a small delay to ensure DOM is fully loaded before drawing charts
+    setTimeout(() => {
+        fetch('api_admin.php?action=get_chart_data')
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Draw each chart
+                    try {
+                        drawPieChart('book-status-chart', data.data.bookStatus, 'Book Status');
+                    } catch (err) {
+                        console.error('Error drawing book status chart:', err);
+                    }
+                    
+                    try {
+                        drawPieChart('genre-distribution-chart', data.data.genreDistribution, 'Genre Distribution');
+                    } catch (err) {
+                        console.error('Error drawing genre distribution chart:', err);
+                    }
+                    
+                    try {
+                        drawBarChart('popular-books-chart', data.data.popularBooks, 'Borrow Count');
+                    } catch (err) {
+                        console.error('Error drawing popular books chart:', err);
+                    }
+                    
+                    try {
+                        drawPieChart('user-activity-chart', data.data.userActivity, 'User Count');
+                    } catch (err) {
+                        console.error('Error drawing user activity chart:', err);
+                    }
+                } else {
+                    console.error('Error loading chart data:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading chart data:', error);
+            });
+    }, 200); // Small delay before attempting to draw charts
+}
+
+/**
+ * Draw a pie chart on a canvas element
+ * @param {string} canvasId - The ID of the canvas element
+ * @param {Object} data - Chart data with labels and datasets
+ * @param {string} labelText - Text for the legend labels
+ */
+function drawPieChart(canvasId, data, labelText) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        console.error(`Canvas element with ID "${canvasId}" not found`);
+        return;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+        console.error(`Could not get 2D context for canvas: ${canvasId}`);
+        return;
+    }
+    
+    // Set canvas dimensions explicitly
+    if (!canvas.hasAttribute('width')) {
+        canvas.width = 300;
+    }
+    if (!canvas.hasAttribute('height')) {
+        canvas.height = 200;
+    }
+    
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = Math.min(centerX, centerY) * 0.6; // Reduced radius slightly
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw pie segments
+    let startAngle = 0;
+    const total = data.datasets[0].data.reduce((sum, value) => sum + value, 0);
+    
+    if (total === 0) {
+        // No data to display
+        ctx.font = '14px Arial, sans-serif';
+        ctx.fillStyle = '#7f8c8d';
+        ctx.textAlign = 'center';
+        ctx.fillText('No data available', centerX, centerY);
+        return;
+    }
+    
+    // Draw each segment
+    data.labels.forEach((label, i) => {
+        const value = data.datasets[0].data[i];
+        if (value === 0) return; // Skip zero-value segments
+        
+        const sliceAngle = (value / total) * 2 * Math.PI;
+        
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
+        ctx.closePath();
+        
+        // Fill segment
+        ctx.fillStyle = data.datasets[0].backgroundColor[i] || '#3498db'; // Fallback color
+        ctx.fill();
+        
+        // Calculate label position
+        const midAngle = startAngle + sliceAngle / 2;
+        const labelRadius = radius * 0.7;
+        const labelX = centerX + Math.cos(midAngle) * labelRadius;
+        const labelY = centerY + Math.sin(midAngle) * labelRadius;
+        
+        // Draw value as percentage if there's enough space
+        if (sliceAngle > 0.2) {
+            ctx.font = 'bold 12px Arial, sans-serif';
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const percent = Math.round((value / total) * 100) + '%';
+            ctx.fillText(percent, labelX, labelY);
+        }
+        
+        startAngle += sliceAngle;
+    });
+    
+    // Draw legend
+    const legendY = canvas.height - 20;
+    const legendX = 10;
+    const legendCircleRadius = 5;
+    
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.font = '10px Arial, sans-serif';
+    
+    let currentX = legendX;
+    let currentY = legendY;
+    const lineHeight = 15;
+    
+    data.labels.forEach((label, i) => {
+        const value = data.datasets[0].data[i];
+        if (value === 0) return; // Skip zero-value legends
+        
+        const text = `${label}: ${value}`;
+        const textWidth = ctx.measureText(text).width;
+        
+        // Check if legend item would go beyond canvas width
+        if (currentX + textWidth + 30 > canvas.width) {
+            currentX = legendX;
+            currentY += lineHeight;
+        }
+        
+        // Draw legend color circle
+        ctx.beginPath();
+        ctx.arc(currentX, currentY, legendCircleRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = data.datasets[0].backgroundColor[i] || '#3498db';
+        ctx.fill();
+        
+        // Draw legend text
+        ctx.fillStyle = '#2c3e50';
+        ctx.fillText(text, currentX + 10, currentY);
+        
+        currentX += textWidth + 30;
+    });
+}
+
+/**
+ * Draw a bar chart on a canvas element
+ * @param {string} canvasId - The ID of the canvas element
+ * @param {Object} data - Chart data with labels and datasets
+ * @param {string} yAxisLabel - Text for the y-axis label
+ */
+function drawBarChart(canvasId, data, yAxisLabel) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        console.error(`Canvas element with ID "${canvasId}" not found`);
+        return;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+        console.error(`Could not get 2D context for canvas: ${canvasId}`);
+        return;
+    }
+    
+    // Set canvas dimensions explicitly
+    if (!canvas.hasAttribute('width')) {
+        canvas.width = 300;
+    }
+    if (!canvas.hasAttribute('height')) {
+        canvas.height = 200;
+    }
+    
+    // Chart dimensions
+    const chartWidth = canvas.width - 60;  // Leave space for y-axis
+    const chartHeight = canvas.height - 60; // Leave space for x-axis labels
+    const barSpacing = 10;
+    const chartX = 40; // X position of chart area
+    const chartY = 20; // Y position of chart area
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Check if we have data
+    if (!data.labels || !data.labels.length || !data.datasets || !data.datasets[0].data) {
+        ctx.font = '14px Arial, sans-serif';
+        ctx.fillStyle = '#7f8c8d';
+        ctx.textAlign = 'center';
+        ctx.fillText('No data available', canvas.width / 2, canvas.height / 2);
+        return;
+    }
+    
+    // Calculate max value for scaling (with a minimum of 1)
+    const maxValue = Math.max(1, ...data.datasets[0].data);
+    const barWidth = Math.max(10, (chartWidth - (data.labels.length - 1) * barSpacing) / data.labels.length);
+    
+    // Draw y-axis
+    ctx.beginPath();
+    ctx.moveTo(chartX, chartY);
+    ctx.lineTo(chartX, chartY + chartHeight);
+    ctx.strokeStyle = '#ddd';
+    ctx.stroke();
+    
+    // Draw x-axis
+    ctx.beginPath();
+    ctx.moveTo(chartX, chartY + chartHeight);
+    ctx.lineTo(chartX + chartWidth, chartY + chartHeight);
+    ctx.strokeStyle = '#ddd';
+    ctx.stroke();
+    
+    // Draw y-axis grid lines and labels
+    const gridLines = 5;
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#7f8c8d';
+    ctx.font = '10px Arial, sans-serif';
+    
+    for (let i = 0; i <= gridLines; i++) {
+        const y = chartY + chartHeight - (i * chartHeight / gridLines);
+        const value = Math.round(maxValue * i / gridLines);
+        
+        // Grid line
+        ctx.beginPath();
+        ctx.moveTo(chartX, y);
+        ctx.lineTo(chartX + chartWidth, y);
+        ctx.strokeStyle = '#eee';
+        ctx.stroke();
+        
+        // Label
+        ctx.fillText(value, chartX - 5, y);
+    }
+    
+    // Y-axis label
+    ctx.save();
+    ctx.translate(15, chartY + chartHeight / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.fillText(yAxisLabel, 0, 0);
+    ctx.restore();
+    
+    // Draw bars
+    data.labels.forEach((label, i) => {
+        const value = data.datasets[0].data[i];
+        if (value === 0) return; // Skip zero-value bars
+        
+        const barHeight = (value / maxValue) * chartHeight;
+        const x = chartX + i * (barWidth + barSpacing);
+        const y = chartY + chartHeight - barHeight;
+        
+        // Draw bar
+        ctx.fillStyle = data.datasets[0].backgroundColor || '#3498db';
+        ctx.fillRect(x, y, barWidth, barHeight);
+        
+        // Draw value on top of bar
+        if (barHeight > 15) {
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 10px Arial, sans-serif';
+            ctx.fillText(value, x + barWidth / 2, y + 10);
+        } else {
+            ctx.fillStyle = '#2c3e50';
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 10px Arial, sans-serif';
+            ctx.fillText(value, x + barWidth / 2, y - 5);
+        }
+        
+        // Draw x-axis label
+        ctx.fillStyle = '#2c3e50';
+        ctx.textAlign = 'center';
+        ctx.font = '10px Arial, sans-serif';
+        
+        // Handle long labels by truncating
+        let displayLabel = label;
+        if (ctx.measureText(label).width > barWidth * 1.2) {
+            displayLabel = label.substring(0, 8) + '...';
+        }
+        
+        ctx.fillText(displayLabel, x + barWidth / 2, chartY + chartHeight + 15);
+    });
 }
 
 /**
