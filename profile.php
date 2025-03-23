@@ -6,6 +6,26 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: signin.php");
     exit();
 }
+
+// Check if the user is banned
+require_once 'db_connect.php';
+$stmt = $conn->prepare("SELECT status FROM users WHERE user_id = :user_id");
+$stmt->execute(['user_id' => $_SESSION['user_id']]);
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (isset($user['status']) && $user['status'] === 'banned') {
+    // Clear session variables
+    $_SESSION = array();
+    
+    // Destroy the session
+    session_destroy();
+    
+    // Redirect with error message
+    session_start();
+    $_SESSION['error_message'] = "Your account has been banned. Please contact the administrator.";
+    header("Location: index.php");
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

@@ -799,7 +799,8 @@ function loadUserProfile() {
                 if (user.profile_image) {
                     profileImage.src = user.profile_image;
                 } else {
-                    profileImage.src = 'placeholder-profile.jpg';
+                    // Black magic fuckery that makes a transparent gif for user profile image if no image is set, actually a really neat idea tbh
+                    profileImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
                 }
             } else {
                 showFormMessage(data.message, 'error');
@@ -847,7 +848,8 @@ function removeProfileImage() {
     .then(data => {
         if (data.status === 'success') {
             // Reset profile image to default
-            document.getElementById('current-profile-image').src = 'placeholder-profile.jpg';
+            // Black magic fuckery again that makes a transparent gif for user profile image if no image is set, actually a really neat idea tbh
+            document.getElementById('current-profile-image').src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
             showFormMessage('Profile image removed successfully', 'success');
         } else {
             showFormMessage(data.message, 'error');
@@ -945,4 +947,223 @@ function updatePassword() {
         console.error('Error updating password:', error);
         showFormMessage('Error updating password. Please try again later.', 'error');
     });
+}
+
+/**
+ * Admin functionality
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    // Load admin data if on admin page
+    if (document.querySelector('.admin-container')) {
+        loadAdminData();
+        setupAdminEventListeners();
+    }
+});
+
+/**
+ * Load admin dashboard data
+ */
+function loadAdminData() {
+    // Load users data
+    loadUsers();
+    
+    // Load analytics data
+    loadAnalytics();
+}
+
+/**
+ * Set up admin page event listeners
+ */
+function setupAdminEventListeners() {
+    // User search functionality
+    const userSearchInput = document.querySelector('.admin-section:nth-child(1) .search-input');
+    if (userSearchInput) {
+        userSearchInput.addEventListener('input', debounce(() => {
+            loadUsers(userSearchInput.value);
+        }, 300));
+    }
+    
+    // User status filter
+    const userStatusSelect = document.querySelector('.admin-section:nth-child(1) .category-select');
+    if (userStatusSelect) {
+        userStatusSelect.addEventListener('change', () => {
+            loadUsers(userSearchInput ? userSearchInput.value : '', userStatusSelect.value);
+        });
+    }
+    
+    // Delegate event handler for user actions
+    document.addEventListener('click', handleAdminUserActions);
+}
+
+/**
+ * Handle admin user action clicks
+ */
+function handleAdminUserActions(e) {
+    // Edit user
+    if (e.target.matches('.btn-edit-user')) {
+        const userId = e.target.dataset.userId;
+        console.log(`Edit user clicked for user ID: ${userId}`);
+        // TODO: Implement edit user modal
+    }
+    
+    // Ban/activate user
+    if (e.target.matches('.btn-suspend-user')) {
+        const userId = e.target.dataset.userId;
+        const currentStatus = e.target.dataset.status;
+        const newStatus = currentStatus === 'active' ? 'banned' : 'active';
+        const actionText = newStatus === 'active' ? 'activate' : 'ban';
+        
+        if (confirm(`Are you sure you want to ${actionText} this user?`)) {
+            updateUserStatus(userId, newStatus);
+        }
+    }
+}
+
+/**
+ * Load users list
+ */
+function loadUsers(search = '', status = '') {
+    console.log(`Loading users with search: "${search}", status: "${status}"`);
+    const usersTable = document.getElementById('users-table');
+    if (!usersTable) return;
+    
+    const tableBody = usersTable.querySelector('tbody');
+    tableBody.innerHTML = '<tr><td colspan="5" class="text-center">Loading...</td></tr>';
+    
+    // Build query string
+    let queryParams = new URLSearchParams();
+    queryParams.append('action', 'get_users');
+    if (search) queryParams.append('search', search);
+    if (status) queryParams.append('status', status);
+    
+    fetch(`api_admin.php?${queryParams.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                renderUsersTable(data.data);
+            } else {
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">${data.message}</td></tr>`;
+                console.error('Error loading users:', data.message);
+            }
+        })
+        .catch(error => {
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error loading users. Please try again.</td></tr>';
+            console.error('Error loading users:', error);
+        });
+}
+
+/**
+ * Render users table with data
+ */
+function renderUsersTable(users) {
+    const tableBody = document.querySelector('#users-table tbody');
+    if (!tableBody) return;
+    
+    if (users.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No users found</td></tr>';
+        return;
+    }
+    
+    tableBody.innerHTML = '';
+    
+    users.forEach(user => {
+        // Format date
+        const joinDate = new Date(user.created_at).toLocaleDateString();
+        
+        // Make sure status has a default value if it's null or undefined
+        const status = user.status || 'active';
+        
+        // Create status badge class
+        const statusClass = status === 'active' ? 'status-active' : 'status-banned';
+        
+        // Create action button (don't allow banning own account)
+        const isCurrentUser = user.username === document.querySelector('.user-name')?.textContent?.trim();
+        const actionButton = isCurrentUser ? 
+            '' : 
+            `<button class="btn-suspend-user" data-user-id="${user.user_id}" data-status="${status}">
+                ${status === 'active' ? 'Ban' : 'Activate'}
+            </button>`;
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${user.username}${user.role === 'admin' ? ' <span class="admin-badge">Admin</span>' : ''}</td>
+            <td>${user.email}</td>
+            <td><span class="status-badge ${statusClass}">${status === 'active' ? 'Active' : 'Banned'}</span></td>
+            <td>${joinDate}</td>
+            <td class="actions">
+                <button class="btn-edit-user" data-user-id="${user.user_id}">Details</button>
+                ${actionButton}
+            </td>
+        `;
+        
+        tableBody.appendChild(row);
+    });
+}
+
+/**
+ * Update user status
+ */
+function updateUserStatus(userId, newStatus) {
+    console.log(`Updating user ${userId} status to ${newStatus}`);
+    
+    const formData = new FormData();
+    formData.append('action', 'update_user_status');
+    formData.append('user_id', userId);
+    formData.append('status', newStatus);
+    
+    fetch('api_admin.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Reload the users table
+            loadUsers();
+            showFormMessage(`User ${newStatus === 'active' ? 'activated' : 'banned'} successfully`, 'success');
+        } else {
+            showFormMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating user status:', error);
+        showFormMessage('Error updating user status. Please try again later.', 'error');
+    });
+}
+
+/**
+ * Load analytics data for admin dashboard
+ */
+function loadAnalytics() {
+    fetch('api_admin.php?action=get_analytics')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Update analytics cards
+                document.getElementById('total-users').textContent = data.data.total_users;
+                document.getElementById('active-books').textContent = data.data.active_books;
+                document.getElementById('borrowed-books').textContent = data.data.borrowed_books;
+                document.getElementById('overdue-books').textContent = data.data.overdue_books;
+            } else {
+                console.error('Error loading analytics:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading analytics:', error);
+        });
+}
+
+/**
+ * Debounce function for search inputs
+ */
+function debounce(func, wait) {
+    let timeout;
+    return function() {
+        const context = this;
+        const args = arguments;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            func.apply(context, args);
+        }, wait);
+    };
 }

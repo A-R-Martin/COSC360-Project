@@ -1249,3 +1249,108 @@ input[type="number"]#rating {
     border-left: 3px solid #6c757d;
     border-radius: 0 3px 3px 0;
 }
+
+/* Admin User Management Styles */
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.status-active {
+    background-color: #e7f6e7;
+    color: #2a602a;
+}
+
+.status-banned {
+    background-color: #fbeaea;
+    color: #a53636;
+}
+
+.admin-badge {
+    background-color: #e8eaf6;
+    color: #3d5afe;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius);
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+    font-weight: 600;
+}
+
+.btn-edit-user,
+.btn-suspend-user {
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--border-radius);
+    font-size: 0.85rem;
+    border: none;
+    cursor: pointer;
+    margin-right: 0.25rem;
+    font-weight: 500;
+}
+
+.btn-edit-user {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.btn-edit-user:hover {
+    background-color: #bbdefb;
+}
+
+.btn-suspend-user {
+    background-color: #fbeaea;
+    color: #a53636;
+}
+
+.btn-suspend-user:hover {
+    background-color: #f8d7d7;
+}
+
+/* Button state for activate - make it green */
+.btn-suspend-user[data-status="banned"] {
+    background-color: #e7f6e7;
+    color: #2a602a;
+}
+
+.btn-suspend-user[data-status="banned"]:hover {
+    background-color: #d4ecd4;
+}
+
+/* Status badge for banned users */
+.status-banned {
+    background-color: #fbeaea;
+    color: #a53636;
+}
+
+.data-table .actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.text-danger {
+    color: #a53636;
+}
+
+/* Override for table cell spacing */
+.data-table td.actions {
+    padding: 0.5rem;
+}
+
+/* Error banner */
+.error-banner {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 12px 20px;
+    margin: 0 0 20px 0;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    text-align: center;
+    width: 100%;
+    font-weight: bold;
+    max-width: 1200px;
+    margin: 0 auto 20px auto;
+}

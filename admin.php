@@ -29,6 +29,9 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
                     <button class="btn-primary" id="export-data">Export Data</button>
                 </div>
             </div>
+            
+            <div id="form-message-container" class="form-message-container"></div>
+            
             <div class="admin-content">
                 <div class="admin-section">
                     <h2>User Management</h2>

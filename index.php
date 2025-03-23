@@ -14,6 +14,13 @@ session_start();
 <body>
     <?php include 'nav.php'; ?>
     <main>
+        <?php if(isset($_SESSION['error_message'])): ?>
+            <div class="error-banner">
+                <?php echo $_SESSION['error_message']; ?>
+                <?php unset($_SESSION['error_message']); ?>
+            </div>
+        <?php endif; ?>
+        
         <section class="hero">
             <div class="container">
                 <h1>Welcome to Virtual Library</h1>
