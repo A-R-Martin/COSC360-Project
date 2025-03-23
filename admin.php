@@ -26,7 +26,15 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
             <div class="admin-header">
                 <h1>Admin Dashboard</h1>
                 <div class="admin-actions">
-                    <button class="btn-primary" id="export-data">Export Data</button>
+                    <div class="export-actions">
+                        <select id="export-type" class="filter-select">
+                            <option value="all">All Data</option>
+                            <option value="users">Users Only</option>
+                            <option value="books">Books Only</option>
+                            <option value="analytics">Analytics Only</option>
+                        </select>
+                        <button class="btn-primary" id="export-data">Export Data</button>
+                    </div>
                 </div>
             </div>
             
