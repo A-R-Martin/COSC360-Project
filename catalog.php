@@ -25,7 +25,8 @@ $is_logged_in = isset($_SESSION['user_id']);
                     <div class="filter-group">
                         <input type="text" id="catalog-search" class="search-input" placeholder="Search items...">
                         <select id="catalog-filter" class="filter-select">
-                            <option value="">All Categories</option>
+                            <option value="title">Sort by Title</option>
+                            <option value="rating">Sort by Rating</option>
                         </select>
                     </div>
 
@@ -63,25 +64,9 @@ $is_logged_in = isset($_SESSION['user_id']);
             let totalPages = 1;
             let booksPerPage = 9;
             let currentSearchTerm = '';
-            let currentFilter = '';
+            let currentSort = 'title';
             let currentView = 'all';
             const isLoggedIn = <?php echo $is_logged_in ? 'true' : 'false'; ?>;
-            
-            // Get book categories for the filter dropdown
-            fetch('api_books.php?categories=true')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success' && data.data) {
-                        const filterSelect = document.getElementById('catalog-filter');
-                        data.data.forEach(category => {
-                            const option = document.createElement('option');
-                            option.value = category;
-                            option.textContent = category;
-                            filterSelect.appendChild(option);
-                        });
-                    }
-                })
-                .catch(error => console.error('Error loading categories:', error));
             
             // Search functionality
             const searchInput = document.getElementById('catalog-search');
@@ -93,11 +78,11 @@ $is_logged_in = isset($_SESSION['user_id']);
                 }
             });
             
-            // Filter functionality
-            const filterSelect = document.getElementById('catalog-filter');
-            filterSelect.addEventListener('change', function() {
-                currentFilter = this.value;
-                currentPage = 1; // Reset to first page on new filter
+            // Sort functionality
+            const sortSelect = document.getElementById('catalog-filter');
+            sortSelect.addEventListener('change', function() {
+                currentSort = this.value;
+                currentPage = 1; // Reset to first page on new sort
                 loadBooks();
             });
             
@@ -151,10 +136,8 @@ $is_logged_in = isset($_SESSION['user_id']);
                     url += `&search=${encodeURIComponent(currentSearchTerm)}`;
                 }
                 
-                // Add category filter if present
-                if (currentFilter) {
-                    url += `&category=${encodeURIComponent(currentFilter)}`;
-                }
+                // Add sort option
+                url += `&sort=${encodeURIComponent(currentSort)}`;
                 
                 // Add view filter for logged-in users
                 if (isLoggedIn) {
@@ -242,6 +225,11 @@ $is_logged_in = isset($_SESSION['user_id']);
                     }
                 }
                 
+                let displayStatus = book.status;
+                if (currentView === 'reserved' || book.has_reservation) {
+                    displayStatus = 'reserved';
+                }
+
                 card.innerHTML = `
                     <div class="book-card-cover">
                         <img src="${book.cover}" alt="${book.title}" loading="lazy">
@@ -249,14 +237,14 @@ $is_logged_in = isset($_SESSION['user_id']);
                     <div class="book-card-content">
                         <div class="book-card-top">
                             <h3 class="book-title">${book.title}</h3>
-                            <p class="book-author">By ${book.author}</p>
+                            <p class="book-author">by ${book.author}</p>
                             <div class="book-rating">${stars} <span class="rating-number">(${rating.toFixed(1)})</span></div>
-                            <p class="book-description">${shortDescription}</p>
+                            <span class="book-status ${displayStatus}">${displayStatus.toUpperCase()}</span>
                             ${additionalInfo}
-                            <p class="book-status ${book.status}">${book.status.toUpperCase()}</p>
                         </div>
                         <div class="book-card-bottom">
-                            <button class="btn-details" data-book-id="${book.book_id}">View Details</button>
+                            <p class="book-description">${shortDescription}</p>
+                            <a href="book_detail.php?id=${book.book_id}" class="btn-details">View Details</a>
                         </div>
                     </div>
                 `;

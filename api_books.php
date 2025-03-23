@@ -29,6 +29,7 @@ if ($method === 'GET') {
     $featured = isset($_GET['featured']) ? (bool)$_GET['featured'] : false;
     $random = isset($_GET['random']) ? (bool)$_GET['random'] : false;
     $count = isset($_GET['count']) ? (int)$_GET['count'] : 3; // Used with random=true
+    $sort = isset($_GET['sort']) ? trim($_GET['sort']) : 'title'; // Default sort by title
     
     // User ID for user-specific book status (borrowed, reserved)
     $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
@@ -44,6 +45,8 @@ if ($method === 'GET') {
         // Add user_books relation if user is logged in
         if ($user_id) {
             $select .= ", ub.status as user_status, ub.borrow_date, ub.return_date, ub.reserve_date, ub.cancel_date";
+            
+            $select .= ", (SELECT COUNT(*) FROM user_books WHERE book_id = b.book_id AND status = 'reserved') as reservation_count";
         }
         
         $from = "FROM books b";
@@ -108,7 +111,16 @@ if ($method === 'GET') {
             $orderBy = "ORDER BY b.rating DESC";
             $where .= " AND b.status = 'available'";
         } else {
-            $orderBy = "ORDER BY b.title ASC";
+            // Use the sort parameter to determine order
+            switch ($sort) {
+                case 'rating':
+                    $orderBy = "ORDER BY b.rating DESC, b.title ASC";
+                    break;
+                case 'title':
+                default:
+                    $orderBy = "ORDER BY b.title ASC";
+                    break;
+            }
         }
         
         // Count total records for pagination
@@ -152,6 +164,13 @@ if ($method === 'GET') {
             } else {
                 // No cover set, use default
                 $book['cover'] = 'sample-image.avif';
+            }
+            
+            // Add has_reservation flag if reservation_count is available
+            if (isset($book['reservation_count'])) {
+                $book['has_reservation'] = (int)$book['reservation_count'] > 0;
+                // Remove the raw count from the response
+                unset($book['reservation_count']);
             }
         }
         

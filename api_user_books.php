@@ -18,6 +18,11 @@ if (!isset($_SESSION['user_id'])) {
 $method = $_SERVER['REQUEST_METHOD'];
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 
+if ($method === 'POST' && empty($action)) {
+    $jsonData = json_decode(file_get_contents('php://input'), true);
+    $action = isset($jsonData['action']) ? $jsonData['action'] : '';
+}
+
 // Response array
 $response = [
     'status' => 'error',
@@ -207,6 +212,11 @@ function handlePostRequest($action, $conn, &$response) {
     $userId = $_SESSION['user_id'];
     $data = json_decode(file_get_contents('php://input'), true);
     
+    // Get action from JSON data if not already set
+    if (empty($action) && isset($data['action'])) {
+        $action = $data['action'];
+    }
+    
     if (!isset($data['book_id']) || empty($data['book_id'])) {
         $response['message'] = 'Book ID is required';
         return;
@@ -290,6 +300,11 @@ function handlePostRequest($action, $conn, &$response) {
                     return;
                 }
                 
+                if ($book['status'] === 'available') {
+                    $response['message'] = 'Book is available for borrowing, not reservation';
+                    return;
+                }
+                
                 // Check reservation limit
                 $countQuery = "SELECT COUNT(*) as count FROM user_books 
                               WHERE user_id = :userId AND status = 'reserved'";
@@ -320,11 +335,6 @@ function handlePostRequest($action, $conn, &$response) {
                 $conn->beginTransaction();
                 
                 try {
-                    // Update book status
-                    $updateBookQuery = "UPDATE books SET status = 'reserved' WHERE book_id = :bookId";
-                    $updateBookStmt = $conn->prepare($updateBookQuery);
-                    $updateBookStmt->execute(['bookId' => $bookId]);
-                    
                     // Calculate reserve date
                     $reserveDate = date('Y-m-d H:i:s');
                     
@@ -418,10 +428,24 @@ function handlePostRequest($action, $conn, &$response) {
                 $conn->beginTransaction();
                 
                 try {
-                    // Update book status
-                    $updateBookQuery = "UPDATE books SET status = 'available' WHERE book_id = :bookId";
-                    $updateBookStmt = $conn->prepare($updateBookQuery);
-                    $updateBookStmt->execute(['bookId' => $bookId]);
+                    // Check if book is borrowed by another user
+                    $checkBorrowedQuery = "SELECT COUNT(*) as count FROM user_books 
+                                         WHERE book_id = :bookId AND status = 'borrowed'";
+                    $checkBorrowedStmt = $conn->prepare($checkBorrowedQuery);
+                    $checkBorrowedStmt->execute(['bookId' => $bookId]);
+                    $hasBorrower = $checkBorrowedStmt->fetch(PDO::FETCH_ASSOC)['count'] > 0;
+                    
+                    if (!$hasBorrower) {
+                        // Update book status to available
+                        $updateBookQuery = "UPDATE books SET status = 'available' WHERE book_id = :bookId";
+                        $updateBookStmt = $conn->prepare($updateBookQuery);
+                        $updateBookStmt->execute(['bookId' => $bookId]);
+                    } else {
+                        // Keep the book status as borrowed
+                        $updateBookQuery = "UPDATE books SET status = 'borrowed' WHERE book_id = :bookId";
+                        $updateBookStmt = $conn->prepare($updateBookQuery);
+                        $updateBookStmt->execute(['bookId' => $bookId]);
+                    }
                     
                     // Delete the reservation record
                     $deleteQuery = "DELETE FROM user_books WHERE id = :reserveId";
