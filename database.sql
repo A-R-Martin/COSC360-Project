@@ -100,6 +100,19 @@ CREATE TABLE IF NOT EXISTS discussion_posts (
     INDEX (user_id)
 );
 
+-- Book comments table
+CREATE TABLE IF NOT EXISTS book_comments (
+    comment_id INT AUTO_INCREMENT PRIMARY KEY,
+    book_id INT NOT NULL,
+    user_id INT NOT NULL,
+    comment TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (book_id) REFERENCES books(book_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    INDEX (book_id),
+    INDEX (user_id)
+);
+
 -- Insert some initial categories
 INSERT INTO discussion_categories (name, description) VALUES 
 ('General Discussion', 'General discussions about books and reading'),
@@ -148,5 +161,11 @@ FROM books WHERE title = 'The Hobbit';
 INSERT INTO user_books (user_id, book_id, status, borrow_date, return_date) 
 SELECT 2, book_id, 'history', DATE_SUB(NOW(), INTERVAL 60 DAY), DATE_SUB(NOW(), INTERVAL 46 DAY) 
 FROM books WHERE title = 'Moby-Dick';
+
+-- Add sample book comments
+INSERT INTO book_comments (book_id, user_id, comment) VALUES 
+(1, 2, 'This book is amazing! I highly recommend it to anyone who enjoys classic literature.'),
+(1, 1, 'One of my favorite classics. The character development is superb.'),
+(2, 2, 'A powerful book that everyone should read. It teaches important lessons about empathy and justice.');
 
 SET FOREIGN_KEY_CHECKS = 1; 
