@@ -799,7 +799,7 @@ function loadUserProfile() {
                 if (user.profile_image) {
                     profileImage.src = user.profile_image;
                 } else {
-                    profileImage.src = 'placeholder-profile.jpg';
+                    profileImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
                 }
             } else {
                 showFormMessage(data.message, 'error');
@@ -847,7 +847,7 @@ function removeProfileImage() {
     .then(data => {
         if (data.status === 'success') {
             // Reset profile image to default
-            document.getElementById('current-profile-image').src = 'placeholder-profile.jpg';
+            document.getElementById('current-profile-image').src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
             showFormMessage('Profile image removed successfully', 'success');
         } else {
             showFormMessage(data.message, 'error');
