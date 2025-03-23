@@ -38,18 +38,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         if (password_verify($password, $user['password'])) {
             // Debug successful login (only for development)
-            echo "<div style='background:#e8f5e9; border:1px solid #2e7d32; padding:10px; margin:10px 0; font-family:monospace;'>";
-            echo "<strong>Login Successful!</strong> User ID: " . $user['user_id'] . " | Username: " . $user['username'];
-            echo "</div>";
-            
-            // Password is correct, set session variables
-            $_SESSION['user_id'] = $user['user_id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['role'] = $user['role'];
-            
-            // Redirect to profile page
-            header("Location: profile.php");
-            exit();
+            // Check if the user is banned
+            if (isset($user['status']) && $user['status'] === 'banned') {
+                $error_message = "Your account has been banned. Please contact the administrator.";
+            } else {
+                echo "<div style='background:#e8f5e9; border:1px solid #2e7d32; padding:10px; margin:10px 0; font-family:monospace;'>";
+                echo "<strong>Login Successful!</strong> User ID: " . $user['user_id'] . " | Username: " . $user['username'];
+                echo "</div>";
+                
+                // Password is correct, set session variables
+                $_SESSION['user_id'] = $user['user_id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['role'] = $user['role'];
+                
+                // Redirect to profile page
+                header("Location: profile.php");
+                exit();
+            }
         } else {
             $error_message = "Invalid email or password";
         }

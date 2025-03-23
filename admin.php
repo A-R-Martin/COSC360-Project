@@ -29,15 +29,18 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
                     <button class="btn-primary" id="export-data">Export Data</button>
                 </div>
             </div>
+            
+            <div id="form-message-container" class="form-message-container"></div>
+            
             <div class="admin-content">
                 <div class="admin-section">
                     <h2>User Management</h2>
                     <div class="catalog-filters">
-                        <input type="search" placeholder="Search users..." class="search-input">
-                        <select class="category-select">
+                        <input type="search" id="user-search-input" placeholder="Search users..." class="search-input">
+                        <select id="user-status-select" class="category-select">
                             <option value="">All Status</option>
                             <option value="active">Active</option>
-                            <option value="suspended">Suspended</option>
+                            <option value="banned">Banned</option>
                         </select>
                     </div>
                     <div class="data-table">
@@ -60,23 +63,19 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
                 <div class="admin-section">
                     <h2>Book Management</h2>
                     <div class="catalog-filters">
-                        <input type="search" placeholder="Search books..." class="search-input">
-                        <select class="category-select">
-                            <option value="">All Categories</option>
-                            <option value="title">Book Title</option>
-                            <option value="author">Author</option>
-                            <option value="isbn">ISBN</option>
-                        </select>
+                        <input type="search" id="book-search-input" placeholder="Search books..." class="search-input">
+                        <div class="sort-info">Click on column headers to sort</div>
                     </div>
                     <div class="data-table">
                         <table id="books-table">
                             <thead>
                                 <tr>
-                                    <th>Title</th>
-                                    <th>Author</th>
-                                    <th>ISBN</th>
-                                    <th>Status</th>
+                                    <th data-sort="title" class="sortable">Title</th>
+                                    <th data-sort="author" class="sortable">Author</th>
+                                    <th data-sort="isbn" class="sortable">ISBN</th>
+                                    <th data-sort="status" class="sortable">Status</th>
                                     <th>Current Borrower</th>
+                                    <th>Reserved By</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -86,24 +85,51 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
                         </table>
                     </div>
                 </div>
-                <div class="admin-section">
+                <div class="admin-section analytics-section">
                     <h2>Library Analytics</h2>
-                    <div class="analytics-grid">
-                        <div class="analytics-card">
-                            <h3>Total Users</h3>
-                            <p class="analytics-value" id="total-users">0</p>
+                    <div class="analytics-categories">
+                        <div class="analytics-category">
+                            <h3>User Statistics</h3>
+                            <div class="analytics-grid">
+                                <div class="analytics-card">
+                                    <h4>Total Users</h4>
+                                    <p class="analytics-value" id="total-users">0</p>
+                                </div>
+                                <div class="analytics-card">
+                                    <h4>Active Users</h4>
+                                    <p class="analytics-value" id="active-users">0</p>
+                                </div>
+                                <div class="analytics-card">
+                                    <h4>Banned Users</h4>
+                                    <p class="analytics-value" id="banned-users">0</p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="analytics-card">
-                            <h3>Active Books</h3>
-                            <p class="analytics-value" id="active-books">0</p>
-                        </div>
-                        <div class="analytics-card">
-                            <h3>Books Borrowed</h3>
-                            <p class="analytics-value" id="borrowed-books">0</p>
-                        </div>
-                        <div class="analytics-card">
-                            <h3>Overdue Books</h3>
-                            <p class="analytics-value" id="overdue-books">0</p>
+                        
+                        <div class="analytics-category">
+                            <h3>Book Statistics</h3>
+                            <div class="analytics-grid">
+                                <div class="analytics-card">
+                                    <h4>Total Books</h4>
+                                    <p class="analytics-value" id="total-books">0</p>
+                                </div>
+                                <div class="analytics-card">
+                                    <h4>Available Books</h4>
+                                    <p class="analytics-value" id="available-books">0</p>
+                                </div>
+                                <div class="analytics-card">
+                                    <h4>Borrowed Books</h4>
+                                    <p class="analytics-value" id="borrowed-books">0</p>
+                                </div>
+                                <div class="analytics-card">
+                                    <h4>Reserved Books</h4>
+                                    <p class="analytics-value" id="reserved-books">0</p>
+                                </div>
+                                <div class="analytics-card">
+                                    <h4>Overdue Books</h4>
+                                    <p class="analytics-value overdue" id="overdue-books">0</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

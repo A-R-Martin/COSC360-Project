@@ -14,10 +14,12 @@ CREATE TABLE IF NOT EXISTS users (
     bio TEXT,
     profile_image VARCHAR(255),
     role ENUM('user', 'admin') DEFAULT 'user',
+    status ENUM('active', 'banned') NOT NULL DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX (username),
-    INDEX (email)
+    INDEX (email),
+    INDEX (status)
 );
 
 -- Books table

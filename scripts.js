@@ -799,6 +799,7 @@ function loadUserProfile() {
                 if (user.profile_image) {
                     profileImage.src = user.profile_image;
                 } else {
+                    // Black magic fuckery that makes a transparent gif for user profile image if no image is set, actually a really neat idea tbh
                     profileImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
                 }
             } else {
@@ -847,6 +848,7 @@ function removeProfileImage() {
     .then(data => {
         if (data.status === 'success') {
             // Reset profile image to default
+            // Black magic fuckery again that makes a transparent gif for user profile image if no image is set, actually a really neat idea tbh
             document.getElementById('current-profile-image').src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
             showFormMessage('Profile image removed successfully', 'success');
         } else {
@@ -944,5 +946,435 @@ function updatePassword() {
     .catch(error => {
         console.error('Error updating password:', error);
         showFormMessage('Error updating password. Please try again later.', 'error');
+    });
+}
+
+/**
+ * Admin functionality
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    // Load admin data if on admin page
+    if (document.querySelector('.admin-container')) {
+        loadAdminData();
+        setupAdminEventListeners();
+    }
+});
+
+/**
+ * Load admin dashboard data
+ */
+function loadAdminData() {
+    // Load users data
+    loadUsers();
+    
+    // Load books data
+    loadBooks();
+    
+    // Load analytics data
+    loadAnalytics();
+}
+
+/**
+ * Set up admin page event listeners
+ */
+function setupAdminEventListeners() {
+    // User search functionality
+    const userSearchInput = document.getElementById('user-search-input');
+    if (userSearchInput) {
+        userSearchInput.addEventListener('input', debounce(() => {
+            loadUsers(userSearchInput.value);
+        }, 300));
+    }
+    
+    // User status filter
+    const userStatusSelect = document.getElementById('user-status-select');
+    if (userStatusSelect) {
+        userStatusSelect.addEventListener('change', () => {
+            loadUsers(userSearchInput ? userSearchInput.value : '', userStatusSelect.value);
+        });
+    }
+    
+    // Book search functionality
+    const bookSearchInput = document.getElementById('book-search-input');
+    if (bookSearchInput) {
+        bookSearchInput.addEventListener('input', debounce(() => {
+            loadBooks(bookSearchInput.value);
+        }, 300));
+    }
+    
+    const sortableHeaders = document.querySelectorAll('#books-table th.sortable');
+    if (sortableHeaders.length > 0) {
+        sortableHeaders.forEach(header => {
+            header.addEventListener('click', () => {
+                sortableHeaders.forEach(h => {
+                    h.classList.remove('sort-asc', 'sort-desc');
+                });
+                
+                const sortField = header.getAttribute('data-sort');
+                let sortOrder = 'asc';
+                
+                if (header.getAttribute('data-current-sort') === 'asc') {
+                    sortOrder = 'desc';
+                    header.classList.add('sort-desc');
+                } else {
+                    header.classList.add('sort-asc');
+                }
+                
+                header.setAttribute('data-current-sort', sortOrder);
+                
+                loadBooks(bookSearchInput ? bookSearchInput.value : '', sortField, sortOrder);
+            });
+        });
+    }
+    
+    // Default sort on first load (by title ascending)
+    const titleHeader = document.querySelector('#books-table th[data-sort="title"]');
+    if (titleHeader) {
+        titleHeader.classList.add('sort-asc');
+        titleHeader.setAttribute('data-current-sort', 'asc');
+    }
+    
+    // Delegate event handler for user actions
+    document.addEventListener('click', handleAdminUserActions);
+    
+    document.addEventListener('click', handleAdminBookActions);
+}
+
+/**
+ * Handle admin user action clicks
+ */
+function handleAdminUserActions(e) {
+    // Edit user
+    if (e.target.matches('.btn-edit-user')) {
+        const userId = e.target.dataset.userId;
+        console.log(`Edit user clicked for user ID: ${userId}`);
+        // TODO: Implement edit user modal
+    }
+    
+    // Ban/activate user
+    if (e.target.matches('.btn-suspend-user')) {
+        const userId = e.target.dataset.userId;
+        const currentStatus = e.target.dataset.status;
+        const newStatus = currentStatus === 'active' ? 'banned' : 'active';
+        const actionText = newStatus === 'active' ? 'activate' : 'ban';
+        
+        if (confirm(`Are you sure you want to ${actionText} this user?`)) {
+            updateUserStatus(userId, newStatus);
+        }
+    }
+}
+
+/**
+ * Load users list
+ */
+function loadUsers(search = '', status = '') {
+    console.log(`Loading users with search: "${search}", status: "${status}"`);
+    const usersTable = document.getElementById('users-table');
+    if (!usersTable) return;
+    
+    const tableBody = usersTable.querySelector('tbody');
+    tableBody.innerHTML = '<tr><td colspan="5" class="text-center">Loading...</td></tr>';
+    
+    // Build query string
+    let queryParams = new URLSearchParams();
+    queryParams.append('action', 'get_users');
+    if (search) queryParams.append('search', search);
+    if (status) queryParams.append('status', status);
+    
+    fetch(`api_admin.php?${queryParams.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                renderUsersTable(data.data);
+            } else {
+                console.error('Error loading users:', data.message);
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">${data.message}</td></tr>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading users:', error);
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error loading users. Please try again.</td></tr>';
+        });
+}
+
+/**
+ * Render users table with data
+ */
+function renderUsersTable(users) {
+    const tableBody = document.querySelector('#users-table tbody');
+    if (!tableBody) return;
+    
+    if (users.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No users found</td></tr>';
+        return;
+    }
+    
+    tableBody.innerHTML = '';
+    
+    users.forEach(user => {
+        // Format date
+        const joinDate = new Date(user.created_at).toLocaleDateString();
+        
+        // Make sure status has a default value if it's null or undefined
+        const status = user.status || 'active';
+        
+        // Create status badge class
+        const statusClass = status === 'active' ? 'status-active' : 'status-banned';
+        
+        // Create action button (don't allow banning own account)
+        const isCurrentUser = user.username === document.querySelector('.user-name')?.textContent?.trim();
+        const actionButton = isCurrentUser ? 
+            '' : 
+            `<button class="btn-suspend-user" data-user-id="${user.user_id}" data-status="${status}">
+                ${status === 'active' ? 'Ban' : 'Activate'}
+            </button>`;
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${user.username}${user.role === 'admin' ? ' <span class="admin-badge">Admin</span>' : ''}</td>
+            <td>${user.email}</td>
+            <td><span class="status-badge ${statusClass}">${status === 'active' ? 'Active' : 'Banned'}</span></td>
+            <td>${joinDate}</td>
+            <td class="actions">
+                <button class="btn-edit-user" data-user-id="${user.user_id}">Details</button>
+                ${actionButton}
+            </td>
+        `;
+        
+        tableBody.appendChild(row);
+    });
+}
+
+/**
+ * Update user status
+ */
+function updateUserStatus(userId, newStatus) {
+    console.log(`Updating user ${userId} status to ${newStatus}`);
+    
+    const formData = new FormData();
+    formData.append('action', 'update_user_status');
+    formData.append('user_id', userId);
+    formData.append('status', newStatus);
+    
+    fetch('api_admin.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Reload the users table
+            loadUsers();
+            showFormMessage(`User ${newStatus === 'active' ? 'activated' : 'banned'} successfully`, 'success');
+        } else {
+            showFormMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating user status:', error);
+        showFormMessage('Error updating user status. Please try again later.', 'error');
+    });
+}
+
+/**
+ * Load analytics data for admin dashboard
+ */
+function loadAnalytics() {
+    fetch('api_admin.php?action=get_analytics')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                console.log('Analytics data received:', data.data);
+                
+                // Update user analytics
+                document.getElementById('total-users').textContent = data.data.users.total;
+                document.getElementById('active-users').textContent = data.data.users.active;
+                document.getElementById('banned-users').textContent = data.data.users.banned;
+                
+                // Update book analytics
+                document.getElementById('total-books').textContent = data.data.books.total;
+                document.getElementById('available-books').textContent = data.data.books.available;
+                document.getElementById('borrowed-books').textContent = data.data.books.borrowed;
+                document.getElementById('reserved-books').textContent = data.data.books.reserved;
+                document.getElementById('overdue-books').textContent = data.data.books.overdue;
+                
+                // Add visual indicator if there are overdue books
+                const overdueElement = document.getElementById('overdue-books');
+                if (data.data.books.overdue > 0) {
+                    overdueElement.classList.add('overdue');
+                } else {
+                    overdueElement.classList.remove('overdue');
+                }
+            } else {
+                console.error('Error loading analytics:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading analytics:', error);
+        });
+}
+
+/**
+ * Debounce function for search inputs
+ */
+function debounce(func, wait) {
+    let timeout;
+    return function() {
+        const context = this;
+        const args = arguments;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            func.apply(context, args);
+        }, wait);
+    };
+}
+
+/**
+ * Load books list for admin panel
+ */
+function loadBooks(search = '', sortField = 'title', sortOrder = 'asc') {
+    console.log(`Loading books with search: "${search}", sort: "${sortField}", order: "${sortOrder}"`);
+    const booksTable = document.getElementById('books-table');
+    if (!booksTable) return;
+    
+    const tableBody = booksTable.querySelector('tbody');
+    tableBody.innerHTML = '<tr><td colspan="7" class="text-center">Loading...</td></tr>';
+    
+    // Build query string
+    let queryParams = new URLSearchParams();
+    queryParams.append('action', 'get_books');
+    if (search) queryParams.append('search', search);
+    if (sortField) queryParams.append('sort', sortField);
+    if (sortOrder) queryParams.append('sort_order', sortOrder);
+    
+    fetch(`api_admin.php?${queryParams.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                renderBooksTable(data.data);
+            } else {
+                console.error('Error loading books:', data.message);
+                tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">${data.message}</td></tr>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading books:', error);
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error loading books. Please try again.</td></tr>';
+        });
+}
+
+/**
+ * Render books table with data
+ */
+function renderBooksTable(books) {
+    const tableBody = document.querySelector('#books-table tbody');
+    if (!tableBody) return;
+    
+    if (books.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No books found</td></tr>';
+        return;
+    }
+    
+    tableBody.innerHTML = '';
+    
+    books.forEach(book => {
+        // Create status badge class based on book status
+        let statusClass;
+        let statusText = book.status;
+        
+        // Check if the book is overdue
+        const isOverdue = book.status === 'borrowed' && book.is_overdue;
+        
+        if (isOverdue) {
+            statusClass = 'status-overdue';
+            statusText = 'Overdue';
+        } else {
+            switch (book.status) {
+                case 'available':
+                    statusClass = 'status-active';
+                    break;
+                case 'borrowed':
+                    statusClass = 'status-borrowed';
+                    break;
+                case 'reserved':
+                    statusClass = 'status-reserved';
+                    break;
+                default:
+                    statusClass = 'status-banned';
+            }
+        }
+        
+        // Create action buttons
+        const actionButtons = `
+            <button class="btn-edit-book" data-book-id="${book.book_id}">Edit</button>
+            <button class="btn-delete-book" data-book-id="${book.book_id}">Delete</button>
+        `;
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${book.title}</td>
+            <td>${book.author}</td>
+            <td>${book.isbn || 'N/A'}</td>
+            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+            <td>${book.borrower_name || 'N/A'}</td>
+            <td>${book.reserver_name || 'N/A'}</td>
+            <td class="actions">
+                ${actionButtons}
+            </td>
+        `;
+        
+        tableBody.appendChild(row);
+    });
+}
+
+/**
+ * Handle admin book action clicks
+ */
+function handleAdminBookActions(e) {
+    // Edit book
+    if (e.target.matches('.btn-edit-book')) {
+        const bookId = e.target.dataset.bookId;
+        console.log(`Edit book clicked for book ID: ${bookId}`);
+        // TODO: Implement book edit functionality
+    }
+    
+    // Delete book
+    if (e.target.matches('.btn-delete-book')) {
+        const bookId = e.target.dataset.bookId;
+        console.log(`Delete book clicked for book ID: ${bookId}`);
+        
+        if (confirm(`Are you sure you want to delete this book? This action cannot be undone.`)) {
+            deleteBook(bookId);
+        }
+    }
+}
+
+/**
+ * Delete a book
+ */
+function deleteBook(bookId) {
+    console.log(`Deleting book with ID: ${bookId}`);
+    
+    const formData = new FormData();
+    formData.append('action', 'delete_book');
+    formData.append('book_id', bookId);
+    
+    fetch('api_admin.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Reload the books table
+            loadBooks();
+            showFormMessage('Book deleted successfully', 'success');
+        } else {
+            showFormMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting book:', error);
+        showFormMessage('Error deleting book. Please try again later.', 'error');
     });
 }
