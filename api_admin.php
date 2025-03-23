@@ -231,12 +231,20 @@ try {
         case 'get_books':
             // Get optional query parameters
             $search = isset($_GET['search']) ? trim($_GET['search']) : '';
-            $category = isset($_GET['category']) ? trim($_GET['category']) : '';
+            $sort = isset($_GET['sort']) ? trim($_GET['sort']) : 'title';
+            $sort_order = isset($_GET['sort_order']) ? trim($_GET['sort_order']) : 'asc';
+            // Validate sort field to prevent SQL injection
+            $allowed_sort_fields = ['title', 'author', 'isbn', 'status'];
+            if (!in_array($sort, $allowed_sort_fields)) {
+                $sort = 'title'; // Default to title if invalid sort field
+            }
             
-            $query = "SELECT b.book_id, b.title, b.author, b.isbn, b.status, 
+            // Validate sort order
+            $sort_order = strtoupper($sort_order) === 'DESC' ? 'DESC' : 'ASC';
+            
+            $query = "SELECT b.book_id, b.title, b.author, b.isbn, b.status, b.description, b.cover_image, b.year_published, b.genre, b.rating,
                      bor.username as borrower_name, bor.user_id as borrower_id,
                      res.username as reserver_name, res.user_id as reserver_id,
-                     ub_bor.return_date,
                      CASE WHEN ub_bor.status = 'borrowed' AND ub_bor.return_date < CURRENT_DATE THEN 1 ELSE 0 END as is_overdue
                      FROM books b
                      LEFT JOIN user_books ub_bor ON b.book_id = ub_bor.book_id AND ub_bor.status = 'borrowed'
@@ -247,25 +255,15 @@ try {
             $params = [];
             
             if (!empty($search)) {
-                if ($category == 'title') {
-                    $query .= " AND b.title LIKE ?";
-                    $params[] = "%$search%";
-                } else if ($category == 'author') {
-                    $query .= " AND b.author LIKE ?";
-                    $params[] = "%$search%";
-                } else if ($category == 'isbn') {
-                    $query .= " AND b.isbn LIKE ?";
-                    $params[] = "%$search%";
-                } else {
-                    // Search all fields if no category specified
-                    $query .= " AND (b.title LIKE ? OR b.author LIKE ? OR b.isbn LIKE ?)";
-                    $params[] = "%$search%";
-                    $params[] = "%$search%";
-                    $params[] = "%$search%";
-                }
+                // Search all fields
+                $query .= " AND (b.title LIKE ? OR b.author LIKE ? OR b.isbn LIKE ?)";
+                $params[] = "%$search%";
+                $params[] = "%$search%";
+                $params[] = "%$search%";
             }
             
-            $query .= " ORDER BY b.title ASC";
+            // Add ORDER BY clause based on sort parameters
+            $query .= " ORDER BY b.$sort $sort_order";
             
             // Debug output
             error_log("SQL Book Query: " . $query);

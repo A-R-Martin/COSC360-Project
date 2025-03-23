@@ -64,21 +64,16 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
                     <h2>Book Management</h2>
                     <div class="catalog-filters">
                         <input type="search" id="book-search-input" placeholder="Search books..." class="search-input">
-                        <select id="book-category-select" class="category-select">
-                            <option value="">All Categories</option>
-                            <option value="title">Book Title</option>
-                            <option value="author">Author</option>
-                            <option value="isbn">ISBN</option>
-                        </select>
+                        <div class="sort-info">Click on column headers to sort</div>
                     </div>
                     <div class="data-table">
                         <table id="books-table">
                             <thead>
                                 <tr>
-                                    <th>Title</th>
-                                    <th>Author</th>
-                                    <th>ISBN</th>
-                                    <th>Status</th>
+                                    <th data-sort="title" class="sortable">Title</th>
+                                    <th data-sort="author" class="sortable">Author</th>
+                                    <th data-sort="isbn" class="sortable">ISBN</th>
+                                    <th data-sort="status" class="sortable">Status</th>
                                     <th>Current Borrower</th>
                                     <th>Reserved By</th>
                                     <th>Actions</th>

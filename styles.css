@@ -651,6 +651,42 @@ textarea:focus {
     line-height: 0.8rem;
 }
 
+/* Sortable table styles */
+.sortable {
+    cursor: pointer;
+    position: relative;
+    padding-right: 1.5rem;
+    user-select: none;
+}
+
+.sortable:hover {
+    background-color: #f0f0f0;
+}
+
+.sortable::after {
+    content: "⇅";
+    position: absolute;
+    right: 8px;
+    color: #999;
+    font-size: 0.8rem;
+}
+
+.sortable.sort-asc::after {
+    content: "↑";
+    color: var(--primary-color);
+}
+
+.sortable.sort-desc::after {
+    content: "↓";
+    color: var(--primary-color);
+}
+
+.sort-info {
+    font-size: 0.9rem;
+    color: var(--dark-gray);
+    padding: 0.5rem 0;
+}
+
 /* Status-specific colors */
 .book-status.available {
     background-color: #e6f7e6;
