@@ -42,13 +42,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Handle form submission
         form.addEventListener('submit', (event) => {
+            if (form.hasAttribute('data-custom-submit')) {
+                console.log(`Skipping generic handler for form ${form.id} - has custom handler`);
+                return;
+            }
+            
             event.preventDefault();
+            console.log('Generic form submit handler triggered for form:', form.id);
             form.classList.remove('was-validated', 'form-valid');
             form.classList.add('was-validated');
             
-            if (validateForm(form)) {
+            const isValid = validateForm(form);
+            console.log(`Form ${form.id} validation result:`, isValid);
+            
+            if (isValid) {
                 form.classList.add('form-valid');
+                console.log(`Calling handleFormSubmit for form ${form.id}`);
                 handleFormSubmit(form);
+            } else {
+                console.log(`Form ${form.id} validation failed`);
             }
         });
     });
@@ -83,8 +95,191 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addBookBtn) {
         addBookBtn.addEventListener('click', () => {
             console.log('Add book button clicked');
-            // TODO: Implement add book functionality
+            window.location.href = 'add_book.php';
         });
+    }
+
+    // Add book form handlers
+    const addBookForm = document.getElementById('add-book-form');
+    const bookCoverInput = document.getElementById('book-cover');
+    const coverPreview = document.getElementById('cover-preview');
+    const cancelAddBookBtn = document.getElementById('cancel-add-book');
+    
+    // Book cover preview
+    if (bookCoverInput) {
+        bookCoverInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    coverPreview.src = e.target.result;
+                    coverPreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                coverPreview.src = '#';
+                coverPreview.style.display = 'none';
+            }
+        });
+    }
+    
+    // Cancel button
+    if (cancelAddBookBtn) {
+        cancelAddBookBtn.addEventListener('click', () => {
+            window.location.href = 'profile.php';
+        });
+    }
+    
+    // Form submission
+    if (addBookForm) {
+        // Log that the form was found
+        console.log('Add book form found with ID:', addBookForm.id);
+        
+        addBookForm.addEventListener('submit', async (e) => {
+            console.log('*** ADD BOOK FORM SPECIFIC HANDLER TRIGGERED ***');
+            try {
+                e.preventDefault();
+                console.log('Add book form submitted');
+                
+                // Validate form
+                const titleInput = document.getElementById('title');
+                const authorInput = document.getElementById('author');
+                const isbnInput = document.getElementById('isbn');
+                const ratingInput = document.getElementById('rating');
+                
+                console.log('Form elements:', {
+                    title: titleInput?.value,
+                    author: authorInput?.value
+                });
+                
+                // Check required fields
+                if (!titleInput || !titleInput.value.trim()) {
+                    showFormMessage('Please enter a book title', 'error');
+                    if (titleInput) titleInput.focus();
+                    return;
+                }
+                
+                if (!authorInput || !authorInput.value.trim()) {
+                    showFormMessage('Please enter an author name', 'error');
+                    if (authorInput) authorInput.focus();
+                    return;
+                }
+                
+                // Validate ISBN if provided (must be 10 or 13 digits)
+                const isbnValue = isbnInput ? isbnInput.value.trim() : '';
+                if (isbnValue && !/^(\d{10}|\d{13})$/.test(isbnValue)) {
+                    showFormMessage('ISBN must be exactly 10 or 13 digits', 'error');
+                    isbnInput.focus();
+                    return;
+                }
+                
+                // Validate rating if provided
+                const ratingValue = ratingInput ? ratingInput.value.trim() : '';
+                if (ratingValue) {
+                    const rating = parseFloat(ratingValue);
+                    if (isNaN(rating) || rating < 0 || rating > 5) {
+                        showFormMessage('Rating must be a number between 0 and 5', 'error');
+                        ratingInput.focus();
+                        return;
+                    }
+                }
+                
+                // Create book data object
+                const bookData = {
+                    action: 'add',
+                    title: titleInput.value.trim(),
+                    author: authorInput.value.trim(),
+                    description: document.getElementById('description')?.value?.trim() || '',
+                    isbn: isbnValue,
+                    year: document.getElementById('year')?.value || '',
+                    genre: document.getElementById('genre')?.value || '',
+                    rating: ratingValue ? parseFloat(ratingValue) : null
+                };
+                
+                console.log('Book data to submit:', bookData);
+                
+                // First, upload the book cover if provided
+                let coverPath = null;
+                const bookCoverInput = document.getElementById('book-cover');
+                const coverPreview = document.getElementById('cover-preview');
+                
+                if (bookCoverInput && bookCoverInput.files.length > 0) {
+                    const coverFormData = new FormData();
+                    coverFormData.append('book_cover', bookCoverInput.files[0]);
+                    
+                    try {
+                        showFormMessage('Uploading cover image...', 'info');
+                        console.log('Uploading cover image...');
+                        const coverResponse = await fetch('upload_book_cover.php', {
+                            method: 'POST',
+                            body: coverFormData
+                        });
+                        
+                        const coverResult = await coverResponse.json();
+                        console.log('Cover upload response:', coverResult);
+                        if (coverResult.status === 'success') {
+                            coverPath = coverResult.data.file_path;
+                        } else {
+                            showFormMessage('Error uploading cover: ' + coverResult.message, 'error');
+                            return;
+                        }
+                    } catch (error) {
+                        console.error('Error uploading cover:', error);
+                        showFormMessage('Error uploading cover: ' + error.message, 'error');
+                        return;
+                    }
+                }
+                
+                // Add cover path to book data if available
+                if (coverPath) {
+                    bookData.cover_image = coverPath;
+                }
+                
+                // Submit book data
+                try {
+                    showFormMessage('Adding book to library...', 'info');
+                    console.log('Submitting book data to API:', bookData);
+                    const response = await fetch('api_books.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(bookData)
+                    });
+                    
+                    console.log('API response status:', response.status);
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`API error (${response.status}): ${errorText}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('API response data:', result);
+                    
+                    if (result.status === 'success') {
+                        showFormMessage('Book added successfully!', 'success');
+                        // Reset form
+                        addBookForm.reset();
+                        if (coverPreview) coverPreview.style.display = 'none';
+                        
+                        // Redirect to profile after 2 seconds
+                        setTimeout(() => {
+                            window.location.href = 'profile.php';
+                        }, 2000);
+                    } else {
+                        showFormMessage('Error adding book: ' + result.message, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error submitting book data:', error);
+                    showFormMessage('Error adding book: ' + error.message, 'error');
+                }
+            } catch (err) {
+                console.error('Global form submission error:', err);
+                showFormMessage('An unexpected error occurred: ' + err.message, 'error');
+            }
+        });
+    } else {
+        console.warn('Add book form not found on this page');
     }
 
     // Admin page buttons
@@ -248,6 +443,17 @@ function removeError(input) {
     errorMessage?.remove();
 }
 
+function displayError(input, message) {
+    // Remove any existing error first
+    removeError(input);
+    
+    // Create and add new error message
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = message;
+    input.parentNode.appendChild(errorDiv);
+}
+
 function showError(input) {
     removeError(input);
     const errorDiv = document.createElement('div');
@@ -274,6 +480,9 @@ function handleFormSubmit(form) {
         // Handle profile update
         console.log('Profile form submitted');
         form.submit();
+    } else if (formId === 'add-book-form') {
+        console.log('Add book form submission handled by dedicated event listener');
+        return; // Return early to prevent duplicate submission
     } else {
         // Default behavior
         console.log('Unknown form submitted');
@@ -287,12 +496,45 @@ class BookCard {
         this.bookId = bookData.book_id;
         this.title = bookData.title;
         this.author = bookData.author;
-        this.cover = bookData.cover;
+        this.cover = bookData.cover || 'sample-image.avif';
         this.description = bookData.description;
         this.isbn = bookData.isbn;
         // Ensure rating is a number
         this.rating = parseFloat(bookData.rating) || 0;
         this.status = bookData.status || 'available';
+        
+        // Fix the cover path if needed
+        this.fixCoverPath();
+    }
+    
+    fixCoverPath() {
+        // If cover is null or undefined, set a placeholder
+        if (!this.cover) {
+            this.cover = 'sample-image.avif';
+            return;
+        }
+        
+        // Check if the path already includes http:// or https:// or is an absolute path
+        if (this.cover.startsWith('http://') || this.cover.startsWith('https://') || this.cover.startsWith('/')) {
+            return; // Path is already correct
+        }
+        
+        if (this.cover === 'null' || this.cover === 'undefined') {
+            this.cover = 'sample-image.avif';
+            return;
+        }
+        
+        // Log for debugging
+        console.log('Original cover path:', this.cover);
+        
+        if (this.cover.startsWith('./')) {
+            this.cover = this.cover.substring(2);
+        } else if (this.cover.startsWith('../')) {
+            this.cover = this.cover.substring(3);
+        }
+        
+        // Log for debugging
+        console.log('Processed cover path:', this.cover);
     }
 
     createStarRating() {
@@ -323,7 +565,7 @@ class BookCard {
         
         card.innerHTML = `
             <div class="book-card-cover">
-                <img src="${this.cover}" alt="${this.title}" loading="lazy">
+                <img src="${this.cover}" alt="${this.title}" loading="lazy" onerror="this.src='sample-image.avif'; this.onerror=null;" class="book-cover-img">
             </div>
             <div class="book-card-content">
                 <div class="book-card-top">
@@ -359,11 +601,29 @@ function renderBookCards(books, containerId) {
         return;
     }
     
+    // Debug book data
+    console.log('Book data sample:', books[0]);
+    
     books.forEach(bookData => {
+        // Add image path debugging
+        if (bookData.cover) {
+            console.log(`Book "${bookData.title}" has cover path: ${bookData.cover}`);
+        } else {
+            console.log(`Book "${bookData.title}" has no cover path`);
+        }
+        
         const bookCard = new BookCard(bookData);
         container.appendChild(bookCard.createCard());
     });
     console.log(`Successfully rendered ${books.length} book cards`);
+    
+    // Add image loading error event listeners
+    document.querySelectorAll('.book-cover-img').forEach(img => {
+        img.addEventListener('error', function() {
+            console.log(`Image failed to load: ${this.src}`);
+            this.src = 'sample-image.avif';
+        });
+    });
 }
 
 // Sample featured books data with ratings
@@ -438,3 +698,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+/**
+ * Display form message
+ */
+function showFormMessage(message, type = 'info') {
+    const messageDiv = document.getElementById('form-response-message');
+    if (messageDiv) {
+        messageDiv.textContent = message;
+        messageDiv.className = 'alert';
+        messageDiv.classList.add(`alert-${type}`);
+        messageDiv.style.display = 'block';
+        
+        // Scroll to message
+        messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}

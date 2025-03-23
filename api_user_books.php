@@ -324,7 +324,7 @@ function handlePostRequest($action, $conn, &$response) {
                     $updateBookStmt = $conn->prepare($updateBookQuery);
                     $updateBookStmt->execute(['bookId' => $bookId]);
                     
-                    // Update user_books record to history
+                    // Update user_books record
                     $returnDate = date('Y-m-d H:i:s');
                     
                     $updateQuery = "UPDATE user_books SET status = 'returned', return_date = :returnDate 

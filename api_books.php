@@ -140,6 +140,21 @@ if ($method === 'GET') {
         $stmt->execute();
         $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
+        // Process book data to validate cover images
+        foreach ($books as &$book) {
+            // If cover is set, make sure it exists or set a default
+            if (isset($book['cover']) && $book['cover']) {
+                // Check if the file exists (if it's a relative path)
+                if (!filter_var($book['cover'], FILTER_VALIDATE_URL) && !file_exists($book['cover'])) {
+                    // File doesn't exist, set to default
+                    $book['cover'] = 'sample-image.avif';
+                }
+            } else {
+                // No cover set, use default
+                $book['cover'] = 'sample-image.avif';
+            }
+        }
+        
         // Success response
         $response = [
             'status' => 'success',
@@ -175,13 +190,27 @@ else if ($method === 'POST') {
     
     // Get JSON data from request body
     $json = file_get_contents('php://input');
+    if (empty($json)) {
+        $response = [
+            'status' => 'error',
+            'message' => 'No data received. Empty request body.',
+            'data' => null
+        ];
+        echo json_encode($response);
+        exit;
+    }
+    
     $data = json_decode($json, true);
     
     if (!$data) {
         $response = [
             'status' => 'error',
-            'message' => 'Invalid JSON data',
-            'data' => null
+            'message' => 'Invalid JSON data: ' . json_last_error_msg(),
+            'data' => [
+                'received_data' => $json,
+                'json_error' => json_last_error(),
+                'json_error_msg' => json_last_error_msg()
+            ]
         ];
         echo json_encode($response);
         exit;
@@ -191,7 +220,10 @@ else if ($method === 'POST') {
     $book_id = isset($data['book_id']) ? (int)$data['book_id'] : 0;
     $user_id = $_SESSION['user_id'];
     
-    if (!$book_id) {
+    // Log the action for debugging
+    error_log("API action: $action, user_id: $user_id, data: " . json_encode($data));
+    
+    if ($action !== 'add' && $action !== 'test' && !$book_id) {
         $response = [
             'status' => 'error',
             'message' => 'Book ID is required',
@@ -203,6 +235,55 @@ else if ($method === 'POST') {
     
     try {
         switch ($action) {
+            case 'add':
+                // Required fields
+                if (empty($data['title']) || empty($data['author'])) {
+                    $response = [
+                        'status' => 'error',
+                        'message' => 'Title and author are required',
+                        'data' => null
+                    ];
+                    break;
+                }
+                
+                // Get book data
+                $title = $data['title'];
+                $author = $data['author'];
+                $description = isset($data['description']) ? $data['description'] : null;
+                $isbn = isset($data['isbn']) ? $data['isbn'] : null;
+                $year_published = isset($data['year']) ? (int)$data['year'] : null;
+                $genre = isset($data['genre']) ? $data['genre'] : null;
+                $cover_image = isset($data['cover_image']) ? $data['cover_image'] : null;
+                $rating = isset($data['rating']) ? floatval($data['rating']) : null;
+                
+                // Validate rating if provided
+                if ($rating !== null && ($rating < 0 || $rating > 5)) {
+                    $response = [
+                        'status' => 'error',
+                        'message' => 'Rating must be between 0 and 5',
+                        'data' => null
+                    ];
+                    break;
+                }
+                
+                // Insert new book
+                $insertSql = "INSERT INTO books (title, author, description, isbn, year_published, genre, cover_image, rating, status) 
+                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'available')";
+                $insertStmt = $conn->prepare($insertSql);
+                $insertStmt->execute([$title, $author, $description, $isbn, $year_published, $genre, $cover_image, $rating]);
+                
+                $newBookId = $conn->lastInsertId();
+                
+                $response = [
+                    'status' => 'success',
+                    'message' => 'Book added successfully',
+                    'data' => [
+                        'book_id' => $newBookId,
+                        'title' => $title
+                    ]
+                ];
+                break;
+                
             case 'borrow':
                 // Check if the book is available
                 $checkSql = "SELECT status FROM books WHERE book_id = ?";
@@ -448,6 +529,21 @@ else if ($method === 'POST') {
                     'message' => 'Invalid action',
                     'data' => null
                 ];
+                
+                // Special case for test action
+                if ($action === 'test') {
+                    $response = [
+                        'status' => 'success',
+                        'message' => 'API connection test successful',
+                        'data' => [
+                            'received_data' => $data,
+                            'user_id' => $user_id,
+                            'session_active' => isset($_SESSION['user_id']),
+                            'php_version' => PHP_VERSION,
+                            'datetime' => date('Y-m-d H:i:s')
+                        ]
+                    ];
+                }
         }
     } catch (PDOException $e) {
         // Rollback transaction on error
