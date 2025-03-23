@@ -140,11 +140,49 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
                             </div>
                         </div>
                     </div>
+                    
+                    <div class="analytics-graphs">
+                        <h3>Analytics Dashboard</h3>
+                        <div class="graph-container">
+                            <div class="graph-card">
+                                <h4>Book Status Distribution</h4>
+                                <div class="canvas-container">
+                                    <canvas id="book-status-chart" width="300" height="200"></canvas>
+                                </div>
+                            </div>
+                            <div class="graph-card">
+                                <h4>Genre Distribution</h4>
+                                <div class="canvas-container">
+                                    <canvas id="genre-distribution-chart" width="300" height="200"></canvas>
+                                </div>
+                            </div>
+                            <div class="graph-card">
+                                <h4>Most Popular Books</h4>
+                                <div class="canvas-container">
+                                    <canvas id="popular-books-chart" width="300" height="200"></canvas>
+                                </div>
+                            </div>
+                            <div class="graph-card">
+                                <h4>User Activity</h4>
+                                <div class="canvas-container">
+                                    <canvas id="user-activity-chart" width="300" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
     </main>
     <script src="scripts.js"></script>
+    <script>
+        window.addEventListener('load', function() {
+            console.log('Window loaded, initializing charts...');
+            setTimeout(function() {
+                loadAnalytics();
+            }, 800);
+        });
+    </script>
 </body>
 
 </html> 
