@@ -25,7 +25,8 @@ $is_logged_in = isset($_SESSION['user_id']);
                     <div class="filter-group">
                         <input type="text" id="catalog-search" class="search-input" placeholder="Search items...">
                         <select id="catalog-filter" class="filter-select">
-                            <option value="">All Categories</option>
+                            <option value="title">Sort by Title</option>
+                            <option value="rating">Sort by Rating</option>
                         </select>
                     </div>
 
@@ -63,25 +64,9 @@ $is_logged_in = isset($_SESSION['user_id']);
             let totalPages = 1;
             let booksPerPage = 9;
             let currentSearchTerm = '';
-            let currentFilter = '';
+            let currentSort = 'title';
             let currentView = 'all';
             const isLoggedIn = <?php echo $is_logged_in ? 'true' : 'false'; ?>;
-            
-            // Get book categories for the filter dropdown
-            fetch('api_books.php?categories=true')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success' && data.data) {
-                        const filterSelect = document.getElementById('catalog-filter');
-                        data.data.forEach(category => {
-                            const option = document.createElement('option');
-                            option.value = category;
-                            option.textContent = category;
-                            filterSelect.appendChild(option);
-                        });
-                    }
-                })
-                .catch(error => console.error('Error loading categories:', error));
             
             // Search functionality
             const searchInput = document.getElementById('catalog-search');
@@ -93,11 +78,11 @@ $is_logged_in = isset($_SESSION['user_id']);
                 }
             });
             
-            // Filter functionality
-            const filterSelect = document.getElementById('catalog-filter');
-            filterSelect.addEventListener('change', function() {
-                currentFilter = this.value;
-                currentPage = 1; // Reset to first page on new filter
+            // Sort functionality
+            const sortSelect = document.getElementById('catalog-filter');
+            sortSelect.addEventListener('change', function() {
+                currentSort = this.value;
+                currentPage = 1; // Reset to first page on new sort
                 loadBooks();
             });
             
@@ -151,10 +136,8 @@ $is_logged_in = isset($_SESSION['user_id']);
                     url += `&search=${encodeURIComponent(currentSearchTerm)}`;
                 }
                 
-                // Add category filter if present
-                if (currentFilter) {
-                    url += `&category=${encodeURIComponent(currentFilter)}`;
-                }
+                // Add sort option
+                url += `&sort=${encodeURIComponent(currentSort)}`;
                 
                 // Add view filter for logged-in users
                 if (isLoggedIn) {
