@@ -144,6 +144,57 @@ function handleGetRequest($action, $conn, &$response) {
             }
             break;
             
+        case 'my_uploads':
+            try {
+                $checkColumnSql = "SHOW COLUMNS FROM books LIKE 'owner_id'";
+                $checkColumnStmt = $conn->prepare($checkColumnSql);
+                $checkColumnStmt->execute();
+                
+                if ($checkColumnStmt->rowCount() === 0) {
+                    $response['status'] = 'success';
+                    $response['message'] = 'No uploaded books found (owner_id column not available)';
+                    $response['data'] = [];
+                    break;
+                }
+                
+                $query = "SELECT b.*, 
+                         CASE 
+                            WHEN ub.status IS NOT NULL THEN ub.status 
+                            ELSE b.status 
+                         END as current_status,
+                         ub.user_id as borrower_id,
+                         u.username as borrower_name
+                         FROM books b 
+                         LEFT JOIN user_books ub ON b.book_id = ub.book_id AND (ub.status = 'borrowed' OR ub.status = 'reserved')
+                         LEFT JOIN users u ON ub.user_id = u.user_id
+                         WHERE b.owner_id = :userId
+                         ORDER BY b.title ASC";
+                
+                $stmt = $conn->prepare($query);
+                $stmt->execute(['userId' => $userId]);
+                $books = [];
+                
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    $books[] = [
+                        'book_id' => $row['book_id'],
+                        'title' => $row['title'],
+                        'author' => $row['author'],
+                        'cover' => $row['cover_image'] ?? 'sample-image.avif',
+                        'status' => $row['current_status'] ?? $row['status'],
+                        'borrower_id' => $row['borrower_id'],
+                        'borrower_name' => $row['borrower_name']
+                    ];
+                }
+                
+                $response['status'] = 'success';
+                $response['message'] = count($books) . ' uploaded books found';
+                $response['data'] = $books;
+                
+            } catch (PDOException $e) {
+                $response['message'] = 'Database error: ' . $e->getMessage();
+            }
+            break;
+            
         default:
             $response['message'] = 'Invalid action';
     }

@@ -65,12 +65,24 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Profile page buttons
-    const saveProfileBtn = document.getElementById('save-profile');
-    if (saveProfileBtn) {
-        saveProfileBtn.addEventListener('click', () => {
-            console.log('Save profile button clicked');
-            // TODO: Implement save profile functionality
+    // Profile image upload
+    const profileImageInput = document.getElementById('profile-image');
+    const currentProfileImage = document.getElementById('current-profile-image');
+    
+    if (profileImageInput) {
+        profileImageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                // Show image preview
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    currentProfileImage.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+                
+                // Upload the image
+                uploadProfileImage(file);
+            }
         });
     }
 
@@ -78,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (removeProfileImageBtn) {
         removeProfileImageBtn.addEventListener('click', () => {
             console.log('Remove profile image button clicked');
-            // TODO: Implement profile image removal
+            removeProfileImage();
         });
     }
 
@@ -87,10 +99,26 @@ document.addEventListener('DOMContentLoaded', () => {
         updateProfileBtn.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('Update profile button clicked');
-            // TODO: Implement profile update functionality
+            updateUserProfile();
+        });
+    }
+    
+    // Password change form handler
+    const changePasswordBtn = document.getElementById('change-password');
+    if (changePasswordBtn) {
+        changePasswordBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('Change password button clicked');
+            updatePassword();
         });
     }
 
+    // Load user profile data when on profile page
+    if (document.querySelector('.profile-container')) {
+        loadUserProfile();
+    }
+
+    // Profile page buttons
     const addBookBtn = document.getElementById('add-book');
     if (addBookBtn) {
         addBookBtn.addEventListener('click', () => {
@@ -423,7 +451,30 @@ function validateField(input) {
 }
 
 function validateFile(input) {
-    // TODO: Implement profile pic / book picture validation
+    // Validate file type and size
+    if (input.files.length === 0) {
+        return true; // No file selected is valid (might be optional)
+    }
+    
+    const file = input.files[0];
+    const fileType = file.type;
+    const fileSize = file.size;
+    
+    // Check file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(fileType)) {
+        displayError(input, 'Invalid file type. Only JPG, PNG and GIF are allowed');
+        return false;
+    }
+    
+    // Check file size (max 2MB)
+    const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+    if (fileSize > maxSize) {
+        displayError(input, 'File size exceeds the limit (2MB)');
+        return false;
+    }
+    
+    return true;
 }
 
 function validateForm(form) {
@@ -700,17 +751,198 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * Display form message
+ * Display form response message
  */
 function showFormMessage(message, type = 'info') {
-    const messageDiv = document.getElementById('form-response-message');
-    if (messageDiv) {
-        messageDiv.textContent = message;
-        messageDiv.className = 'alert';
-        messageDiv.classList.add(`alert-${type}`);
-        messageDiv.style.display = 'block';
-        
-        // Scroll to message
-        messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const container = document.getElementById('form-message-container');
+    if (!container) return;
+    
+    // Clear any existing messages
+    container.innerHTML = '';
+    
+    // Create new message element
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `alert alert-${type}`;
+    messageDiv.textContent = message;
+    messageDiv.style.display = 'block';
+    
+    // Add to container
+    container.appendChild(messageDiv);
+    
+    // Scroll to message
+    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    
+    // Auto-hide after 5 seconds for success messages
+    if (type === 'success') {
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 5000);
     }
+}
+
+/**
+ * Load user profile data
+ */
+function loadUserProfile() {
+    fetch('api_user_profile.php?action=get_profile')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Populate form fields with user data
+                const user = data.data;
+                document.getElementById('username').value = user.username;
+                document.getElementById('email').value = user.email;
+                document.getElementById('bio').value = user.bio || '';
+                
+                // Set profile image
+                const profileImage = document.getElementById('current-profile-image');
+                if (user.profile_image) {
+                    profileImage.src = user.profile_image;
+                } else {
+                    profileImage.src = 'placeholder-profile.jpg';
+                }
+            } else {
+                showFormMessage(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading user profile:', error);
+            showFormMessage('Error loading user profile. Please try again later.', 'error');
+        });
+}
+
+/**
+ * Upload profile image
+ */
+function uploadProfileImage(file) {
+    const formData = new FormData();
+    formData.append('profile_image', file);
+    
+    fetch('upload_profile_image.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showFormMessage('Profile image updated successfully', 'success');
+        } else {
+            showFormMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error uploading profile image:', error);
+        showFormMessage('Error uploading profile image. Please try again later.', 'error');
+    });
+}
+
+/**
+ * Remove profile image
+ */
+function removeProfileImage() {
+    fetch('api_user_profile.php?action=delete_profile_image', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Reset profile image to default
+            document.getElementById('current-profile-image').src = 'placeholder-profile.jpg';
+            showFormMessage('Profile image removed successfully', 'success');
+        } else {
+            showFormMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error removing profile image:', error);
+        showFormMessage('Error removing profile image. Please try again later.', 'error');
+    });
+}
+
+/**
+ * Update user profile data
+ */
+function updateUserProfile() {
+    const username = document.getElementById('username').value;
+    const email = document.getElementById('email').value;
+    const bio = document.getElementById('bio').value;
+    
+    const formData = new FormData();
+    formData.append('action', 'update_profile');
+    formData.append('username', username);
+    formData.append('email', email);
+    formData.append('bio', bio);
+    
+    fetch('api_user_profile.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showFormMessage('Profile updated successfully', 'success');
+        } else {
+            showFormMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating user profile:', error);
+        showFormMessage('Error updating profile. Please try again later.', 'error');
+    });
+}
+
+/**
+ * Update user password
+ */
+function updatePassword() {
+    // Get password form
+    const passwordForm = document.getElementById('password-form');
+    
+    // Validate form
+    passwordForm.classList.remove('was-validated', 'form-valid');
+    passwordForm.classList.add('was-validated');
+    
+    if (!validateForm(passwordForm)) {
+        console.log('Password form validation failed');
+        return;
+    }
+    
+    // Get password values
+    const currentPassword = document.getElementById('current-password').value;
+    const newPassword = document.getElementById('new-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+    
+    // Check if passwords match
+    if (newPassword !== confirmPassword) {
+        showFormMessage('New passwords do not match', 'error');
+        return;
+    }
+    
+    // Create form data
+    const formData = new FormData();
+    formData.append('action', 'update_password');
+    formData.append('current_password', currentPassword);
+    formData.append('new_password', newPassword);
+    formData.append('confirm_password', confirmPassword);
+    
+    // Send request to update password
+    fetch('api_user_profile.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showFormMessage('Password updated successfully', 'success');
+            // Reset form
+            passwordForm.reset();
+            passwordForm.classList.remove('was-validated', 'form-valid');
+        } else {
+            showFormMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating password:', error);
+        showFormMessage('Error updating password. Please try again later.', 'error');
+    });
 }
