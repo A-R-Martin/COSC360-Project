@@ -36,54 +36,6 @@ if (isset($user['status']) && $user['status'] === 'banned') {
     <meta name="keywords" content="library profile, reading history, borrowed books, reader preferences, virtual library account">
     <title>My Profile - Virtual Library</title>
     <link rel="stylesheet" href="styles.css">
-    <style>
-        /* Profile-specific styles */
-        .profile-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .profile-header {
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        
-        .profile-content {
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-        }
-        
-        .profile-section {
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            padding: 25px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .profile-section h2 {
-            margin-top: 0;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        .profile-image-container {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        
-        #current-profile-image {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #ddd;
-            margin-bottom: 15px;
-            background-color: #ffffff;
-        }
-    </style>
 </head>
 <body>
     <?php include 'nav.php'; ?>
@@ -100,7 +52,7 @@ if (isset($user['status']) && $user['status'] === 'banned') {
                 <div class="profile-section">
                     <h2>Profile Information</h2>
                     <div class="profile-image-container">
-                        <img id="current-profile-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Profile Image">
+                        <img id="current-profile-image" src="placeholder-profile.jpg" alt="Profile Image">
                         <div class="profile-image-actions">
                             <div class="upload-btn-wrapper">
                                 <button type="button" class="btn-primary">Choose Image</button>
