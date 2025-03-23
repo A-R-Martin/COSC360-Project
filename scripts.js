@@ -967,6 +967,9 @@ function loadAdminData() {
     // Load users data
     loadUsers();
     
+    // Load books data
+    loadBooks();
+    
     // Load analytics data
     loadAnalytics();
 }
@@ -991,8 +994,26 @@ function setupAdminEventListeners() {
         });
     }
     
+    // Book search functionality
+    const bookSearchInput = document.getElementById('book-search-input');
+    if (bookSearchInput) {
+        bookSearchInput.addEventListener('input', debounce(() => {
+            loadBooks(bookSearchInput.value, document.getElementById('book-category-select')?.value || '');
+        }, 300));
+    }
+    
+    // Book category filter
+    const bookCategorySelect = document.getElementById('book-category-select');
+    if (bookCategorySelect) {
+        bookCategorySelect.addEventListener('change', () => {
+            loadBooks(bookSearchInput ? bookSearchInput.value : '', bookCategorySelect.value);
+        });
+    }
+    
     // Delegate event handler for user actions
     document.addEventListener('click', handleAdminUserActions);
+    
+    document.addEventListener('click', handleAdminBookActions);
 }
 
 /**
@@ -1166,4 +1187,143 @@ function debounce(func, wait) {
             func.apply(context, args);
         }, wait);
     };
+}
+
+/**
+ * Load books list for admin panel
+ */
+function loadBooks(search = '', category = '') {
+    console.log(`Loading books with search: "${search}", category: "${category}"`);
+    const booksTable = document.getElementById('books-table');
+    if (!booksTable) return;
+    
+    const tableBody = booksTable.querySelector('tbody');
+    tableBody.innerHTML = '<tr><td colspan="7" class="text-center">Loading...</td></tr>';
+    
+    // Build query string
+    let queryParams = new URLSearchParams();
+    queryParams.append('action', 'get_books');
+    if (search) queryParams.append('search', search);
+    if (category) queryParams.append('category', category);
+    
+    fetch(`api_admin.php?${queryParams.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                renderBooksTable(data.data);
+            } else {
+                console.error('Error loading books:', data.message);
+                tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">${data.message}</td></tr>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading books:', error);
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error loading books. Please try again.</td></tr>';
+        });
+}
+
+/**
+ * Render books table with data
+ */
+function renderBooksTable(books) {
+    const tableBody = document.querySelector('#books-table tbody');
+    if (!tableBody) return;
+    
+    if (books.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No books found</td></tr>';
+        return;
+    }
+    
+    tableBody.innerHTML = '';
+    
+    books.forEach(book => {
+        // Create status badge class based on book status
+        let statusClass;
+        switch (book.status) {
+            case 'available':
+                statusClass = 'status-active';
+                break;
+            case 'borrowed':
+                statusClass = 'status-borrowed';
+                break;
+            case 'reserved':
+                statusClass = 'status-reserved';
+                break;
+            default:
+                statusClass = 'status-banned';
+        }
+        
+        // Create action buttons
+        const actionButtons = `
+            <button class="btn-edit-book" data-book-id="${book.book_id}">Edit</button>
+            <button class="btn-delete-book" data-book-id="${book.book_id}">Delete</button>
+        `;
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${book.title}</td>
+            <td>${book.author}</td>
+            <td>${book.isbn || 'N/A'}</td>
+            <td><span class="status-badge ${statusClass}">${book.status}</span></td>
+            <td>${book.borrower_name || 'N/A'}</td>
+            <td>${book.reserver_name || 'N/A'}</td>
+            <td class="actions">
+                ${actionButtons}
+            </td>
+        `;
+        
+        tableBody.appendChild(row);
+    });
+}
+
+/**
+ * Handle admin book action clicks
+ */
+function handleAdminBookActions(e) {
+    // Edit book
+    if (e.target.matches('.btn-edit-book')) {
+        const bookId = e.target.dataset.bookId;
+        console.log(`Edit book clicked for book ID: ${bookId}`);
+        // TODO: Implement book edit functionality
+    }
+    
+    // Delete book
+    if (e.target.matches('.btn-delete-book')) {
+        const bookId = e.target.dataset.bookId;
+        console.log(`Delete book clicked for book ID: ${bookId}`);
+        
+        if (confirm(`Are you sure you want to delete this book? This action cannot be undone.`)) {
+            deleteBook(bookId);
+        }
+    }
+}
+
+/**
+ * Delete a book
+ */
+function deleteBook(bookId) {
+    console.log(`Deleting book with ID: ${bookId}`);
+    
+    const formData = new FormData();
+    formData.append('action', 'delete_book');
+    formData.append('book_id', bookId);
+    
+    fetch('api_admin.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Reload the books table
+            loadBooks();
+            showFormMessage('Book deleted successfully', 'success');
+        } else {
+            showFormMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting book:', error);
+        showFormMessage('Error deleting book. Please try again later.', 'error');
+    });
 }

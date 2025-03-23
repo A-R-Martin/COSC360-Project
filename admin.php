@@ -63,8 +63,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
                 <div class="admin-section">
                     <h2>Book Management</h2>
                     <div class="catalog-filters">
-                        <input type="search" placeholder="Search books..." class="search-input">
-                        <select class="category-select">
+                        <input type="search" id="book-search-input" placeholder="Search books..." class="search-input">
+                        <select id="book-category-select" class="category-select">
                             <option value="">All Categories</option>
                             <option value="title">Book Title</option>
                             <option value="author">Author</option>
@@ -80,6 +80,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
                                     <th>ISBN</th>
                                     <th>Status</th>
                                     <th>Current Borrower</th>
+                                    <th>Reserved By</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>

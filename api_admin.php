@@ -201,6 +201,111 @@ try {
             ];
             break;
             
+        case 'get_books':
+            // Get optional query parameters
+            $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+            $category = isset($_GET['category']) ? trim($_GET['category']) : '';
+            
+            $query = "SELECT b.book_id, b.title, b.author, b.isbn, b.status, 
+                     bor.username as borrower_name, bor.user_id as borrower_id,
+                     res.username as reserver_name, res.user_id as reserver_id
+                     FROM books b
+                     LEFT JOIN user_books ub_bor ON b.book_id = ub_bor.book_id AND ub_bor.status = 'borrowed'
+                     LEFT JOIN users bor ON ub_bor.user_id = bor.user_id
+                     LEFT JOIN user_books ub_res ON b.book_id = ub_res.book_id AND ub_res.status = 'reserved'
+                     LEFT JOIN users res ON ub_res.user_id = res.user_id
+            $params = [];
+            
+            if (!empty($search)) {
+                if ($category == 'title') {
+                    $query .= " AND b.title LIKE ?";
+                    $params[] = "%$search%";
+                } else if ($category == 'author') {
+                    $query .= " AND b.author LIKE ?";
+                    $params[] = "%$search%";
+                } else if ($category == 'isbn') {
+                    $query .= " AND b.isbn LIKE ?";
+                    $params[] = "%$search%";
+                } else {
+                    // Search all fields if no category specified
+                    $query .= " AND (b.title LIKE ? OR b.author LIKE ? OR b.isbn LIKE ?)";
+                    $params[] = "%$search%";
+                    $params[] = "%$search%";
+                    $params[] = "%$search%";
+                }
+            }
+            
+            $query .= " ORDER BY b.title ASC";
+            
+            // Debug output
+            error_log("SQL Book Query: " . $query);
+            error_log("SQL Book Params: " . json_encode($params));
+            
+            try {
+                $stmt = $conn->prepare($query);
+                
+                if (!empty($params)) {
+                    $stmt->execute($params);
+                } else {
+                    $stmt->execute();
+                }
+                
+                $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                $response = [
+                    'status' => 'success',
+                    'message' => 'Books retrieved successfully',
+                    'data' => $books
+                ];
+            } catch (PDOException $e) {
+                error_log("SQL Error: " . $e->getMessage());
+                $response = [
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage(),
+                    'data' => null
+                ];
+            }
+            break;
+            
+        case 'delete_book':
+            // Get book ID
+            $bookId = isset($_POST['book_id']) ? intval($_POST['book_id']) : 0;
+            
+            // Validate inputs
+            if ($bookId <= 0) {
+                $response['message'] = 'Invalid book ID';
+                break;
+            }
+            
+            // Check if book exists
+            $stmt = $conn->prepare("SELECT book_id, status FROM books WHERE book_id = ?");
+            $stmt->execute([$bookId]);
+            $book = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$book) {
+                $response['message'] = 'Book not found';
+                break;
+            }
+            
+            // Check if book is currently borrowed
+            if ($book['status'] === 'borrowed') {
+                $response['message'] = 'Cannot delete a book that is currently borrowed';
+            }
+            
+            $stmt->execute([$bookId]);
+            
+            $stmt = $conn->prepare("DELETE FROM books WHERE book_id = ?");
+            $stmt->execute([$bookId]);
+            
+            $response = [
+                'status' => 'success',
+                'message' => 'Book deleted successfully',
+                'data' => [
+                    'book_id' => $bookId
+                ]
+            ];
+            break;
+            
         default:
             $response['message'] = 'Invalid action';
             break;

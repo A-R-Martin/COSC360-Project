@@ -1260,8 +1260,18 @@ input[type="number"]#rating {
 }
 
 .status-active {
-    background-color: #e7f6e7;
-    color: #2a602a;
+    background-color: #e6f7e6;
+    color: #2ecc71;
+}
+
+.status-borrowed {
+    background-color: #fdebd0;
+    color: #e67e22;
+}
+
+.status-reserved {
+    background-color: #e8f4fd;
+    color: #3498db;
 }
 
 .status-banned {
@@ -1291,17 +1301,31 @@ input[type="number"]#rating {
 }
 
 .btn-edit-user {
-    background-color: #e3f2fd;
-    color: #1976d2;
+    background-color: #e6f2ff;
+    color: #0066cc;
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0.25rem;
+    transition: background-color 0.2s ease;
 }
 
 .btn-edit-user:hover {
-    background-color: #bbdefb;
+    background-color: #cce5ff;
 }
 
 .btn-suspend-user {
     background-color: #fbeaea;
     color: #a53636;
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0.25rem;
+    transition: background-color 0.2s ease;
 }
 
 .btn-suspend-user:hover {
@@ -1353,4 +1377,37 @@ input[type="number"]#rating {
     font-weight: bold;
     max-width: 1200px;
     margin: 0 auto 20px auto;
+}
+
+/* Button styles for book management */
+.btn-edit-book {
+    background-color: #e6f2ff;
+    color: #0066cc;
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0.25rem;
+    transition: background-color 0.2s ease;
+}
+
+.btn-edit-book:hover {
+    background-color: #cce5ff;
+}
+
+.btn-delete-book {
+    background-color: #fbeaea;
+    color: #a53636;
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0.25rem;
+    transition: background-color 0.2s ease;
+}
+
+.btn-delete-book:hover {
+    background-color: #f8d7d7;
 }
