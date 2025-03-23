@@ -315,7 +315,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (exportDataBtn) {
         exportDataBtn.addEventListener('click', () => {
             console.log('Export data button clicked');
-            // TODO: Implement data export functionality
+            exportAdminData();
+            exportAdminData();
         });
     }
 
@@ -342,8 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.matches('.btn-edit-user')) {
             const userId = e.target.dataset.userId;
             console.log(`Edit user clicked for user ID: ${userId}`);
-            // Navigate to user detail page
-            window.location.href = `admin_user_detail.php?id=${userId}`;
+            // TODO: Implement user edit functionality
         }
         
         if (e.target.matches('.btn-suspend-user')) {
@@ -355,8 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.matches('.btn-edit-book')) {
             const isbn = e.target.dataset.isbn;
             console.log(`Edit book clicked for ISBN: ${isbn}`);
-            // Navigate to book edit page
-            window.location.href = `edit_book.php?id=${isbn}`;
+            // TODO: Implement book edit functionality
         }
         
         if (e.target.matches('.btn-delete-book')) {
@@ -365,51 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // TODO: Implement book deletion
         }
     });
-
-    // Load admin data if on admin page
-    if (document.querySelector('.admin-container')) {
-        initializeCanvases();
-        loadAdminData();
-        setupAdminEventListeners();
-    }
 });
-
-/**
- * Initialize canvas elements with proper dimensions
- */
-function initializeCanvases() {
-    const canvases = document.querySelectorAll('canvas');
-    console.log(`Found ${canvases.length} canvas elements to initialize`);
-    
-    canvases.forEach(canvas => {
-        // Set explicit dimensions if not already set
-        if (!canvas.hasAttribute('width')) {
-            canvas.width = 300;
-        }
-        if (!canvas.hasAttribute('height')) {
-            canvas.height = 200;
-        }
-        
-        // Ensure the canvas is visible
-        canvas.style.display = 'block';
-        
-        // Clear canvas to a white background
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw a placeholder text
-            ctx.fillStyle = '#cccccc';
-            ctx.font = '14px Arial, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('Loading chart data...', canvas.width / 2, canvas.height / 2);
-        }
-        
-        console.log(`Initialized canvas ${canvas.id}: ${canvas.width}x${canvas.height}`);
-    });
-}
 
 function checkPasswordRequirements(input) {
     const requirements = {
@@ -1001,7 +956,6 @@ function updatePassword() {
 document.addEventListener('DOMContentLoaded', () => {
     // Load admin data if on admin page
     if (document.querySelector('.admin-container')) {
-        initializeCanvases();
         loadAdminData();
         setupAdminEventListeners();
     }
@@ -1045,22 +999,45 @@ function setupAdminEventListeners() {
     const bookSearchInput = document.getElementById('book-search-input');
     if (bookSearchInput) {
         bookSearchInput.addEventListener('input', debounce(() => {
-            loadBooks(bookSearchInput.value, document.getElementById('book-category-select')?.value || '');
+            loadBooks(bookSearchInput.value);
         }, 300));
     }
     
-    // Book category filter
-    const bookCategorySelect = document.getElementById('book-category-select');
-    if (bookCategorySelect) {
-        bookCategorySelect.addEventListener('change', () => {
-            loadBooks(bookSearchInput ? bookSearchInput.value : '', bookCategorySelect.value);
+    const sortableHeaders = document.querySelectorAll('#books-table th.sortable');
+    if (sortableHeaders.length > 0) {
+        sortableHeaders.forEach(header => {
+            header.addEventListener('click', () => {
+                sortableHeaders.forEach(h => {
+                    h.classList.remove('sort-asc', 'sort-desc');
+                });
+                
+                const sortField = header.getAttribute('data-sort');
+                let sortOrder = 'asc';
+                
+                if (header.getAttribute('data-current-sort') === 'asc') {
+                    sortOrder = 'desc';
+                    header.classList.add('sort-desc');
+                } else {
+                    header.classList.add('sort-asc');
+                }
+                
+                header.setAttribute('data-current-sort', sortOrder);
+                
+                loadBooks(bookSearchInput ? bookSearchInput.value : '', sortField, sortOrder);
+            });
         });
+    }
+    
+    // Default sort on first load (by title ascending)
+    const titleHeader = document.querySelector('#books-table th[data-sort="title"]');
+    if (titleHeader) {
+        titleHeader.classList.add('sort-asc');
+        titleHeader.setAttribute('data-current-sort', 'asc');
     }
     
     // Delegate event handler for user actions
     document.addEventListener('click', handleAdminUserActions);
     
-    // Delegate event handler for book actions
     document.addEventListener('click', handleAdminBookActions);
 }
 
@@ -1072,8 +1049,7 @@ function handleAdminUserActions(e) {
     if (e.target.matches('.btn-edit-user')) {
         const userId = e.target.dataset.userId;
         console.log(`Edit user clicked for user ID: ${userId}`);
-        // Navigate to user detail page
-        window.location.href = `admin_user_detail.php?id=${userId}`;
+        // TODO: Implement edit user modal
     }
     
     // Ban/activate user
@@ -1230,8 +1206,6 @@ function loadAnalytics() {
                 } else {
                     overdueElement.classList.remove('overdue');
                 }
-                
-                loadChartData();
             } else {
                 console.error('Error loading analytics:', data.message);
             }
@@ -1239,312 +1213,6 @@ function loadAnalytics() {
         .catch(error => {
             console.error('Error loading analytics:', error);
         });
-}
-
-/**
- * Load chart data for admin dashboard
- */
-function loadChartData() {
-    // Check if we're on the admin page with charts
-    const chartElements = document.querySelectorAll('canvas[id$="-chart"]');
-    if (chartElements.length === 0) {
-        return;
-    }
-    
-    // Add a small delay to ensure DOM is fully loaded before drawing charts
-    setTimeout(() => {
-        fetch('api_admin.php?action=get_chart_data')
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Draw each chart
-                    try {
-                        drawPieChart('book-status-chart', data.data.bookStatus, 'Book Status');
-                    } catch (err) {
-                        console.error('Error drawing book status chart:', err);
-                    }
-                    
-                    try {
-                        drawPieChart('genre-distribution-chart', data.data.genreDistribution, 'Genre Distribution');
-                    } catch (err) {
-                        console.error('Error drawing genre distribution chart:', err);
-                    }
-                    
-                    try {
-                        drawBarChart('popular-books-chart', data.data.popularBooks, 'Borrow Count');
-                    } catch (err) {
-                        console.error('Error drawing popular books chart:', err);
-                    }
-                    
-                    try {
-                        drawPieChart('user-activity-chart', data.data.userActivity, 'User Count');
-                    } catch (err) {
-                        console.error('Error drawing user activity chart:', err);
-                    }
-                } else {
-                    console.error('Error loading chart data:', data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error loading chart data:', error);
-            });
-    }, 200); // Small delay before attempting to draw charts
-}
-
-/**
- * Draw a pie chart on a canvas element
- * @param {string} canvasId - The ID of the canvas element
- * @param {Object} data - Chart data with labels and datasets
- * @param {string} labelText - Text for the legend labels
- */
-function drawPieChart(canvasId, data, labelText) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) {
-        console.error(`Canvas element with ID "${canvasId}" not found`);
-        return;
-    }
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-        console.error(`Could not get 2D context for canvas: ${canvasId}`);
-        return;
-    }
-    
-    // Set canvas dimensions explicitly
-    if (!canvas.hasAttribute('width')) {
-        canvas.width = 300;
-    }
-    if (!canvas.hasAttribute('height')) {
-        canvas.height = 200;
-    }
-    
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const radius = Math.min(centerX, centerY) * 0.6; // Reduced radius slightly
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw pie segments
-    let startAngle = 0;
-    const total = data.datasets[0].data.reduce((sum, value) => sum + value, 0);
-    
-    if (total === 0) {
-        // No data to display
-        ctx.font = '14px Arial, sans-serif';
-        ctx.fillStyle = '#7f8c8d';
-        ctx.textAlign = 'center';
-        ctx.fillText('No data available', centerX, centerY);
-        return;
-    }
-    
-    // Draw each segment
-    data.labels.forEach((label, i) => {
-        const value = data.datasets[0].data[i];
-        if (value === 0) return; // Skip zero-value segments
-        
-        const sliceAngle = (value / total) * 2 * Math.PI;
-        
-        ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
-        ctx.closePath();
-        
-        // Fill segment
-        ctx.fillStyle = data.datasets[0].backgroundColor[i] || '#3498db'; // Fallback color
-        ctx.fill();
-        
-        // Calculate label position
-        const midAngle = startAngle + sliceAngle / 2;
-        const labelRadius = radius * 0.7;
-        const labelX = centerX + Math.cos(midAngle) * labelRadius;
-        const labelY = centerY + Math.sin(midAngle) * labelRadius;
-        
-        // Draw value as percentage if there's enough space
-        if (sliceAngle > 0.2) {
-            ctx.font = 'bold 12px Arial, sans-serif';
-            ctx.fillStyle = '#fff';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            const percent = Math.round((value / total) * 100) + '%';
-            ctx.fillText(percent, labelX, labelY);
-        }
-        
-        startAngle += sliceAngle;
-    });
-    
-    // Draw legend
-    const legendY = canvas.height - 20;
-    const legendX = 10;
-    const legendCircleRadius = 5;
-    
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.font = '10px Arial, sans-serif';
-    
-    let currentX = legendX;
-    let currentY = legendY;
-    const lineHeight = 15;
-    
-    data.labels.forEach((label, i) => {
-        const value = data.datasets[0].data[i];
-        if (value === 0) return; // Skip zero-value legends
-        
-        const text = `${label}: ${value}`;
-        const textWidth = ctx.measureText(text).width;
-        
-        // Check if legend item would go beyond canvas width
-        if (currentX + textWidth + 30 > canvas.width) {
-            currentX = legendX;
-            currentY += lineHeight;
-        }
-        
-        // Draw legend color circle
-        ctx.beginPath();
-        ctx.arc(currentX, currentY, legendCircleRadius, 0, 2 * Math.PI);
-        ctx.fillStyle = data.datasets[0].backgroundColor[i] || '#3498db';
-        ctx.fill();
-        
-        // Draw legend text
-        ctx.fillStyle = '#2c3e50';
-        ctx.fillText(text, currentX + 10, currentY);
-        
-        currentX += textWidth + 30;
-    });
-}
-
-/**
- * Draw a bar chart on a canvas element
- * @param {string} canvasId - The ID of the canvas element
- * @param {Object} data - Chart data with labels and datasets
- * @param {string} yAxisLabel - Text for the y-axis label
- */
-function drawBarChart(canvasId, data, yAxisLabel) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) {
-        console.error(`Canvas element with ID "${canvasId}" not found`);
-        return;
-    }
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-        console.error(`Could not get 2D context for canvas: ${canvasId}`);
-        return;
-    }
-    
-    // Set canvas dimensions explicitly
-    if (!canvas.hasAttribute('width')) {
-        canvas.width = 300;
-    }
-    if (!canvas.hasAttribute('height')) {
-        canvas.height = 200;
-    }
-    
-    // Chart dimensions
-    const chartWidth = canvas.width - 60;  // Leave space for y-axis
-    const chartHeight = canvas.height - 60; // Leave space for x-axis labels
-    const barSpacing = 10;
-    const chartX = 40; // X position of chart area
-    const chartY = 20; // Y position of chart area
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Check if we have data
-    if (!data.labels || !data.labels.length || !data.datasets || !data.datasets[0].data) {
-        ctx.font = '14px Arial, sans-serif';
-        ctx.fillStyle = '#7f8c8d';
-        ctx.textAlign = 'center';
-        ctx.fillText('No data available', canvas.width / 2, canvas.height / 2);
-        return;
-    }
-    
-    // Calculate max value for scaling (with a minimum of 1)
-    const maxValue = Math.max(1, ...data.datasets[0].data);
-    const barWidth = Math.max(10, (chartWidth - (data.labels.length - 1) * barSpacing) / data.labels.length);
-    
-    // Draw y-axis
-    ctx.beginPath();
-    ctx.moveTo(chartX, chartY);
-    ctx.lineTo(chartX, chartY + chartHeight);
-    ctx.strokeStyle = '#ddd';
-    ctx.stroke();
-    
-    // Draw x-axis
-    ctx.beginPath();
-    ctx.moveTo(chartX, chartY + chartHeight);
-    ctx.lineTo(chartX + chartWidth, chartY + chartHeight);
-    ctx.strokeStyle = '#ddd';
-    ctx.stroke();
-    
-    // Draw y-axis grid lines and labels
-    const gridLines = 5;
-    ctx.textAlign = 'right';
-    ctx.fillStyle = '#7f8c8d';
-    ctx.font = '10px Arial, sans-serif';
-    
-    for (let i = 0; i <= gridLines; i++) {
-        const y = chartY + chartHeight - (i * chartHeight / gridLines);
-        const value = Math.round(maxValue * i / gridLines);
-        
-        // Grid line
-        ctx.beginPath();
-        ctx.moveTo(chartX, y);
-        ctx.lineTo(chartX + chartWidth, y);
-        ctx.strokeStyle = '#eee';
-        ctx.stroke();
-        
-        // Label
-        ctx.fillText(value, chartX - 5, y);
-    }
-    
-    // Y-axis label
-    ctx.save();
-    ctx.translate(15, chartY + chartHeight / 2);
-    ctx.rotate(-Math.PI / 2);
-    ctx.textAlign = 'center';
-    ctx.fillText(yAxisLabel, 0, 0);
-    ctx.restore();
-    
-    // Draw bars
-    data.labels.forEach((label, i) => {
-        const value = data.datasets[0].data[i];
-        if (value === 0) return; // Skip zero-value bars
-        
-        const barHeight = (value / maxValue) * chartHeight;
-        const x = chartX + i * (barWidth + barSpacing);
-        const y = chartY + chartHeight - barHeight;
-        
-        // Draw bar
-        ctx.fillStyle = data.datasets[0].backgroundColor || '#3498db';
-        ctx.fillRect(x, y, barWidth, barHeight);
-        
-        // Draw value on top of bar
-        if (barHeight > 15) {
-            ctx.fillStyle = '#fff';
-            ctx.textAlign = 'center';
-            ctx.font = 'bold 10px Arial, sans-serif';
-            ctx.fillText(value, x + barWidth / 2, y + 10);
-        } else {
-            ctx.fillStyle = '#2c3e50';
-            ctx.textAlign = 'center';
-            ctx.font = 'bold 10px Arial, sans-serif';
-            ctx.fillText(value, x + barWidth / 2, y - 5);
-        }
-        
-        // Draw x-axis label
-        ctx.fillStyle = '#2c3e50';
-        ctx.textAlign = 'center';
-        ctx.font = '10px Arial, sans-serif';
-        
-        // Handle long labels by truncating
-        let displayLabel = label;
-        if (ctx.measureText(label).width > barWidth * 1.2) {
-            displayLabel = label.substring(0, 8) + '...';
-        }
-        
-        ctx.fillText(displayLabel, x + barWidth / 2, chartY + chartHeight + 15);
-    });
 }
 
 /**
@@ -1565,8 +1233,8 @@ function debounce(func, wait) {
 /**
  * Load books list for admin panel
  */
-function loadBooks(search = '', category = '') {
-    console.log(`Loading books with search: "${search}", category: "${category}"`);
+function loadBooks(search = '', sortField = 'title', sortOrder = 'asc') {
+    console.log(`Loading books with search: "${search}", sort: "${sortField}", order: "${sortOrder}"`);
     const booksTable = document.getElementById('books-table');
     if (!booksTable) return;
     
@@ -1577,7 +1245,8 @@ function loadBooks(search = '', category = '') {
     let queryParams = new URLSearchParams();
     queryParams.append('action', 'get_books');
     if (search) queryParams.append('search', search);
-    if (category) queryParams.append('category', category);
+    if (sortField) queryParams.append('sort', sortField);
+    if (sortOrder) queryParams.append('sort_order', sortOrder);
     
     fetch(`api_admin.php?${queryParams.toString()}`)
         .then(response => response.json())
@@ -1644,7 +1313,7 @@ function renderBooksTable(books) {
         
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td><a href="book_detail.php?id=${book.book_id}">${book.title}</a></td>
+            <td>${book.title}</td>
             <td>${book.author}</td>
             <td>${book.isbn || 'N/A'}</td>
             <td><span class="status-badge ${statusClass}">${statusText}</span></td>
@@ -1667,8 +1336,7 @@ function handleAdminBookActions(e) {
     if (e.target.matches('.btn-edit-book')) {
         const bookId = e.target.dataset.bookId;
         console.log(`Edit book clicked for book ID: ${bookId}`);
-        // Navigate to book edit page
-        window.location.href = `edit_book.php?id=${bookId}`;
+        // TODO: Implement book edit functionality
     }
     
     // Delete book
@@ -1713,7 +1381,7 @@ function deleteBook(bookId) {
 }
 
 /**
- * Preview book cover image when selected
+ * Export admin data
  */
 function previewBookCover(input) {
     const preview = document.getElementById('cover-image-preview');
@@ -1809,10 +1477,11 @@ function updateBook() {
     formData.append('rating', rating);
     formData.append('status', status);
     
-    // Add cover image if provided
-    const coverImage = document.getElementById('cover_image');
-    if (coverImage.files.length > 0) {
-        formData.append('cover_image', coverImage.files[0]);
+    // Add user statistics
+    if (analytics.users) {
+        csv += 'Users,Total,' + analytics.users.total + '\n';
+        csv += 'Users,Active,' + analytics.users.active + '\n';
+        csv += 'Users,Banned,' + analytics.users.banned + '\n';
     }
     
     // Send the request
@@ -1832,4 +1501,124 @@ function updateBook() {
         console.error('Error updating book:', error);
         showFormMessage('An error occurred while updating the book', 'error');
     });
+}
+
+/**
+ * Export admin data as CSV files
+ */
+function exportAdminData() {
+    const exportType = document.getElementById('export-type').value || 'all';
+    
+    showFormMessage('Preparing export, please wait...', 'info');
+    
+    fetch(`api_admin.php?action=export_data&type=${exportType}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                let downloadCount = 0;
+                
+                // Generate and download CSV files
+                if (data.data.users && data.data.users.length > 0) {
+                    const usersCSV = convertToCSV(data.data.users);
+                    downloadCSV(usersCSV, `users_export_${timestamp}.csv`);
+                    downloadCount++;
+                }
+                
+                if (data.data.books && data.data.books.length > 0) {
+                    const booksCSV = convertToCSV(data.data.books);
+                    downloadCSV(booksCSV, `books_export_${timestamp}.csv`);
+                    downloadCount++;
+                }
+                
+                if (data.data.analytics && Object.keys(data.data.analytics).length > 0) {
+                    // Convert analytics data to CSV format
+                    const analyticsCSV = convertAnalyticsToCSV(data.data.analytics);
+                    downloadCSV(analyticsCSV, `analytics_export_${timestamp}.csv`);
+                    downloadCount++;
+                }
+                
+                if (downloadCount > 0) {
+                    showFormMessage(`Export completed successfully! ${downloadCount} file(s) downloaded.`, 'success');
+                } else {
+                    showFormMessage('No data available to export for the selected type.', 'info');
+                }
+            } else {
+                console.error('Error exporting data:', data.message);
+                showFormMessage(`Error: ${data.message}`, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Network error during export:', error);
+            showFormMessage('Network error during export. Please try again.', 'error');
+        });
+}
+
+/**
+ * Convert array of objects to CSV string
+ */
+function convertToCSV(data) {
+    if (!data || data.length === 0) return '';
+    
+    // Get headers from first object
+    const headers = Object.keys(data[0]);
+    
+    // Create CSV header row
+    let csv = headers.join(',') + '\n';
+    
+    // Add data rows
+    data.forEach(row => {
+        let csvRow = headers.map(header => {
+            let value = row[header] !== null ? row[header] : '';
+            if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+                value = '"' + value.replace(/"/g, '""') + '"';
+            }
+            return value;
+        }).join(',');
+        csv += csvRow + '\n';
+    });
+    
+    return csv;
+}
+
+/**
+ * Convert analytics data to CSV format
+ */
+function convertAnalyticsToCSV(analytics) {
+    let csv = 'Category,Metric,Value\n';
+    
+    // Add user statistics
+    if (analytics.users) {
+        csv += 'Users,Total,' + analytics.users.total + '\n';
+        csv += 'Users,Active,' + analytics.users.active + '\n';
+        csv += 'Users,Banned,' + analytics.users.banned + '\n';
+    }
+    
+    // Add book statistics
+    if (analytics.books) {
+        csv += 'Books,Total,' + analytics.books.total + '\n';
+        csv += 'Books,Available,' + analytics.books.available + '\n';
+        csv += 'Books,Borrowed,' + analytics.books.borrowed + '\n';
+        csv += 'Books,Reserved,' + analytics.books.reserved + '\n';
+        csv += 'Books,Overdue,' + analytics.books.overdue + '\n';
+    }
+    
+    return csv;
+}
+
+/**
+ * Download CSV data as a file
+ */
+function downloadCSV(csv, filename) {
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.display = 'none';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
