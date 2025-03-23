@@ -976,7 +976,7 @@ function loadAdminData() {
  */
 function setupAdminEventListeners() {
     // User search functionality
-    const userSearchInput = document.querySelector('.admin-section:nth-child(1) .search-input');
+    const userSearchInput = document.getElementById('user-search-input');
     if (userSearchInput) {
         userSearchInput.addEventListener('input', debounce(() => {
             loadUsers(userSearchInput.value);
@@ -984,7 +984,7 @@ function setupAdminEventListeners() {
     }
     
     // User status filter
-    const userStatusSelect = document.querySelector('.admin-section:nth-child(1) .category-select');
+    const userStatusSelect = document.getElementById('user-status-select');
     if (userStatusSelect) {
         userStatusSelect.addEventListener('change', () => {
             loadUsers(userSearchInput ? userSearchInput.value : '', userStatusSelect.value);
@@ -1042,13 +1042,13 @@ function loadUsers(search = '', status = '') {
             if (data.status === 'success') {
                 renderUsersTable(data.data);
             } else {
-                tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">${data.message}</td></tr>`;
                 console.error('Error loading users:', data.message);
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">${data.message}</td></tr>`;
             }
         })
         .catch(error => {
-            tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error loading users. Please try again.</td></tr>';
             console.error('Error loading users:', error);
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error loading users. Please try again.</td></tr>';
         });
 }
 

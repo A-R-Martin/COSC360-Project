@@ -36,11 +36,11 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
                 <div class="admin-section">
                     <h2>User Management</h2>
                     <div class="catalog-filters">
-                        <input type="search" placeholder="Search users..." class="search-input">
-                        <select class="category-select">
+                        <input type="search" id="user-search-input" placeholder="Search users..." class="search-input">
+                        <select id="user-status-select" class="category-select">
                             <option value="">All Status</option>
                             <option value="active">Active</option>
-                            <option value="suspended">Suspended</option>
+                            <option value="banned">Banned</option>
                         </select>
                     </div>
                     <div class="data-table">

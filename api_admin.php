@@ -31,34 +31,53 @@ try {
             $search = isset($_GET['search']) ? trim($_GET['search']) : '';
             $status = isset($_GET['status']) ? trim($_GET['status']) : '';
             
-            // Build the query
+            // Start with base query
             $query = "SELECT user_id, username, email, status, created_at, role FROM users WHERE 1=1";
             $params = [];
             
-            // Add search condition if provided
+            // Build the conditions
             if (!empty($search)) {
-                $query .= " AND (username LIKE :search OR email LIKE :search)";
-                $params['search'] = "%$search%";
+                $query .= " AND (username LIKE ? OR email LIKE ?)";
+                $params[] = "%$search%";
+                $params[] = "%$search%";
             }
             
-            // Add status filter if provided
             if (!empty($status)) {
-                $query .= " AND status = :status";
-                $params['status'] = $status;
+                $query .= " AND status = ?";
+                $params[] = $status;
             }
             
             // Order by created_at descending (newest first)
             $query .= " ORDER BY created_at DESC";
             
-            $stmt = $conn->prepare($query);
-            $stmt->execute($params);
-            $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Debug output
+            error_log("SQL Query: " . $query);
+            error_log("SQL Params: " . json_encode($params));
             
-            $response = [
-                'status' => 'success',
-                'message' => 'Users retrieved successfully',
-                'data' => $users
-            ];
+            try {
+                $stmt = $conn->prepare($query);
+                
+                if (!empty($params)) {
+                    $stmt->execute($params);
+                } else {
+                    $stmt->execute();
+                }
+                
+                $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                $response = [
+                    'status' => 'success',
+                    'message' => 'Users retrieved successfully',
+                    'data' => $users
+                ];
+            } catch (PDOException $e) {
+                error_log("SQL Error: " . $e->getMessage());
+                $response = [
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage(),
+                    'data' => null
+                ];
+            }
             break;
             
         case 'update_user_status':
