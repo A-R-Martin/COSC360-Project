@@ -315,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (exportDataBtn) {
         exportDataBtn.addEventListener('click', () => {
             console.log('Export data button clicked');
-            // TODO: Implement data export functionality
+            exportAdminData();
         });
     }
 
@@ -1032,16 +1032,40 @@ function setupAdminEventListeners() {
     const bookSearchInput = document.getElementById('book-search-input');
     if (bookSearchInput) {
         bookSearchInput.addEventListener('input', debounce(() => {
-            loadBooks(bookSearchInput.value, document.getElementById('book-category-select')?.value || '');
+            loadBooks(bookSearchInput.value);
         }, 300));
     }
     
-    // Book category filter
-    const bookCategorySelect = document.getElementById('book-category-select');
-    if (bookCategorySelect) {
-        bookCategorySelect.addEventListener('change', () => {
-            loadBooks(bookSearchInput ? bookSearchInput.value : '', bookCategorySelect.value);
+    const sortableHeaders = document.querySelectorAll('#books-table th.sortable');
+    if (sortableHeaders.length > 0) {
+        sortableHeaders.forEach(header => {
+            header.addEventListener('click', () => {
+                sortableHeaders.forEach(h => {
+                    h.classList.remove('sort-asc', 'sort-desc');
+                });
+                
+                const sortField = header.getAttribute('data-sort');
+                let sortOrder = 'asc';
+                
+                if (header.getAttribute('data-current-sort') === 'asc') {
+                    sortOrder = 'desc';
+                    header.classList.add('sort-desc');
+                } else {
+                    header.classList.add('sort-asc');
+                }
+                
+                header.setAttribute('data-current-sort', sortOrder);
+                
+                loadBooks(bookSearchInput ? bookSearchInput.value : '', sortField, sortOrder);
+            });
         });
+    }
+    
+    // Default sort on first load (by title ascending)
+    const titleHeader = document.querySelector('#books-table th[data-sort="title"]');
+    if (titleHeader) {
+        titleHeader.classList.add('sort-asc');
+        titleHeader.setAttribute('data-current-sort', 'asc');
     }
     
     // Delegate event handler for user actions
@@ -1243,8 +1267,8 @@ function debounce(func, wait) {
 /**
  * Load books list for admin panel
  */
-function loadBooks(search = '', category = '') {
-    console.log(`Loading books with search: "${search}", category: "${category}"`);
+function loadBooks(search = '', sortField = 'title', sortOrder = 'asc') {
+    console.log(`Loading books with search: "${search}", sort: "${sortField}", order: "${sortOrder}"`);
     const booksTable = document.getElementById('books-table');
     if (!booksTable) return;
     
@@ -1255,7 +1279,8 @@ function loadBooks(search = '', category = '') {
     let queryParams = new URLSearchParams();
     queryParams.append('action', 'get_books');
     if (search) queryParams.append('search', search);
-    if (category) queryParams.append('category', category);
+    if (sortField) queryParams.append('sort', sortField);
+    if (sortOrder) queryParams.append('sort_order', sortOrder);
     
     fetch(`api_admin.php?${queryParams.toString()}`)
         .then(response => response.json())
