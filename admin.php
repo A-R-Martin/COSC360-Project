@@ -90,24 +90,51 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
                         </table>
                     </div>
                 </div>
-                <div class="admin-section">
+                <div class="admin-section analytics-section">
                     <h2>Library Analytics</h2>
-                    <div class="analytics-grid">
-                        <div class="analytics-card">
-                            <h3>Total Users</h3>
-                            <p class="analytics-value" id="total-users">0</p>
+                    <div class="analytics-categories">
+                        <div class="analytics-category">
+                            <h3>User Statistics</h3>
+                            <div class="analytics-grid">
+                                <div class="analytics-card">
+                                    <h4>Total Users</h4>
+                                    <p class="analytics-value" id="total-users">0</p>
+                                </div>
+                                <div class="analytics-card">
+                                    <h4>Active Users</h4>
+                                    <p class="analytics-value" id="active-users">0</p>
+                                </div>
+                                <div class="analytics-card">
+                                    <h4>Banned Users</h4>
+                                    <p class="analytics-value" id="banned-users">0</p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="analytics-card">
-                            <h3>Active Books</h3>
-                            <p class="analytics-value" id="active-books">0</p>
-                        </div>
-                        <div class="analytics-card">
-                            <h3>Books Borrowed</h3>
-                            <p class="analytics-value" id="borrowed-books">0</p>
-                        </div>
-                        <div class="analytics-card">
-                            <h3>Overdue Books</h3>
-                            <p class="analytics-value" id="overdue-books">0</p>
+                        
+                        <div class="analytics-category">
+                            <h3>Book Statistics</h3>
+                            <div class="analytics-grid">
+                                <div class="analytics-card">
+                                    <h4>Total Books</h4>
+                                    <p class="analytics-value" id="total-books">0</p>
+                                </div>
+                                <div class="analytics-card">
+                                    <h4>Available Books</h4>
+                                    <p class="analytics-value" id="available-books">0</p>
+                                </div>
+                                <div class="analytics-card">
+                                    <h4>Borrowed Books</h4>
+                                    <p class="analytics-value" id="borrowed-books">0</p>
+                                </div>
+                                <div class="analytics-card">
+                                    <h4>Reserved Books</h4>
+                                    <p class="analytics-value" id="reserved-books">0</p>
+                                </div>
+                                <div class="analytics-card">
+                                    <h4>Overdue Books</h4>
+                                    <p class="analytics-value overdue" id="overdue-books">0</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

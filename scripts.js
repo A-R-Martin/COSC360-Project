@@ -1160,11 +1160,27 @@ function loadAnalytics() {
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                // Update analytics cards
-                document.getElementById('total-users').textContent = data.data.total_users;
-                document.getElementById('active-books').textContent = data.data.active_books;
-                document.getElementById('borrowed-books').textContent = data.data.borrowed_books;
-                document.getElementById('overdue-books').textContent = data.data.overdue_books;
+                console.log('Analytics data received:', data.data);
+                
+                // Update user analytics
+                document.getElementById('total-users').textContent = data.data.users.total;
+                document.getElementById('active-users').textContent = data.data.users.active;
+                document.getElementById('banned-users').textContent = data.data.users.banned;
+                
+                // Update book analytics
+                document.getElementById('total-books').textContent = data.data.books.total;
+                document.getElementById('available-books').textContent = data.data.books.available;
+                document.getElementById('borrowed-books').textContent = data.data.books.borrowed;
+                document.getElementById('reserved-books').textContent = data.data.books.reserved;
+                document.getElementById('overdue-books').textContent = data.data.books.overdue;
+                
+                // Add visual indicator if there are overdue books
+                const overdueElement = document.getElementById('overdue-books');
+                if (data.data.books.overdue > 0) {
+                    overdueElement.classList.add('overdue');
+                } else {
+                    overdueElement.classList.remove('overdue');
+                }
             } else {
                 console.error('Error loading analytics:', data.message);
             }
@@ -1239,18 +1255,28 @@ function renderBooksTable(books) {
     books.forEach(book => {
         // Create status badge class based on book status
         let statusClass;
-        switch (book.status) {
-            case 'available':
-                statusClass = 'status-active';
-                break;
-            case 'borrowed':
-                statusClass = 'status-borrowed';
-                break;
-            case 'reserved':
-                statusClass = 'status-reserved';
-                break;
-            default:
-                statusClass = 'status-banned';
+        let statusText = book.status;
+        
+        // Check if the book is overdue
+        const isOverdue = book.status === 'borrowed' && book.is_overdue;
+        
+        if (isOverdue) {
+            statusClass = 'status-overdue';
+            statusText = 'Overdue';
+        } else {
+            switch (book.status) {
+                case 'available':
+                    statusClass = 'status-active';
+                    break;
+                case 'borrowed':
+                    statusClass = 'status-borrowed';
+                    break;
+                case 'reserved':
+                    statusClass = 'status-reserved';
+                    break;
+                default:
+                    statusClass = 'status-banned';
+            }
         }
         
         // Create action buttons
@@ -1264,7 +1290,7 @@ function renderBooksTable(books) {
             <td>${book.title}</td>
             <td>${book.author}</td>
             <td>${book.isbn || 'N/A'}</td>
-            <td><span class="status-badge ${statusClass}">${book.status}</span></td>
+            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
             <td>${book.borrower_name || 'N/A'}</td>
             <td>${book.reserver_name || 'N/A'}</td>
             <td class="actions">

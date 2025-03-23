@@ -169,22 +169,41 @@ try {
             $stmt->execute();
             $totalUsers = $stmt->fetchColumn();
             
-            // Get active books count
+            // Get active users count
+            $stmt = $conn->prepare("SELECT COUNT(*) as total FROM users WHERE status = 'active'");
+            $stmt->execute();
+            $activeUsers = $stmt->fetchColumn();
+            
+            // Get banned users count
+            $stmt = $conn->prepare("SELECT COUNT(*) as total FROM users WHERE status = 'banned'");
+            $stmt->execute();
+            $bannedUsers = $stmt->fetchColumn();
+            
+            // Get total books count
+            $stmt = $conn->prepare("SELECT COUNT(*) as total FROM books");
+            $stmt->execute();
+            $totalBooks = $stmt->fetchColumn();
+            
+            // Get available books count
             $stmt = $conn->prepare("SELECT COUNT(*) as total FROM books WHERE status = 'available'");
             $stmt->execute();
-            $activeBooks = $stmt->fetchColumn();
+            $availableBooks = $stmt->fetchColumn();
             
             // Get borrowed books count
             $stmt = $conn->prepare("SELECT COUNT(*) as total FROM books WHERE status = 'borrowed'");
             $stmt->execute();
             $borrowedBooks = $stmt->fetchColumn();
             
+            // Get reserved books count
+            $stmt = $conn->prepare("SELECT COUNT(*) as total FROM books WHERE status = 'reserved'");
+            $stmt->execute();
+            $reservedBooks = $stmt->fetchColumn();
+            
             // Get overdue books count
             $stmt = $conn->prepare("
                 SELECT COUNT(*) as total 
-                FROM books b
-                JOIN book_loans bl ON b.book_id = bl.book_id
-                WHERE bl.return_date < CURRENT_DATE AND bl.returned = 0
+                FROM user_books ub
+                WHERE ub.status = 'borrowed' AND ub.return_date < CURRENT_DATE
             ");
             $stmt->execute();
             $overdueBooks = $stmt->fetchColumn();
@@ -193,10 +212,18 @@ try {
                 'status' => 'success',
                 'message' => 'Analytics retrieved successfully',
                 'data' => [
-                    'total_users' => $totalUsers,
-                    'active_books' => $activeBooks,
-                    'borrowed_books' => $borrowedBooks,
-                    'overdue_books' => $overdueBooks
+                    'users' => [
+                        'total' => $totalUsers,
+                        'active' => $activeUsers,
+                        'banned' => $bannedUsers
+                    ],
+                    'books' => [
+                        'total' => $totalBooks,
+                        'available' => $availableBooks,
+                        'borrowed' => $borrowedBooks,
+                        'reserved' => $reservedBooks,
+                        'overdue' => $overdueBooks
+                    ]
                 ]
             ];
             break;
@@ -208,12 +235,15 @@ try {
             
             $query = "SELECT b.book_id, b.title, b.author, b.isbn, b.status, 
                      bor.username as borrower_name, bor.user_id as borrower_id,
-                     res.username as reserver_name, res.user_id as reserver_id
+                     res.username as reserver_name, res.user_id as reserver_id,
+                     ub_bor.return_date,
+                     CASE WHEN ub_bor.status = 'borrowed' AND ub_bor.return_date < CURRENT_DATE THEN 1 ELSE 0 END as is_overdue
                      FROM books b
                      LEFT JOIN user_books ub_bor ON b.book_id = ub_bor.book_id AND ub_bor.status = 'borrowed'
                      LEFT JOIN users bor ON ub_bor.user_id = bor.user_id
                      LEFT JOIN user_books ub_res ON b.book_id = ub_res.book_id AND ub_res.status = 'reserved'
                      LEFT JOIN users res ON ub_res.user_id = res.user_id
+                     WHERE 1=1";
             $params = [];
             
             if (!empty($search)) {
@@ -290,8 +320,10 @@ try {
             // Check if book is currently borrowed
             if ($book['status'] === 'borrowed') {
                 $response['message'] = 'Cannot delete a book that is currently borrowed';
+                break;
             }
             
+            $stmt = $conn->prepare("DELETE FROM user_books WHERE book_id = ? AND status = 'reserved'");
             $stmt->execute([$bookId]);
             
             $stmt = $conn->prepare("DELETE FROM books WHERE book_id = ?");
