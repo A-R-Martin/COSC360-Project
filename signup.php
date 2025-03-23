@@ -42,9 +42,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
     
+    // Check if profile image was uploaded
+    $profile_image_uploaded = isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK;
+    
     // Validate inputs
     if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
         $error_message = "All fields are required";
+    } elseif (!$profile_image_uploaded) {
+        $error_message = "Profile picture is required";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error_message = "Please enter a valid email address";
     } elseif ($password !== $confirm_password) {
@@ -62,31 +67,90 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($stmt->rowCount() > 0) {
                 $error_message = "Email already exists";
             } else {
-                // Hash password
-                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                // Process profile image upload
+                $profile_image_path = null;
+                if ($profile_image_uploaded) {
+                    $file = $_FILES['profile_image'];
+                    $fileName = $file['name'];
+                    $fileTmpName = $file['tmp_name'];
+                    $fileSize = $file['size'];
+                    $fileError = $file['error'];
+                    
+                    // Get file extension
+                    $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                    
+                    // Allowed extensions
+                    $allowedExts = ['jpg', 'jpeg', 'png', 'gif'];
+                    
+                    // Check if extension is allowed
+                    if (in_array($fileExt, $allowedExts)) {
+                        // Check file size (max 2MB)
+                        if ($fileSize <= 2097152) {
+                            // Create unique filename
+                            $newFileName = 'profile_' . uniqid() . '.' . $fileExt;
+                            $uploadDir = 'uploads/profiles/';
+                            
+                            if (substr($uploadDir, -1) !== '/') {
+                                $uploadDir .= '/';
+                            }
+                            
+                            // Create directory structure if it doesn't exist
+                            if (!file_exists($uploadDir)) {
+                                if (!mkdir($uploadDir, 0755, true)) {
+                                    $error_message = 'Failed to create upload directory. Please contact administrator.';
+                                    echo "<div class='alert alert-danger'>";
+                                    echo "<strong>Error:</strong> " . $error_message;
+                                    echo "</div>";
+                                }
+                            }
+                            
+                            $uploadPath = $uploadDir . $newFileName;
+                            
+                            // Move uploaded file
+                            if (move_uploaded_file($fileTmpName, $uploadPath)) {
+                                $profile_image_path = $uploadPath;
+                            } else {
+                                $error_message = "Error uploading profile image";
+                                echo "<div class='alert alert-danger'>";
+                                echo "<strong>Error:</strong> " . $error_message;
+                                echo "</div>";
+                            }
+                        } else {
+                            $error_message = "Profile image size exceeds the limit (2MB)";
+                        }
+                    } else {
+                        $error_message = "Invalid profile image type. Only JPG, PNG and GIF are allowed";
+                    }
+                }
                 
-                // Insert new user
-                $insert_query = "INSERT INTO users (username, email, password, role) VALUES (:username, :email, :password, 'user')";
-                try {
-                    $stmt = $conn->prepare($insert_query);
-                    $stmt->execute([
-                        'username' => $username,
-                        'email' => $email,
-                        'password' => $hashed_password
-                    ]);
+                if (empty($error_message) && $profile_image_path) {
+                    // Hash password
+                    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
                     
-                    echo "<div class='alert alert-success'>";
-                    echo "<strong>Success!</strong> User created with ID: " . $conn->lastInsertId();
-                    echo "</div>";
-                    
-                    // Redirect to signin page
-                    header("Location: signin.php");
-                    exit();
-                } catch (PDOException $e) {
-                    $error_message = "Error: " . $e->getMessage();
-                    echo "<div class='alert alert-danger'>";
-                    echo "<strong>DB Error:</strong> " . $e->getMessage();
-                    echo "</div>";
+                    // Insert new user
+                    $insert_query = "INSERT INTO users (username, email, password, profile_image, role) VALUES (:username, :email, :password, :profile_image, 'user')";
+                    try {
+                        $stmt = $conn->prepare($insert_query);
+                        $stmt->execute([
+                            'username' => $username,
+                            'email' => $email,
+                            'password' => $hashed_password,
+                            'profile_image' => $profile_image_path
+                        ]);
+                        
+                        echo "<div class='alert alert-success'>";
+                        echo "<strong>Success!</strong> User created with ID: " . $conn->lastInsertId();
+                        echo "</div>";
+                        
+                        // Redirect to signin page
+                        header("Location: signin.php");
+                        exit();
+                    } catch (PDOException $e) {
+                        $error_message = "Error: " . $e->getMessage();
+                        echo "<div class='alert alert-danger'>";
+                        echo "<strong>DB Error:</strong> " . $e->getMessage();
+                        echo "</div>";
+                    }
                 }
             }
         }
@@ -113,6 +177,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             font-size: 14px;
             overflow-x: auto;
         }
+        
+        .profile-upload-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 2px solid #ddd;
+            background-color: #ffffff;
+        }
+        
+        .profile-image-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .profile-image-actions {
+            margin-top: 10px;
+        }
+        
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        
+        .upload-btn-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -134,7 +232,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
                 <?php endif; ?>
                 
-                <form id="signup-form" method="post" action="">
+                <form id="signup-form" method="post" action="" enctype="multipart/form-data">
+                    <div class="profile-image-container">
+                        <img id="signup-profile-preview" class="profile-upload-preview" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Profile Image">
+                        <div class="profile-image-actions">
+                            <div class="upload-btn-wrapper">
+                                <button type="button" class="btn-primary">Choose Profile Picture</button>
+                                <input type="file" id="profile_image" name="profile_image" 
+                                       accept="image/jpeg,image/png,image/gif" required
+                                       title="Please select a profile picture (JPG, PNG, or GIF)">
+                            </div>
+                            <p class="form-help-text">* Profile picture is required</p>
+                        </div>
+                    </div>
+                
                     <div class="form-group">
                         <label for="username">Username</label>
                         <input type="text" id="username" name="username" required 
@@ -225,6 +336,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     }
                 });
             });
+            
+            // Profile image preview
+            const profileImageInput = document.getElementById('profile_image');
+            const profilePreview = document.getElementById('signup-profile-preview');
+            
+            if (profileImageInput) {
+                profileImageInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        // Show image preview
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            profilePreview.src = e.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
         });
     </script>
 </body>
