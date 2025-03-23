@@ -102,6 +102,16 @@ document.addEventListener('DOMContentLoaded', () => {
             updateUserProfile();
         });
     }
+    
+    // Password change form handler
+    const changePasswordBtn = document.getElementById('change-password');
+    if (changePasswordBtn) {
+        changePasswordBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('Change password button clicked');
+            updatePassword();
+        });
+    }
 
     // Load user profile data when on profile page
     if (document.querySelector('.profile-container')) {
@@ -741,7 +751,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * Display form message
+ * Display form response message
  */
 function showFormMessage(message, type = 'info') {
     const container = document.getElementById('form-message-container');
@@ -878,5 +888,61 @@ function updateUserProfile() {
     .catch(error => {
         console.error('Error updating user profile:', error);
         showFormMessage('Error updating profile. Please try again later.', 'error');
+    });
+}
+
+/**
+ * Update user password
+ */
+function updatePassword() {
+    // Get password form
+    const passwordForm = document.getElementById('password-form');
+    
+    // Validate form
+    passwordForm.classList.remove('was-validated', 'form-valid');
+    passwordForm.classList.add('was-validated');
+    
+    if (!validateForm(passwordForm)) {
+        console.log('Password form validation failed');
+        return;
+    }
+    
+    // Get password values
+    const currentPassword = document.getElementById('current-password').value;
+    const newPassword = document.getElementById('new-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+    
+    // Check if passwords match
+    if (newPassword !== confirmPassword) {
+        showFormMessage('New passwords do not match', 'error');
+        return;
+    }
+    
+    // Create form data
+    const formData = new FormData();
+    formData.append('action', 'update_password');
+    formData.append('current_password', currentPassword);
+    formData.append('new_password', newPassword);
+    formData.append('confirm_password', confirmPassword);
+    
+    // Send request to update password
+    fetch('api_user_profile.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showFormMessage('Password updated successfully', 'success');
+            // Reset form
+            passwordForm.reset();
+            passwordForm.classList.remove('was-validated', 'form-valid');
+        } else {
+            showFormMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating password:', error);
+        showFormMessage('Error updating password. Please try again later.', 'error');
     });
 }

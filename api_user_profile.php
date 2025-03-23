@@ -124,6 +124,72 @@ try {
             ];
             break;
             
+        case 'update_password':
+            // Get password data
+            $currentPassword = isset($_POST['current_password']) ? $_POST['current_password'] : '';
+            $newPassword = isset($_POST['new_password']) ? $_POST['new_password'] : '';
+            $confirmPassword = isset($_POST['confirm_password']) ? $_POST['confirm_password'] : '';
+            
+            // Validate inputs
+            if (empty($currentPassword)) {
+                $response['message'] = 'Current password is required';
+                echo json_encode($response);
+                exit;
+            }
+            
+            if (empty($newPassword)) {
+                $response['message'] = 'New password is required';
+                echo json_encode($response);
+                exit;
+            }
+            
+            if (empty($confirmPassword)) {
+                $response['message'] = 'Confirm password is required';
+                echo json_encode($response);
+                exit;
+            }
+            
+            // Check if new password meets requirements
+            if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $newPassword)) {
+                $response['message'] = 'New password must be at least 8 characters long and include uppercase, lowercase, number and special character';
+                echo json_encode($response);
+                exit;
+            }
+            
+            // Check if passwords match
+            if ($newPassword !== $confirmPassword) {
+                $response['message'] = 'New passwords do not match';
+                echo json_encode($response);
+                exit;
+            }
+            
+            // Get current user data
+            $stmt = $conn->prepare("SELECT password FROM users WHERE user_id = :user_id");
+            $stmt->execute(['user_id' => $_SESSION['user_id']]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Verify current password
+            if (!password_verify($currentPassword, $user['password'])) {
+                $response['message'] = 'Current password is incorrect';
+                echo json_encode($response);
+                exit;
+            }
+            
+            // Update password in database
+            $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+            $stmt = $conn->prepare("UPDATE users SET password = :password WHERE user_id = :user_id");
+            $stmt->execute([
+                'password' => $hashedPassword,
+                'user_id' => $_SESSION['user_id']
+            ]);
+            
+            $response = [
+                'status' => 'success',
+                'message' => 'Password updated successfully',
+                'data' => null
+            ];
+            break;
+            
         case 'delete_profile_image':
             // Remove profile image
             $stmt = $conn->prepare("SELECT profile_image FROM users WHERE user_id = :user_id");

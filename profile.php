@@ -70,7 +70,7 @@ if (!isset($_SESSION['user_id'])) {
 
                 <div class="profile-section">
                     <h2>Change Password</h2>
-                    <form id="password-form" class="password-change-form" novalidate>
+                    <form id="password-form" class="password-change-form" novalidate data-custom-submit="true">
                         <div class="form-group">
                             <label for="current-password">Current Password</label>
                             <input type="password" id="current-password" name="current-password" required
