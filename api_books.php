@@ -246,6 +246,30 @@ else if ($method === 'POST') {
                     break;
                 }
                 
+                // Check if user exists
+                if (!$user_id) {
+                    $response = [
+                        'status' => 'error',
+                        'message' => 'User ID is missing, please log in again',
+                        'data' => null
+                    ];
+                    break;
+                }
+                
+                // Verify user exists in database
+                $checkUserSql = "SELECT user_id FROM users WHERE user_id = ?";
+                $checkUserStmt = $conn->prepare($checkUserSql);
+                $checkUserStmt->execute([$user_id]);
+                
+                if ($checkUserStmt->rowCount() === 0) {
+                    $response = [
+                        'status' => 'error',
+                        'message' => 'Invalid user account, please log in again',
+                        'data' => null
+                    ];
+                    break;
+                }
+                
                 // Get book data
                 $title = $data['title'];
                 $author = $data['author'];
@@ -267,10 +291,10 @@ else if ($method === 'POST') {
                 }
                 
                 // Insert new book
-                $insertSql = "INSERT INTO books (title, author, description, isbn, year_published, genre, cover_image, rating, status) 
-                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'available')";
+                $insertSql = "INSERT INTO books (title, author, description, isbn, year_published, genre, cover_image, rating, status, owner_id) 
+                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'available', ?)";
                 $insertStmt = $conn->prepare($insertSql);
-                $insertStmt->execute([$title, $author, $description, $isbn, $year_published, $genre, $cover_image, $rating]);
+                $insertStmt->execute([$title, $author, $description, $isbn, $year_published, $genre, $cover_image, $rating, $user_id]);
                 
                 $newBookId = $conn->lastInsertId();
                 
@@ -521,6 +545,62 @@ else if ($method === 'POST') {
                         'cancel_date' => $cancelDate
                     ]
                 ];
+                break;
+                
+            case 'delete':
+                // Check if the book exists and is owned by this user
+                $checkSql = "SELECT * FROM books WHERE book_id = ? AND owner_id = ?";
+                $checkStmt = $conn->prepare($checkSql);
+                $checkStmt->execute([$book_id, $user_id]);
+                $book = $checkStmt->fetch(PDO::FETCH_ASSOC);
+                
+                if (!$book) {
+                    $response = [
+                        'status' => 'error',
+                        'message' => 'Book not found or you don\'t have permission to delete it',
+                        'data' => null
+                    ];
+                    break;
+                }
+                
+                // Check if the book is currently borrowed
+                if ($book['status'] === 'borrowed') {
+                    $response = [
+                        'status' => 'error',
+                        'message' => 'Cannot delete a book that is currently borrowed',
+                        'data' => null
+                    ];
+                    break;
+                }
+                
+                // Begin transaction
+                $conn->beginTransaction();
+                
+                try {
+                    // Delete from user_books first due to foreign key constraint
+                    $deleteUBSql = "DELETE FROM user_books WHERE book_id = ?";
+                    $deleteUBStmt = $conn->prepare($deleteUBSql);
+                    $deleteUBStmt->execute([$book_id]);
+                    
+                    $deleteSql = "DELETE FROM books WHERE book_id = ?";
+                    $deleteStmt = $conn->prepare($deleteSql);
+                    $deleteStmt->execute([$book_id]);
+                    
+                    $conn->commit();
+                    
+                    $response = [
+                        'status' => 'success',
+                        'message' => 'Book deleted successfully',
+                        'data' => null
+                    ];
+                } catch (Exception $e) {
+                    $conn->rollBack();
+                    $response = [
+                        'status' => 'error',
+                        'message' => 'Error deleting book: ' . $e->getMessage(),
+                        'data' => null
+                    ];
+                }
                 break;
                 
             default:

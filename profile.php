@@ -132,7 +132,7 @@ if (!isset($_SESSION['user_id'])) {
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- TODO: Populate with owned books from db -->
+                                <!-- Will be populated with uploaded books from db -->
                             </tbody>
                         </table>
                         <div class="button-container" style="margin-top: 1rem;">
@@ -164,5 +164,245 @@ if (!isset($_SESSION['user_id'])) {
         </section>
     </main>
     <script src="scripts.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load borrowed books
+            loadBorrowedBooks();
+            
+            // Load uploaded books
+            loadUploadedBooks();
+            
+            // Load reading history
+            loadReadingHistory();
+            
+            // Handle add book button
+            document.getElementById('add-book').addEventListener('click', function() {
+                window.location.href = 'add_book.php'; // Or show a modal
+            });
+            
+            // Function to load borrowed books
+            function loadBorrowedBooks() {
+                const table = document.getElementById('borrowed-books').getElementsByTagName('tbody')[0];
+                table.innerHTML = '<tr><td colspan="6">Loading...</td></tr>';
+                
+                fetch('api_user_books.php?action=borrowed')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            table.innerHTML = '';
+                            if (data.data && data.data.length > 0) {
+                                data.data.forEach(book => {
+                                    const row = document.createElement('tr');
+                                    
+                                    // Calculate days remaining
+                                    const dueDate = new Date(book.return_date);
+                                    const today = new Date();
+                                    const daysRemaining = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+                                    
+                                    let statusClass = '';
+                                    if (daysRemaining <= 3) {
+                                        statusClass = 'status-due-soon';
+                                    } else if (daysRemaining <= 0) {
+                                        statusClass = 'status-overdue';
+                                    }
+                                    
+                                    row.innerHTML = `
+                                        <td>${book.title}</td>
+                                        <td>Owner Name</td>
+                                        <td>${new Date(book.borrow_date).toLocaleDateString()}</td>
+                                        <td>${new Date(book.return_date).toLocaleDateString()}</td>
+                                        <td class="${statusClass}">${daysRemaining <= 0 ? 'Overdue' : `${daysRemaining} days remaining`}</td>
+                                        <td>
+                                            <button class="btn-secondary return-book" data-book-id="${book.book_id}">Return</button>
+                                        </td>
+                                    `;
+                                    
+                                    table.appendChild(row);
+                                });
+                                
+                                // Add event listeners for return buttons
+                                const returnButtons = document.querySelectorAll('.return-book');
+                                returnButtons.forEach(button => {
+                                    button.addEventListener('click', function() {
+                                        const bookId = this.getAttribute('data-book-id');
+                                        returnBook(bookId);
+                                    });
+                                });
+                            } else {
+                                table.innerHTML = '<tr><td colspan="6">No borrowed books found</td></tr>';
+                            }
+                        } else {
+                            table.innerHTML = `<tr><td colspan="6">Error: ${data.message}</td></tr>`;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        table.innerHTML = '<tr><td colspan="6">Error loading borrowed books</td></tr>';
+                    });
+            }
+            
+            // Function to load uploaded books
+            function loadUploadedBooks() {
+                const table = document.getElementById('owned-books').getElementsByTagName('tbody')[0];
+                table.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
+                
+                fetch('api_user_books.php?action=my_uploads')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            table.innerHTML = '';
+                            if (data.data && data.data.length > 0) {
+                                data.data.forEach(book => {
+                                    const row = document.createElement('tr');
+                                    
+                                    let statusClass = '';
+                                    let statusText = book.status;
+                                    
+                                    if (book.status === 'borrowed') {
+                                        statusClass = 'status-borrowed';
+                                        statusText = 'Borrowed';
+                                    } else if (book.status === 'reserved') {
+                                        statusClass = 'status-reserved';
+                                        statusText = 'Reserved';
+                                    } else {
+                                        statusClass = 'status-available';
+                                        statusText = 'Available';
+                                    }
+                                    
+                                    row.innerHTML = `
+                                        <td>${book.title}</td>
+                                        <td>${book.author}</td>
+                                        <td class="${statusClass}">${statusText}</td>
+                                        <td>${book.borrower_name || '-'}</td>
+                                        <td>
+                                            <button class="btn-secondary edit-book" data-book-id="${book.book_id}">Edit</button>
+                                            <button class="btn-danger delete-book" data-book-id="${book.book_id}">Delete</button>
+                                        </td>
+                                    `;
+                                    
+                                    table.appendChild(row);
+                                });
+                                
+                                // Add event listeners for action buttons
+                                const editButtons = document.querySelectorAll('.edit-book');
+                                editButtons.forEach(button => {
+                                    button.addEventListener('click', function() {
+                                        const bookId = this.getAttribute('data-book-id');
+                                        window.location.href = `edit_book.php?id=${bookId}`;
+                                    });
+                                });
+                                
+                                const deleteButtons = document.querySelectorAll('.delete-book');
+                                deleteButtons.forEach(button => {
+                                    button.addEventListener('click', function() {
+                                        const bookId = this.getAttribute('data-book-id');
+                                        if (confirm('Are you sure you want to delete this book?')) {
+                                            deleteBook(bookId);
+                                        }
+                                    });
+                                });
+                            } else {
+                                table.innerHTML = '<tr><td colspan="5">No uploaded books found</td></tr>';
+                            }
+                        } else {
+                            table.innerHTML = `<tr><td colspan="5">Error: ${data.message}</td></tr>`;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        table.innerHTML = '<tr><td colspan="5">Error loading uploaded books</td></tr>';
+                    });
+            }
+            
+            // Function to load reading history
+            function loadReadingHistory() {
+                const table = document.getElementById('reading-history').getElementsByTagName('tbody')[0];
+                table.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
+                
+                fetch('api_user_books.php?action=history')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            table.innerHTML = '';
+                            if (data.data && data.data.length > 0) {
+                                data.data.forEach(book => {
+                                    const row = document.createElement('tr');
+                                    row.innerHTML = `
+                                        <td>${book.title}</td>
+                                        <td>${book.author}</td>
+                                        <td>${new Date(book.borrow_date).toLocaleDateString()}</td>
+                                        <td>${new Date(book.return_date).toLocaleDateString()}</td>
+                                        <td>Returned</td>
+                                    `;
+                                    table.appendChild(row);
+                                });
+                            } else {
+                                table.innerHTML = '<tr><td colspan="5">No reading history found</td></tr>';
+                            }
+                        } else {
+                            table.innerHTML = `<tr><td colspan="5">Error: ${data.message}</td></tr>`;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        table.innerHTML = '<tr><td colspan="5">Error loading reading history</td></tr>';
+                    });
+            }
+            
+            // Function to return a book
+            function returnBook(bookId) {
+                fetch('api_user_books.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'return',
+                        book_id: bookId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('Book returned successfully');
+                        loadBorrowedBooks();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error returning book');
+                });
+            }
+            
+            // Function to delete a book
+            function deleteBook(bookId) {
+                fetch('api_books.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'delete',
+                        book_id: bookId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('Book deleted successfully');
+                        loadUploadedBooks();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting book');
+                });
+            }
+        });
+    </script>
 </body>
 </html> 
