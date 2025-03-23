@@ -52,13 +52,12 @@ CREATE TABLE IF NOT EXISTS user_books (
 );
 
 -- Comments table (for book comments)
-CREATE TABLE IF NOT EXISTS comments (
+CREATE TABLE IF NOT EXISTS book_comments (
     comment_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     book_id INT NOT NULL,
-    content TEXT NOT NULL,
+    comment TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (book_id) REFERENCES books(book_id) ON DELETE CASCADE,
     INDEX (user_id),
