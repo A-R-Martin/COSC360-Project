@@ -23,8 +23,11 @@ if (!isset($_SESSION['user_id'])) {
         <section class="profile-container">
             <div class="profile-header">
                 <h1>My Profile</h1>
-                <button class="btn-primary" id="save-profile">Save Changes</button>
             </div>
+            
+            <!-- Add form message container -->
+            <div id="form-message-container" class="form-message-container"></div>
+            
             <div class="profile-content">
                 <div class="profile-section">
                     <h2>Profile Information</h2>
@@ -40,7 +43,7 @@ if (!isset($_SESSION['user_id'])) {
                             <button type="button" class="btn-danger" id="remove-profile-image">Remove Picture</button>
                         </div>
                     </div>
-                    <form id="profile-form" novalidate>
+                    <form id="profile-form" novalidate data-custom-submit="true">
                         <div class="form-group">
                             <label for="username">Username</label>
                             <input type="text" id="username" name="username" required
