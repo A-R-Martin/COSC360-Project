@@ -342,7 +342,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.matches('.btn-edit-user')) {
             const userId = e.target.dataset.userId;
             console.log(`Edit user clicked for user ID: ${userId}`);
-            // TODO: Implement user edit functionality
+            // Navigate to user detail page
+            window.location.href = `admin_user_detail.php?id=${userId}`;
         }
         
         if (e.target.matches('.btn-suspend-user')) {
@@ -354,7 +355,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.matches('.btn-edit-book')) {
             const isbn = e.target.dataset.isbn;
             console.log(`Edit book clicked for ISBN: ${isbn}`);
-            // TODO: Implement book edit functionality
+            // Navigate to book edit page
+            window.location.href = `edit_book.php?id=${isbn}`;
         }
         
         if (e.target.matches('.btn-delete-book')) {
@@ -1070,7 +1072,8 @@ function handleAdminUserActions(e) {
     if (e.target.matches('.btn-edit-user')) {
         const userId = e.target.dataset.userId;
         console.log(`Edit user clicked for user ID: ${userId}`);
-        // TODO: Implement edit user modal
+        // Navigate to user detail page
+        window.location.href = `admin_user_detail.php?id=${userId}`;
     }
     
     // Ban/activate user
@@ -1641,7 +1644,7 @@ function renderBooksTable(books) {
         
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${book.title}</td>
+            <td><a href="book_detail.php?id=${book.book_id}">${book.title}</a></td>
             <td>${book.author}</td>
             <td>${book.isbn || 'N/A'}</td>
             <td><span class="status-badge ${statusClass}">${statusText}</span></td>
@@ -1664,7 +1667,8 @@ function handleAdminBookActions(e) {
     if (e.target.matches('.btn-edit-book')) {
         const bookId = e.target.dataset.bookId;
         console.log(`Edit book clicked for book ID: ${bookId}`);
-        // TODO: Implement book edit functionality
+        // Navigate to book edit page
+        window.location.href = `edit_book.php?id=${bookId}`;
     }
     
     // Delete book
@@ -1705,5 +1709,127 @@ function deleteBook(bookId) {
     .catch(error => {
         console.error('Error deleting book:', error);
         showFormMessage('Error deleting book. Please try again later.', 'error');
+    });
+}
+
+/**
+ * Preview book cover image when selected
+ */
+function previewBookCover(input) {
+    const preview = document.getElementById('cover-image-preview');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+/**
+ * Update user from admin page
+ */
+function updateAdminUser() {
+    const form = document.getElementById('admin-user-form');
+    if (!form) return;
+    
+    if (!validateForm(form)) {
+        return false;
+    }
+    
+    const userId = document.getElementById('user-id').value;
+    const username = document.getElementById('username').value;
+    const email = document.getElementById('email').value;
+    const status = document.getElementById('status').value;
+    const role = document.getElementById('role').value;
+    const bio = document.getElementById('bio').value;
+    
+    // Create form data
+    const formData = new FormData();
+    formData.append('action', 'update_admin_user');
+    formData.append('user_id', userId);
+    formData.append('username', username);
+    formData.append('email', email);
+    formData.append('status', status);
+    formData.append('role', role);
+    formData.append('bio', bio);
+    
+    // Send the request
+    fetch('api_admin.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showFormMessage('User profile updated successfully', 'success');
+        } else {
+            showFormMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating user:', error);
+        showFormMessage('An error occurred while updating the user profile', 'error');
+    });
+}
+
+/**
+ * Update book details
+ */
+function updateBook() {
+    const form = document.getElementById('edit-book-form');
+    if (!form) return;
+    
+    if (!validateForm(form)) {
+        return false;
+    }
+    
+    const bookId = document.getElementById('book-id').value;
+    const title = document.getElementById('title').value;
+    const author = document.getElementById('author').value;
+    const isbn = document.getElementById('isbn').value;
+    const description = document.getElementById('description').value;
+    const yearPublished = document.getElementById('year_published').value;
+    const genre = document.getElementById('genre').value;
+    const rating = document.getElementById('rating').value;
+    const status = document.getElementById('status').value;
+    
+    // Create form data
+    const formData = new FormData();
+    formData.append('action', 'update_book');
+    formData.append('book_id', bookId);
+    formData.append('title', title);
+    formData.append('author', author);
+    formData.append('isbn', isbn);
+    formData.append('description', description);
+    formData.append('year_published', yearPublished);
+    formData.append('genre', genre);
+    formData.append('rating', rating);
+    formData.append('status', status);
+    
+    // Add cover image if provided
+    const coverImage = document.getElementById('cover_image');
+    if (coverImage.files.length > 0) {
+        formData.append('cover_image', coverImage.files[0]);
+    }
+    
+    // Send the request
+    fetch('api_admin.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showFormMessage('Book updated successfully', 'success');
+        } else {
+            showFormMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating book:', error);
+        showFormMessage('An error occurred while updating the book', 'error');
     });
 }
