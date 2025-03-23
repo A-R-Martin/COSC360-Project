@@ -229,7 +229,29 @@ footer {}
 
 .admin-actions {
     display: flex;
-    gap: var(--spacing-md);
+    align-items: center;
+    margin-left: auto;
+}
+
+.export-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#export-type {
+    min-width: 150px;
+    height: 36px;
+    border-radius: 4px;
+    border: 1px solid var(--light-gray);
+    padding: 0 10px;
+    background-color: var(--white);
+    font-size: 14px;
+}
+
+#export-type:focus {
+    outline: none;
+    border-color: var(--accent-color);
 }
 
 .admin-section {

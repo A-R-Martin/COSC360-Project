@@ -316,6 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
         exportDataBtn.addEventListener('click', () => {
             console.log('Export data button clicked');
             exportAdminData();
+            exportAdminData();
         });
     }
 
@@ -1382,6 +1383,129 @@ function deleteBook(bookId) {
 /**
  * Export admin data
  */
+function previewBookCover(input) {
+    const preview = document.getElementById('cover-image-preview');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+/**
+ * Update user from admin page
+ */
+function updateAdminUser() {
+    const form = document.getElementById('admin-user-form');
+    if (!form) return;
+    
+    if (!validateForm(form)) {
+        return false;
+    }
+    
+    const userId = document.getElementById('user-id').value;
+    const username = document.getElementById('username').value;
+    const email = document.getElementById('email').value;
+    const status = document.getElementById('status').value;
+    const role = document.getElementById('role').value;
+    const bio = document.getElementById('bio').value;
+    
+    // Create form data
+    const formData = new FormData();
+    formData.append('action', 'update_admin_user');
+    formData.append('user_id', userId);
+    formData.append('username', username);
+    formData.append('email', email);
+    formData.append('status', status);
+    formData.append('role', role);
+    formData.append('bio', bio);
+    
+    // Send the request
+    fetch('api_admin.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showFormMessage('User profile updated successfully', 'success');
+        } else {
+            showFormMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating user:', error);
+        showFormMessage('An error occurred while updating the user profile', 'error');
+    });
+}
+
+/**
+ * Update book details
+ */
+function updateBook() {
+    const form = document.getElementById('edit-book-form');
+    if (!form) return;
+    
+    if (!validateForm(form)) {
+        return false;
+    }
+    
+    const bookId = document.getElementById('book-id').value;
+    const title = document.getElementById('title').value;
+    const author = document.getElementById('author').value;
+    const isbn = document.getElementById('isbn').value;
+    const description = document.getElementById('description').value;
+    const yearPublished = document.getElementById('year_published').value;
+    const genre = document.getElementById('genre').value;
+    const rating = document.getElementById('rating').value;
+    const status = document.getElementById('status').value;
+    
+    // Create form data
+    const formData = new FormData();
+    formData.append('action', 'update_book');
+    formData.append('book_id', bookId);
+    formData.append('title', title);
+    formData.append('author', author);
+    formData.append('isbn', isbn);
+    formData.append('description', description);
+    formData.append('year_published', yearPublished);
+    formData.append('genre', genre);
+    formData.append('rating', rating);
+    formData.append('status', status);
+    
+    // Add user statistics
+    if (analytics.users) {
+        csv += 'Users,Total,' + analytics.users.total + '\n';
+        csv += 'Users,Active,' + analytics.users.active + '\n';
+        csv += 'Users,Banned,' + analytics.users.banned + '\n';
+    }
+    
+    // Send the request
+    fetch('api_admin.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showFormMessage('Book updated successfully', 'success');
+        } else {
+            showFormMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating book:', error);
+        showFormMessage('An error occurred while updating the book', 'error');
+    });
+}
+
+/**
+ * Export admin data as CSV files
+ */
 function exportAdminData() {
     const exportType = document.getElementById('export-type').value || 'all';
     
@@ -1421,15 +1545,18 @@ function exportAdminData() {
                 }
             } else {
                 console.error('Error exporting data:', data.message);
-                showFormMessage('Error exporting data: ' + data.message, 'error');
+                showFormMessage(`Error: ${data.message}`, 'error');
             }
         })
         .catch(error => {
-            console.error('Error exporting data:', error);
-            showFormMessage('Error exporting data. Please try again later.', 'error');
+            console.error('Network error during export:', error);
+            showFormMessage('Network error during export. Please try again.', 'error');
         });
 }
 
+/**
+ * Convert array of objects to CSV string
+ */
 function convertToCSV(data) {
     if (!data || data.length === 0) return '';
     
@@ -1454,6 +1581,9 @@ function convertToCSV(data) {
     return csv;
 }
 
+/**
+ * Convert analytics data to CSV format
+ */
 function convertAnalyticsToCSV(analytics) {
     let csv = 'Category,Metric,Value\n';
     
@@ -1476,6 +1606,9 @@ function convertAnalyticsToCSV(analytics) {
     return csv;
 }
 
+/**
+ * Download CSV data as a file
+ */
 function downloadCSV(csv, filename) {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);

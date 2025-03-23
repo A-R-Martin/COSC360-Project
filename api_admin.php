@@ -440,6 +440,110 @@ try {
             ];
             break;
             
+        case 'export_data':
+            $exportType = isset($_GET['type']) ? trim($_GET['type']) : 'all';
+            
+            $users = [];
+            $books = [];
+            $analytics = [];
+            
+            // Get users data if requested
+            if ($exportType === 'all' || $exportType === 'users') {
+                $stmt = $conn->prepare("SELECT user_id, username, email, status, created_at, role FROM users ORDER BY created_at DESC");
+                $stmt->execute();
+                $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }
+            
+            // Get books data if requested
+            if ($exportType === 'all' || $exportType === 'books') {
+                $query = "SELECT b.book_id, b.title, b.author, b.isbn, b.status, b.description, 
+                         b.year_published, b.genre, b.rating,
+                         bor.username as borrower_name,
+                         res.username as reserver_name,
+                         CASE WHEN ub_bor.status = 'borrowed' AND ub_bor.return_date < CURRENT_DATE THEN 1 ELSE 0 END as is_overdue
+                         FROM books b
+                         LEFT JOIN user_books ub_bor ON b.book_id = ub_bor.book_id AND ub_bor.status = 'borrowed'
+                         LEFT JOIN users bor ON ub_bor.user_id = bor.user_id
+                         LEFT JOIN user_books ub_res ON b.book_id = ub_res.book_id AND ub_res.status = 'reserved'
+                         LEFT JOIN users res ON ub_res.user_id = res.user_id
+                         ORDER BY b.title ASC";
+                $stmt = $conn->prepare($query);
+                $stmt->execute();
+                $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }
+            
+            if ($exportType === 'all' || $exportType === 'analytics') {
+                // Get total users count
+                $stmt = $conn->prepare("SELECT COUNT(*) as total FROM users");
+                $stmt->execute();
+                $totalUsers = $stmt->fetchColumn();
+                
+                // Get active users count
+                $stmt = $conn->prepare("SELECT COUNT(*) as total FROM users WHERE status = 'active'");
+                $stmt->execute();
+                $activeUsers = $stmt->fetchColumn();
+                
+                // Get banned users count
+                $stmt = $conn->prepare("SELECT COUNT(*) as total FROM users WHERE status = 'banned'");
+                $stmt->execute();
+                $bannedUsers = $stmt->fetchColumn();
+                
+                // Get total books count
+                $stmt = $conn->prepare("SELECT COUNT(*) as total FROM books");
+                $stmt->execute();
+                $totalBooks = $stmt->fetchColumn();
+                
+                // Get available books count
+                $stmt = $conn->prepare("SELECT COUNT(*) as total FROM books WHERE status = 'available'");
+                $stmt->execute();
+                $availableBooks = $stmt->fetchColumn();
+                
+                // Get borrowed books count
+                $stmt = $conn->prepare("SELECT COUNT(*) as total FROM books WHERE status = 'borrowed'");
+                $stmt->execute();
+                $borrowedBooks = $stmt->fetchColumn();
+                
+                // Get reserved books count
+                $stmt = $conn->prepare("SELECT COUNT(*) as total FROM books WHERE status = 'reserved'");
+                $stmt->execute();
+                $reservedBooks = $stmt->fetchColumn();
+                
+                // Get overdue books count
+                $stmt = $conn->prepare("
+                    SELECT COUNT(*) as total 
+                    FROM user_books ub
+                    WHERE ub.status = 'borrowed' AND ub.return_date < CURRENT_DATE
+                ");
+                $stmt->execute();
+                $overdueBooks = $stmt->fetchColumn();
+                
+                $analytics = [
+                    'users' => [
+                        'total' => $totalUsers,
+                        'active' => $activeUsers,
+                        'banned' => $bannedUsers
+                    ],
+                    'books' => [
+                        'total' => $totalBooks,
+                        'available' => $availableBooks,
+                        'borrowed' => $borrowedBooks,
+                        'reserved' => $reservedBooks,
+                        'overdue' => $overdueBooks
+                    ]
+                ];
+            }
+            
+            $response = [
+                'status' => 'success',
+                'message' => 'Data exported successfully',
+                'data' => [
+                    'users' => $users,
+                    'books' => $books,
+                    'analytics' => $analytics
+                ]
+            ];
+            break;
+            
         default:
             $response['message'] = 'Invalid action';
             break;
