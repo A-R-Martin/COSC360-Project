@@ -26,15 +26,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
             <div class="admin-header">
                 <h1>Admin Dashboard</h1>
                 <div class="admin-actions">
-                    <div class="export-actions">
-                        <select id="export-type" class="filter-select">
-                            <option value="all">All Data</option>
-                            <option value="users">Users Only</option>
-                            <option value="books">Books Only</option>
-                            <option value="analytics">Analytics Only</option>
-                        </select>
-                        <button class="btn-primary" id="export-data">Export Data</button>
-                    </div>
+                    <button class="btn-primary" id="export-data">Export Data</button>
                 </div>
             </div>
             
@@ -72,16 +64,21 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
                     <h2>Book Management</h2>
                     <div class="catalog-filters">
                         <input type="search" id="book-search-input" placeholder="Search books..." class="search-input">
-                        <div class="sort-info">Click on column headers to sort</div>
+                        <select id="book-category-select" class="category-select">
+                            <option value="">All Categories</option>
+                            <option value="title">Book Title</option>
+                            <option value="author">Author</option>
+                            <option value="isbn">ISBN</option>
+                        </select>
                     </div>
                     <div class="data-table">
                         <table id="books-table">
                             <thead>
                                 <tr>
-                                    <th data-sort="title" class="sortable">Title</th>
-                                    <th data-sort="author" class="sortable">Author</th>
-                                    <th data-sort="isbn" class="sortable">ISBN</th>
-                                    <th data-sort="status" class="sortable">Status</th>
+                                    <th>Title</th>
+                                    <th>Author</th>
+                                    <th>ISBN</th>
+                                    <th>Status</th>
                                     <th>Current Borrower</th>
                                     <th>Reserved By</th>
                                     <th>Actions</th>
@@ -140,11 +137,49 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- New Analytics Graphs Section -->
+                    <div class="analytics-graphs">
+                        <h3>Analytics Dashboard</h3>
+                        <div class="graph-container">
+                            <div class="graph-card">
+                                <h4>Book Status Distribution</h4>
+                                <div class="canvas-container">
+                                    <canvas id="book-status-chart" width="300" height="200"></canvas>
+                                </div>
+                            </div>
+                            <div class="graph-card">
+                                <h4>Genre Distribution</h4>
+                                <div class="canvas-container">
+                                    <canvas id="genre-distribution-chart" width="300" height="200"></canvas>
+                                </div>
+                            </div>
+                            <div class="graph-card">
+                                <h4>Most Popular Books</h4>
+                                <div class="canvas-container">
+                                    <canvas id="popular-books-chart" width="300" height="200"></canvas>
+                                </div>
+                            </div>
+                            <div class="graph-card">
+                                <h4>User Activity</h4>
+                                <div class="canvas-container">
+                                    <canvas id="user-activity-chart" width="300" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
     </main>
     <script src="scripts.js"></script>
+    <script>
+        window.addEventListener('load', function() {
+            console.log('Window loaded, initializing charts...');
+            setTimeout(function() {
+                loadAnalytics();
+            }, 800);
+    </script>
 </body>
 
 </html> 

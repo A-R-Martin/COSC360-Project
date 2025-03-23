@@ -673,42 +673,6 @@ textarea:focus {
     line-height: 0.8rem;
 }
 
-/* Sortable table styles */
-.sortable {
-    cursor: pointer;
-    position: relative;
-    padding-right: 1.5rem;
-    user-select: none;
-}
-
-.sortable:hover {
-    background-color: #f0f0f0;
-}
-
-.sortable::after {
-    content: "⇅";
-    position: absolute;
-    right: 8px;
-    color: #999;
-    font-size: 0.8rem;
-}
-
-.sortable.sort-asc::after {
-    content: "↑";
-    color: var(--primary-color);
-}
-
-.sortable.sort-desc::after {
-    content: "↓";
-    color: var(--primary-color);
-}
-
-.sort-info {
-    font-size: 0.9rem;
-    color: var(--dark-gray);
-    padding: 0.5rem 0;
-}
-
 /* Status-specific colors */
 .book-status.available {
     background-color: #e6f7e6;
@@ -1666,16 +1630,72 @@ input[type="number"]#rating {
 }
 
 .analytics-category:first-child .analytics-card:nth-child(3) .analytics-value {
-    color: #e74c3c; /* Red for Banned Users */
+    color: var(--error-color);
 }
 
-/* Export actions */
-.export-actions {
-    display: flex;
-    gap: var(--spacing-md);
-    align-items: center;
+/* Analytics Graphs Styling */
+.analytics-graphs {
+    margin-top: var(--spacing-xl);
+    padding: var(--spacing-lg);
+    background-color: var(--white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-.export-actions .filter-select {
-    min-width: 150px;
+.analytics-graphs h3 {
+    font-size: 1.3rem;
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 2px solid var(--light-gray);
+    color: var(--text-color);
+}
+
+.graph-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.graph-card {
+    background-color: var(--white);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.graph-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.graph-card h4 {
+    font-size: 1rem;
+    margin-bottom: var(--spacing-md);
+    color: var(--text-color);
+    font-weight: 600;
+    text-align: center;
+}
+
+.canvas-container {
+    height: 200px;
+    position: relative;
+    margin-bottom: 15px;
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: var(--border-radius);
+    padding: 5px;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .graph-container {
+        grid-template-columns: 1fr;
+    }
 }
