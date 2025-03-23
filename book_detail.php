@@ -368,13 +368,11 @@ include 'includes/header.php';
                     comments.forEach(comment => {
                         const date = new Date(comment.created_at);
                         const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                        const profileImage = comment.profile_image ? comment.profile_image : 'sample-image.avif';
                         
                         commentHtml += `
                             <div class="comment">
                                 <div class="comment-header">
                                     <div class="comment-user">
-                                        <img src="${profileImage}" alt="${comment.username}" class="user-avatar" onerror="this.src='sample-image.avif'; this.onerror=null;">
                                         <span class="username">${comment.username}</span>
                                     </div>
                                     <span class="comment-date">${formattedDate}</span>
