@@ -609,6 +609,220 @@ try {
             ];
             break;
             
+        case 'update_admin_user':
+            // Validate required fields
+            if (empty($_POST['user_id']) || empty($_POST['username']) || empty($_POST['email']) || empty($_POST['status']) || empty($_POST['role'])) {
+                $response = [
+                    'status' => 'error',
+                    'message' => 'All required fields must be filled in',
+                    'data' => null
+                ];
+                break;
+            }
+            
+            $userId = (int)$_POST['user_id'];
+            $username = trim($_POST['username']);
+            $email = trim($_POST['email']);
+            $status = trim($_POST['status']);
+            $role = trim($_POST['role']);
+            $bio = isset($_POST['bio']) ? trim($_POST['bio']) : '';
+            
+            // Validate username format
+            if (!preg_match('/^[a-zA-Z0-9_-]+$/', $username) || strlen($username) < 3 || strlen($username) > 30) {
+                $response = [
+                    'status' => 'error',
+                    'message' => 'Username must be between 3-30 characters and can only contain letters, numbers, underscores and hyphens',
+                    'data' => null
+                ];
+                break;
+            }
+            
+            // Validate email format
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $response = [
+                    'status' => 'error',
+                    'message' => 'Please enter a valid email address',
+                    'data' => null
+                ];
+                break;
+            }
+            
+            $checkStmt = $conn->prepare("
+                SELECT user_id FROM users 
+                WHERE (username = :username OR email = :email) 
+                AND user_id != :user_id
+            ");
+            $checkStmt->execute([
+                'username' => $username,
+                'email' => $email,
+                'user_id' => $userId
+            ]);
+            
+            if ($checkStmt->rowCount() > 0) {
+                $response = [
+                    'status' => 'error',
+                    'message' => 'Username or email already exists',
+                    'data' => null
+                ];
+                break;
+            }
+            
+            // Update user data
+            $updateStmt = $conn->prepare("
+                UPDATE users SET 
+                username = :username,
+                email = :email,
+                status = :status,
+                role = :role,
+                bio = :bio
+                WHERE user_id = :user_id
+            ");
+            
+            $updateSuccess = $updateStmt->execute([
+                'username' => $username,
+                'email' => $email,
+                'status' => $status,
+                'role' => $role,
+                'bio' => $bio,
+                'user_id' => $userId
+            ]);
+            
+            if ($updateSuccess) {
+                $response = [
+                    'status' => 'success',
+                    'message' => 'User profile updated successfully',
+                    'data' => null
+                ];
+            } else {
+                $response = [
+                    'status' => 'error',
+                    'message' => 'Failed to update user profile',
+                    'data' => null
+                ];
+            }
+            break;
+            
+        case 'update_book':
+            // Validate required fields
+            if (empty($_POST['book_id']) || empty($_POST['title']) || empty($_POST['author'])) {
+                $response = [
+                    'status' => 'error',
+                    'message' => 'Book title and author are required',
+                    'data' => null
+                ];
+                break;
+            }
+            
+            $bookId = (int)$_POST['book_id'];
+            $title = trim($_POST['title']);
+            $author = trim($_POST['author']);
+            $isbn = isset($_POST['isbn']) ? trim($_POST['isbn']) : '';
+            $description = isset($_POST['description']) ? trim($_POST['description']) : '';
+            $yearPublished = isset($_POST['year_published']) && !empty($_POST['year_published']) ? (int)$_POST['year_published'] : null;
+            $genre = isset($_POST['genre']) ? trim($_POST['genre']) : '';
+            $rating = isset($_POST['rating']) && !empty($_POST['rating']) ? (float)$_POST['rating'] : 3.0;
+            $status = isset($_POST['status']) ? trim($_POST['status']) : 'available';
+            
+            // Handle file upload for cover image
+            $coverImagePath = null;
+            if (isset($_FILES['cover_image']) && $_FILES['cover_image']['error'] == 0) {
+                // Define allowed file types
+                $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                $maxSize = 5 * 1024 * 1024; // 5MB
+                
+                // Check file size and type
+                if ($_FILES['cover_image']['size'] > $maxSize) {
+                    $response = [
+                        'status' => 'error',
+                        'message' => 'File size exceeds the maximum limit of 5MB',
+                        'data' => null
+                    ];
+                    break;
+                }
+                
+                if (!in_array($_FILES['cover_image']['type'], $allowedTypes)) {
+                    $response = [
+                        'status' => 'error',
+                        'message' => 'Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed',
+                        'data' => null
+                    ];
+                    break;
+                }
+                
+                // Create uploads directory if it doesn't exist
+                $uploadsDir = 'uploads/books/';
+                if (!is_dir($uploadsDir)) {
+                    mkdir($uploadsDir, 0755, true);
+                }
+                
+                // Generate unique filename
+                $extension = pathinfo($_FILES['cover_image']['name'], PATHINFO_EXTENSION);
+                $filename = uniqid('book_' . $bookId . '_') . '.' . $extension;
+                $targetPath = $uploadsDir . $filename;
+                
+                // Move the uploaded file
+                if (move_uploaded_file($_FILES['cover_image']['tmp_name'], $targetPath)) {
+                    $coverImagePath = $targetPath;
+                } else {
+                    $response = [
+                        'status' => 'error',
+                        'message' => 'Failed to upload the cover image',
+                        'data' => null
+                    ];
+                    break;
+                }
+            }
+            
+            // Build update query
+            $updateColumns = [
+                'title = :title',
+                'author = :author',
+                'isbn = :isbn',
+                'description = :description',
+                'year_published = :year_published',
+                'genre = :genre',
+                'rating = :rating',
+                'status = :status'
+            ];
+            
+            $params = [
+                'title' => $title,
+                'author' => $author,
+                'isbn' => $isbn,
+                'description' => $description,
+                'year_published' => $yearPublished,
+                'genre' => $genre,
+                'rating' => $rating,
+                'status' => $status,
+                'book_id' => $bookId
+            ];
+            
+            // Add cover image if uploaded
+            if ($coverImagePath) {
+                $updateColumns[] = 'cover_image = :cover_image';
+                $params['cover_image'] = $coverImagePath;
+            }
+            
+            // Update book data
+            $updateQuery = "UPDATE books SET " . implode(', ', $updateColumns) . " WHERE book_id = :book_id";
+            $updateStmt = $conn->prepare($updateQuery);
+            $updateSuccess = $updateStmt->execute($params);
+            
+            if ($updateSuccess) {
+                $response = [
+                    'status' => 'success',
+                    'message' => 'Book updated successfully',
+                    'data' => null
+                ];
+            } else {
+                $response = [
+                    'status' => 'error',
+                    'message' => 'Failed to update book',
+                    'data' => null
+                ];
+            }
+            break;
+            
         default:
             $response['message'] = 'Invalid action';
             break;

@@ -343,7 +343,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.matches('.btn-edit-user')) {
             const userId = e.target.dataset.userId;
             console.log(`Edit user clicked for user ID: ${userId}`);
-            // TODO: Implement user edit functionality
+            // Navigate to user detail page
+            window.location.href = `admin_user_detail.php?id=${userId}`;
         }
         
         if (e.target.matches('.btn-suspend-user')) {
@@ -353,17 +354,61 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         if (e.target.matches('.btn-edit-book')) {
-            const isbn = e.target.dataset.isbn;
-            console.log(`Edit book clicked for ISBN: ${isbn}`);
-            // TODO: Implement book edit functionality
+            const bookId = e.target.dataset.bookId;
+            console.log(`Edit book clicked for book ID: ${bookId}`);
+            // Navigate to book edit page
+            window.location.href = `edit_book.php?id=${bookId}`;
         }
         
         if (e.target.matches('.btn-delete-book')) {
-            const isbn = e.target.dataset.isbn;
-            console.log(`Delete book clicked for ISBN: ${isbn}`);
-            // TODO: Implement book deletion
+            const bookId = e.target.dataset.bookId;
+            console.log(`Delete book clicked for book ID: ${bookId}`);
+            
+            if (confirm(`Are you sure you want to delete this book? This action cannot be undone.`)) {
+                deleteBook(bookId);
+            }
         }
     });
+
+    // Initialize custom form handling
+    document.querySelectorAll('[data-custom-submit="true"]').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleFormSubmit(form);
+        });
+    });
+    
+    // Initialize cover image preview
+    const coverImageInput = document.getElementById('cover_image');
+    if (coverImageInput) {
+        coverImageInput.addEventListener('change', function() {
+            previewBookCover(this);
+        });
+    }
+    
+    // Admin user form submit
+    const adminUserForm = document.getElementById('admin-user-form');
+    if (adminUserForm) {
+        adminUserForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            updateAdminUser();
+        });
+    }
+    
+    // Edit book form submit
+    const editBookForm = document.getElementById('edit-book-form');
+    if (editBookForm) {
+        editBookForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            updateBook();
+        });
+    }
+    
+    // Load admin data if on admin page
+    if (document.querySelector('.admin-container')) {
+        loadAdminData();
+        setupAdminEventListeners();
+    }
 });
 
 function checkPasswordRequirements(input) {
@@ -517,29 +562,24 @@ function showError(input) {
 function handleFormSubmit(form) {
     console.log('Form is valid, submitting...');
     
-    // Identify form by ID and handle accordingly
+    if (!validateForm(form)) {
+        return false;
+    }
+    
     const formId = form.id;
     
-    if (formId === 'signup-form') {
-        // Handle signup
-        console.log('Signup form submitted');
-        form.submit();
-    } else if (formId === 'signin-form') {
-        // Handle signin
-        console.log('Signin form submitted');
-        form.submit();
-    } else if (formId === 'profile-form') {
-        // Handle profile update
-        console.log('Profile form submitted');
-        form.submit();
-    } else if (formId === 'add-book-form') {
-        console.log('Add book form submission handled by dedicated event listener');
-        return; // Return early to prevent duplicate submission
-    } else {
-        // Default behavior
-        console.log('Unknown form submitted');
-        form.submit();
+    // Handle specific forms
+    if (formId === 'admin-user-form') {
+        updateAdminUser();
+        return false;
+    } else if (formId === 'edit-book-form') {
+        updateBook();
+        return false;
     }
+    
+    // For regular forms, submit normally
+    form.submit();
+    return true;
 }
 
 // Book Card Component - Generic version for reuse
@@ -1049,7 +1089,8 @@ function handleAdminUserActions(e) {
     if (e.target.matches('.btn-edit-user')) {
         const userId = e.target.dataset.userId;
         console.log(`Edit user clicked for user ID: ${userId}`);
-        // TODO: Implement edit user modal
+        // Navigate to user detail page
+        window.location.href = `admin_user_detail.php?id=${userId}`;
     }
     
     // Ban/activate user
@@ -1640,7 +1681,8 @@ function handleAdminBookActions(e) {
     if (e.target.matches('.btn-edit-book')) {
         const bookId = e.target.dataset.bookId;
         console.log(`Edit book clicked for book ID: ${bookId}`);
-        // TODO: Implement book edit functionality
+        // Navigate to book edit page
+        window.location.href = `edit_book.php?id=${bookId}`;
     }
     
     // Delete book
@@ -1781,11 +1823,10 @@ function updateBook() {
     formData.append('rating', rating);
     formData.append('status', status);
     
-    // Add user statistics
-    if (analytics.users) {
-        csv += 'Users,Total,' + analytics.users.total + '\n';
-        csv += 'Users,Active,' + analytics.users.active + '\n';
-        csv += 'Users,Banned,' + analytics.users.banned + '\n';
+    // Add the cover image if provided
+    const coverImage = document.getElementById('cover_image');
+    if (coverImage && coverImage.files.length > 0) {
+        formData.append('cover_image', coverImage.files[0]);
     }
     
     // Send the request
