@@ -176,6 +176,28 @@ include 'includes/header.php';
                         <h2>Description</h2>
                         <p><?php echo nl2br(htmlspecialchars($book['description'])); ?></p>
                     </div>
+                    
+                    <!-- Book Comments Section -->
+                    <div class="book-comments-section">
+                        <h2>Comments</h2>
+                        
+                        <!-- Comment form for logged-in users -->
+                        <?php if ($is_logged_in): ?>
+                            <div class="comment-form">
+                                <textarea id="comment-text" placeholder="Write a comment..." rows="3"></textarea>
+                                <button id="post-comment" class="btn btn-primary" data-book-id="<?php echo $book_id; ?>">Post Comment</button>
+                            </div>
+                        <?php else: ?>
+                            <div class="login-prompt">
+                                <p>Please <a href="signin.php">sign in</a> to leave a comment.</p>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <!-- Comments container -->
+                        <div id="comments-container" class="comments-container">
+                            <div class="loading-comments">Loading comments...</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -252,7 +274,117 @@ include 'includes/header.php';
                     })
                     .catch(error => {
                         responseDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                    })
+                    .finally(() => {
+                        if (!responseDiv.querySelector('.success')) {
+                            setTimeout(() => {
+                                responseDiv.classList.remove('visible');
+                            }, 5000);
+                        }
                     });
+                }
+                
+                // Comment functionality
+                const commentsContainer = document.getElementById('comments-container');
+                const commentText = document.getElementById('comment-text');
+                const postCommentBtn = document.getElementById('post-comment');
+                
+                loadComments(<?php echo $book_id; ?>);
+                
+                // Post a new comment
+                if (postCommentBtn) {
+                    postCommentBtn.addEventListener('click', function() {
+                        const comment = commentText.value.trim();
+                        if (comment) {
+                            postComment(<?php echo $book_id; ?>, comment);
+                        }
+                    });
+                }
+                
+                // Function to load comments
+                function loadComments(bookId) {
+                    commentsContainer.innerHTML = '<div class="loading-comments">Loading comments...</div>';
+                    
+                    fetch(`api_book_comments.php?action=get_comments&book_id=${bookId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                renderComments(data.data);
+                            } else {
+                                commentsContainer.innerHTML = `<div class="error">${data.message}</div>`;
+                            }
+                        })
+                        .catch(error => {
+                            commentsContainer.innerHTML = `<div class="error">Error loading comments: ${error.message}</div>`;
+                        });
+                }
+                
+                // Function to post a comment
+                function postComment(bookId, comment) {
+                    postCommentBtn.disabled = true;
+                    postCommentBtn.textContent = 'Posting...';
+                    
+                    fetch('api_book_comments.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            action: 'add_comment',
+                            book_id: bookId,
+                            comment: comment
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Clear comment input
+                            commentText.value = '';
+                            
+                            // Reload comments
+                            loadComments(bookId);
+                        } else {
+                            alert(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        alert(`Error: ${error.message}`);
+                    })
+                    .finally(() => {
+                        postCommentBtn.disabled = false;
+                        postCommentBtn.textContent = 'Post Comment';
+                    });
+                }
+                
+                // Function to render comments
+                function renderComments(comments) {
+                    if (!comments || comments.length === 0) {
+                        commentsContainer.innerHTML = '<p class="no-comments">No comments yet. Be the first to comment!</p>';
+                        return;
+                    }
+                    
+                    let commentHtml = '';
+                    
+                    comments.forEach(comment => {
+                        const date = new Date(comment.created_at);
+                        const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        
+                        commentHtml += `
+                            <div class="comment">
+                                <div class="comment-header">
+                                    <div class="comment-user">
+                                        <span class="username">${comment.username}</span>
+                                    </div>
+                                    <span class="comment-date">${formattedDate}</span>
+                                </div>
+                                <div class="comment-body">
+                                    <p>${comment.comment.replace(/\n/g, '<br>')}</p>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    commentsContainer.innerHTML = commentHtml;
                 }
             });
         </script>

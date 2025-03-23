@@ -343,7 +343,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.matches('.btn-edit-user')) {
             const userId = e.target.dataset.userId;
             console.log(`Edit user clicked for user ID: ${userId}`);
-            // TODO: Implement user edit functionality
+            // Navigate to user detail page
+            window.location.href = `admin_user_detail.php?id=${userId}`;
         }
         
         if (e.target.matches('.btn-suspend-user')) {
@@ -353,17 +354,61 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         if (e.target.matches('.btn-edit-book')) {
-            const isbn = e.target.dataset.isbn;
-            console.log(`Edit book clicked for ISBN: ${isbn}`);
-            // TODO: Implement book edit functionality
+            const bookId = e.target.dataset.bookId;
+            console.log(`Edit book clicked for book ID: ${bookId}`);
+            // Navigate to book edit page
+            window.location.href = `edit_book.php?id=${bookId}`;
         }
         
         if (e.target.matches('.btn-delete-book')) {
-            const isbn = e.target.dataset.isbn;
-            console.log(`Delete book clicked for ISBN: ${isbn}`);
-            // TODO: Implement book deletion
+            const bookId = e.target.dataset.bookId;
+            console.log(`Delete book clicked for book ID: ${bookId}`);
+            
+            if (confirm(`Are you sure you want to delete this book? This action cannot be undone.`)) {
+                deleteBook(bookId);
+            }
         }
     });
+
+    // Initialize custom form handling
+    document.querySelectorAll('[data-custom-submit="true"]').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleFormSubmit(form);
+        });
+    });
+    
+    // Initialize cover image preview
+    const coverImageInput = document.getElementById('cover_image');
+    if (coverImageInput) {
+        coverImageInput.addEventListener('change', function() {
+            previewBookCover(this);
+        });
+    }
+    
+    // Admin user form submit
+    const adminUserForm = document.getElementById('admin-user-form');
+    if (adminUserForm) {
+        adminUserForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            updateAdminUser();
+        });
+    }
+    
+    // Edit book form submit
+    const editBookForm = document.getElementById('edit-book-form');
+    if (editBookForm) {
+        editBookForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            updateBook();
+        });
+    }
+    
+    // Load admin data if on admin page
+    if (document.querySelector('.admin-container')) {
+        loadAdminData();
+        setupAdminEventListeners();
+    }
 });
 
 function checkPasswordRequirements(input) {
@@ -517,29 +562,24 @@ function showError(input) {
 function handleFormSubmit(form) {
     console.log('Form is valid, submitting...');
     
-    // Identify form by ID and handle accordingly
+    if (!validateForm(form)) {
+        return false;
+    }
+    
     const formId = form.id;
     
-    if (formId === 'signup-form') {
-        // Handle signup
-        console.log('Signup form submitted');
-        form.submit();
-    } else if (formId === 'signin-form') {
-        // Handle signin
-        console.log('Signin form submitted');
-        form.submit();
-    } else if (formId === 'profile-form') {
-        // Handle profile update
-        console.log('Profile form submitted');
-        form.submit();
-    } else if (formId === 'add-book-form') {
-        console.log('Add book form submission handled by dedicated event listener');
-        return; // Return early to prevent duplicate submission
-    } else {
-        // Default behavior
-        console.log('Unknown form submitted');
-        form.submit();
+    // Handle specific forms
+    if (formId === 'admin-user-form') {
+        updateAdminUser();
+        return false;
+    } else if (formId === 'edit-book-form') {
+        updateBook();
+        return false;
     }
+    
+    // For regular forms, submit normally
+    form.submit();
+    return true;
 }
 
 // Book Card Component - Generic version for reuse
@@ -1049,7 +1089,8 @@ function handleAdminUserActions(e) {
     if (e.target.matches('.btn-edit-user')) {
         const userId = e.target.dataset.userId;
         console.log(`Edit user clicked for user ID: ${userId}`);
-        // TODO: Implement edit user modal
+        // Navigate to user detail page
+        window.location.href = `admin_user_detail.php?id=${userId}`;
     }
     
     // Ban/activate user
@@ -1206,6 +1247,8 @@ function loadAnalytics() {
                 } else {
                     overdueElement.classList.remove('overdue');
                 }
+                
+                loadChartData();
             } else {
                 console.error('Error loading analytics:', data.message);
             }
@@ -1213,6 +1256,308 @@ function loadAnalytics() {
         .catch(error => {
             console.error('Error loading analytics:', error);
         });
+}
+
+/**
+ * Load chart data for admin dashboard
+ */
+function loadChartData() {
+    const chartElements = document.querySelectorAll('canvas[id$="-chart"]');
+    if (chartElements.length === 0) {
+        return;
+    }
+    
+    setTimeout(() => {
+        fetch('api_admin.php?action=get_chart_data')
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Draw each chart
+                    try {
+                        drawPieChart('book-status-chart', data.data.bookStatus, 'Book Status');
+                    } catch (err) {
+                        console.error('Error drawing book status chart:', err);
+                    }
+                    
+                    try {
+                        drawPieChart('genre-distribution-chart', data.data.genreDistribution, 'Genre Distribution');
+                    } catch (err) {
+                        console.error('Error drawing genre distribution chart:', err);
+                    }
+                    
+                    try {
+                        drawBarChart('popular-books-chart', data.data.popularBooks, 'Borrow Count');
+                    } catch (err) {
+                        console.error('Error drawing popular books chart:', err);
+                    }
+                    
+                    try {
+                        drawPieChart('user-activity-chart', data.data.userActivity, 'User Count');
+                    } catch (err) {
+                        console.error('Error drawing user activity chart:', err);
+                    }
+                } else {
+                    console.error('Error loading chart data:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading chart data:', error);
+            });
+    }, 200); // Small delay before attempting to draw charts
+}
+
+/**
+ * Draw a pie chart on a canvas element
+ * @param {string} canvasId - The ID of the canvas element
+ * @param {Object} data - Chart data with labels and datasets
+ * @param {string} labelText - Text for the legend labels
+ */
+function drawPieChart(canvasId, data, labelText) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        console.error(`Canvas element with ID "${canvasId}" not found`);
+        return;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+        console.error(`Could not get 2D context for canvas: ${canvasId}`);
+        return;
+    }
+    
+    // Set canvas dimensions explicitly
+    if (!canvas.hasAttribute('width')) {
+        canvas.width = 300;
+    }
+    if (!canvas.hasAttribute('height')) {
+        canvas.height = 200;
+    }
+    
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = Math.min(centerX, centerY) * 0.6; // Reduced radius slightly
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw pie segments
+    let startAngle = 0;
+    const total = data.datasets[0].data.reduce((sum, value) => sum + value, 0);
+    
+    if (total === 0) {
+        ctx.font = '14px Arial, sans-serif';
+        ctx.fillStyle = '#7f8c8d';
+        ctx.textAlign = 'center';
+        ctx.fillText('No data available', centerX, centerY);
+        return;
+    }
+    
+    // Draw each segment
+    data.labels.forEach((label, i) => {
+        const value = data.datasets[0].data[i];
+        if (value === 0) return; // Skip zero-value segments
+        
+        const sliceAngle = (value / total) * 2 * Math.PI;
+        
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
+        ctx.closePath();
+        
+        // Fill segment
+        ctx.fillStyle = data.datasets[0].backgroundColor[i] || '#3498db'; // Fallback color
+        ctx.fill();
+        
+        // Calculate label position
+        const midAngle = startAngle + sliceAngle / 2;
+        const labelRadius = radius * 0.7;
+        const labelX = centerX + Math.cos(midAngle) * labelRadius;
+        const labelY = centerY + Math.sin(midAngle) * labelRadius;
+        
+        if (sliceAngle > 0.2) {
+            ctx.font = 'bold 12px Arial, sans-serif';
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const percent = Math.round((value / total) * 100) + '%';
+            ctx.fillText(percent, labelX, labelY);
+        }
+        
+        startAngle += sliceAngle;
+    });
+    
+    // Draw legend
+    const legendY = canvas.height - 20;
+    const legendX = 10;
+    const legendCircleRadius = 5;
+    
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.font = '10px Arial, sans-serif';
+    
+    let currentX = legendX;
+    let currentY = legendY;
+    const lineHeight = 15;
+    
+    data.labels.forEach((label, i) => {
+        const value = data.datasets[0].data[i];
+        if (value === 0) return; // Skip zero-value legends
+        
+        const text = `${label}: ${value}`;
+        const textWidth = ctx.measureText(text).width;
+        
+        // Check if legend item would go beyond canvas width
+        if (currentX + textWidth + 30 > canvas.width) {
+            currentX = legendX;
+            currentY += lineHeight;
+        }
+        
+        // Draw legend color circle
+        ctx.beginPath();
+        ctx.arc(currentX, currentY, legendCircleRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = data.datasets[0].backgroundColor[i] || '#3498db';
+        ctx.fill();
+        
+        // Draw legend text
+        ctx.fillStyle = '#2c3e50';
+        ctx.fillText(text, currentX + 10, currentY);
+        
+        currentX += textWidth + 30;
+    });
+}
+
+/**
+ * Draw a bar chart on a canvas element
+ * @param {string} canvasId - The ID of the canvas element
+ * @param {Object} data - Chart data with labels and datasets
+ * @param {string} yAxisLabel - Text for the y-axis label
+ */
+function drawBarChart(canvasId, data, yAxisLabel) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        console.error(`Canvas element with ID "${canvasId}" not found`);
+        return;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+        console.error(`Could not get 2D context for canvas: ${canvasId}`);
+        return;
+    }
+    
+    // Set canvas dimensions explicitly
+    if (!canvas.hasAttribute('width')) {
+        canvas.width = 300;
+    }
+    if (!canvas.hasAttribute('height')) {
+        canvas.height = 200;
+    }
+    
+    // Chart dimensions
+    const chartWidth = canvas.width - 60;  // Leave space for y-axis
+    const chartHeight = canvas.height - 60; // Leave space for x-axis labels
+    const barSpacing = 10;
+    const chartX = 40; // X position of chart area
+    const chartY = 20; // Y position of chart area
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Check if we have data
+    if (!data.labels || !data.labels.length || !data.datasets || !data.datasets[0].data) {
+        ctx.font = '14px Arial, sans-serif';
+        ctx.fillStyle = '#7f8c8d';
+        ctx.textAlign = 'center';
+        ctx.fillText('No data available', canvas.width / 2, canvas.height / 2);
+        return;
+    }
+    
+    // Calculate max value for scaling (with a minimum of 1)
+    const maxValue = Math.max(1, ...data.datasets[0].data);
+    const barWidth = Math.max(10, (chartWidth - (data.labels.length - 1) * barSpacing) / data.labels.length);
+    
+    // Draw y-axis
+    ctx.beginPath();
+    ctx.moveTo(chartX, chartY);
+    ctx.lineTo(chartX, chartY + chartHeight);
+    ctx.strokeStyle = '#ddd';
+    ctx.stroke();
+    
+    // Draw x-axis
+    ctx.beginPath();
+    ctx.moveTo(chartX, chartY + chartHeight);
+    ctx.lineTo(chartX + chartWidth, chartY + chartHeight);
+    ctx.strokeStyle = '#ddd';
+    ctx.stroke();
+    
+    // Draw y-axis grid lines and labels
+    const gridLines = 5;
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#7f8c8d';
+    ctx.font = '10px Arial, sans-serif';
+    
+    for (let i = 0; i <= gridLines; i++) {
+        const y = chartY + chartHeight - (i * chartHeight / gridLines);
+        const value = Math.round(maxValue * i / gridLines);
+        
+        // Grid line
+        ctx.beginPath();
+        ctx.moveTo(chartX, y);
+        ctx.lineTo(chartX + chartWidth, y);
+        ctx.strokeStyle = '#eee';
+        ctx.stroke();
+        
+        // Label
+        ctx.fillText(value, chartX - 5, y);
+    }
+    
+    // Y-axis label
+    ctx.save();
+    ctx.translate(15, chartY + chartHeight / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.fillText(yAxisLabel, 0, 0);
+    ctx.restore();
+    
+    // Draw bars
+    data.labels.forEach((label, i) => {
+        const value = data.datasets[0].data[i];
+        if (value === 0) return; // Skip zero-value bars
+        
+        const barHeight = (value / maxValue) * chartHeight;
+        const x = chartX + i * (barWidth + barSpacing);
+        const y = chartY + chartHeight - barHeight;
+        
+        // Draw bar
+        ctx.fillStyle = data.datasets[0].backgroundColor || '#3498db';
+        ctx.fillRect(x, y, barWidth, barHeight);
+        
+        // Draw value on top of bar
+        if (barHeight > 15) {
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 10px Arial, sans-serif';
+            ctx.fillText(value, x + barWidth / 2, y + 10);
+        } else {
+            ctx.fillStyle = '#2c3e50';
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 10px Arial, sans-serif';
+            ctx.fillText(value, x + barWidth / 2, y - 5);
+        }
+        
+        // Draw x-axis label
+        ctx.fillStyle = '#2c3e50';
+        ctx.textAlign = 'center';
+        ctx.font = '10px Arial, sans-serif';
+        
+        // Handle long labels by truncating
+        let displayLabel = label;
+        if (ctx.measureText(label).width > barWidth * 1.2) {
+            displayLabel = label.substring(0, 8) + '...';
+        }
+        
+        ctx.fillText(displayLabel, x + barWidth / 2, chartY + chartHeight + 15);
+    });
 }
 
 /**
@@ -1336,7 +1681,8 @@ function handleAdminBookActions(e) {
     if (e.target.matches('.btn-edit-book')) {
         const bookId = e.target.dataset.bookId;
         console.log(`Edit book clicked for book ID: ${bookId}`);
-        // TODO: Implement book edit functionality
+        // Navigate to book edit page
+        window.location.href = `edit_book.php?id=${bookId}`;
     }
     
     // Delete book
@@ -1477,11 +1823,10 @@ function updateBook() {
     formData.append('rating', rating);
     formData.append('status', status);
     
-    // Add user statistics
-    if (analytics.users) {
-        csv += 'Users,Total,' + analytics.users.total + '\n';
-        csv += 'Users,Active,' + analytics.users.active + '\n';
-        csv += 'Users,Banned,' + analytics.users.banned + '\n';
+    // Add the cover image if provided
+    const coverImage = document.getElementById('cover_image');
+    if (coverImage && coverImage.files.length > 0) {
+        formData.append('cover_image', coverImage.files[0]);
     }
     
     // Send the request
