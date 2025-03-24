@@ -68,7 +68,7 @@ include 'includes/header.php';
     <?php elseif ($book): ?>
         <div class="book-detail">
             <div class="book-detail-header">
-                <a href="<?php echo $is_logged_in ? 'member-catalog.php' : 'catalog.php'; ?>" class="back-link">
+                <a href="catalog.php" class="btn btn-primary">
                     &larr; Back to Catalog
                 </a>
                 <h1><?php echo htmlspecialchars($book['title']); ?></h1>
@@ -147,11 +147,16 @@ include 'includes/header.php';
                             <div class="book-actions">
                                 <?php if ($user_book_status === 'borrowed'): ?>
                                     <button class="btn btn-return" data-book-id="<?php echo $book_id; ?>">Return Book</button>
-                                    <?php if ($user_book['borrow_date']): ?>
-                                        <p class="borrowed-info">Borrowed on: <?php echo date('M d, Y', strtotime($user_book['borrow_date'])); ?></p>
-                                    <?php endif; ?>
-                                    <?php if ($user_book['return_date']): ?>
-                                        <p class="borrowed-info">Due by: <?php echo date('M d, Y', strtotime($user_book['return_date'])); ?></p>
+                                    <?php if ($user_book['borrow_date'] || $user_book['return_date']): ?>
+                                        <p class="borrowed-info">
+                                            <?php if ($user_book['borrow_date']): ?>
+                                                Borrowed on: <?php echo date('M d, Y', strtotime($user_book['borrow_date'])); ?>
+                                            <?php endif; ?>
+                                            <?php if ($user_book['borrow_date'] && $user_book['return_date']): ?> | <?php endif; ?>
+                                            <?php if ($user_book['return_date']): ?>
+                                                Due by: <?php echo date('M d, Y', strtotime($user_book['return_date'])); ?>
+                                            <?php endif; ?>
+                                        </p>
                                     <?php endif; ?>
                                 <?php elseif ($user_book_status === 'reserved'): ?>
                                     <button class="btn btn-cancel" data-book-id="<?php echo $book_id; ?>">Cancel Reservation</button>
@@ -263,24 +268,39 @@ include 'includes/header.php';
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'success') {
-                            responseDiv.innerHTML = `<div class="success">${data.message}</div>`;
+                            // Create a form message similar to profile updated
+                            const successBanner = document.createElement('div');
+                            successBanner.className = 'alert alert-success book-action-success';
+                            successBanner.innerHTML = data.message;
+                            successBanner.style.display = 'block';
+                            
+                            // Insert the success banner at the top of the main container, but before the book-detail div
+                            const mainContainer = document.querySelector('main.container');
+                            const bookDetail = document.querySelector('.book-detail');
+                            mainContainer.insertBefore(successBanner, bookDetail);
+                            
+                            // Hide the response div
+                            responseDiv.classList.remove('visible');
+                            
+                            // Scroll to show the banner
+                            successBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            
                             // Reload the page after 2 seconds to show updated state
                             setTimeout(() => {
                                 window.location.reload();
                             }, 2000);
                         } else {
                             responseDiv.innerHTML = `<div class="error">${data.message}</div>`;
-                        }
-                    })
-                    .catch(error => {
-                        responseDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
-                    })
-                    .finally(() => {
-                        if (!responseDiv.querySelector('.success')) {
                             setTimeout(() => {
                                 responseDiv.classList.remove('visible');
                             }, 5000);
                         }
+                    })
+                    .catch(error => {
+                        responseDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                        setTimeout(() => {
+                            responseDiv.classList.remove('visible');
+                        }, 5000);
                     });
                 }
                 

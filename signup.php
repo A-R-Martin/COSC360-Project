@@ -9,6 +9,7 @@ ini_set('display_errors', 1);
 require_once 'db_connect.php';
 
 // Debug info directly on page
+/*
 echo "<div style='background:#f8f8f8; border:1px solid #ccc; padding:10px; margin-bottom:20px; font-family:monospace;'>";
 echo "<strong>Debug Info:</strong><br>";
 echo "PHP Version: " . phpversion() . "<br>";
@@ -21,6 +22,7 @@ echo "Database connection: " . ($conn ? "OK" : "FAILED") . "<br>";
 $result = $conn->query("SHOW TABLES LIKE 'users'");
 echo "Users table exists: " . ($result->rowCount() > 0 ? "Yes" : "No") . "<br>";
 echo "</div>";
+*/
 
 // Check if user is already logged in
 if (isset($_SESSION['user_id'])) {

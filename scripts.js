@@ -43,24 +43,24 @@ document.addEventListener('DOMContentLoaded', () => {
         // Handle form submission
         form.addEventListener('submit', (event) => {
             if (form.hasAttribute('data-custom-submit')) {
-                console.log(`Skipping generic handler for form ${form.id} - has custom handler`);
+                // console.log(`Skipping generic handler for form ${form.id} - has custom handler`);
                 return;
             }
             
             event.preventDefault();
-            console.log('Generic form submit handler triggered for form:', form.id);
+            // console.log('Generic form submit handler triggered for form:', form.id);
             form.classList.remove('was-validated', 'form-valid');
             form.classList.add('was-validated');
             
             const isValid = validateForm(form);
-            console.log(`Form ${form.id} validation result:`, isValid);
+            // console.log(`Form ${form.id} validation result:`, isValid);
             
             if (isValid) {
                 form.classList.add('form-valid');
-                console.log(`Calling handleFormSubmit for form ${form.id}`);
+                // console.log(`Calling handleFormSubmit for form ${form.id}`);
                 handleFormSubmit(form);
             } else {
-                console.log(`Form ${form.id} validation failed`);
+                // console.log(`Form ${form.id} validation failed`);
             }
         });
     });
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const removeProfileImageBtn = document.getElementById('remove-profile-image');
     if (removeProfileImageBtn) {
         removeProfileImageBtn.addEventListener('click', () => {
-            console.log('Remove profile image button clicked');
+            // console.log('Remove profile image button clicked');
             removeProfileImage();
         });
     }
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (updateProfileBtn) {
         updateProfileBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            console.log('Update profile button clicked');
+            // console.log('Update profile button clicked');
             updateUserProfile();
         });
     }
@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (changePasswordBtn) {
         changePasswordBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            console.log('Change password button clicked');
+            // console.log('Change password button clicked');
             updatePassword();
         });
     }
@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addBookBtn = document.getElementById('add-book');
     if (addBookBtn) {
         addBookBtn.addEventListener('click', () => {
-            console.log('Add book button clicked');
+            // console.log('Add book button clicked');
             window.location.href = 'add_book.php';
         });
     }
@@ -161,13 +161,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Form submission
     if (addBookForm) {
         // Log that the form was found
-        console.log('Add book form found with ID:', addBookForm.id);
+        // console.log('Add book form found with ID:', addBookForm.id);
         
         addBookForm.addEventListener('submit', async (e) => {
-            console.log('*** ADD BOOK FORM SPECIFIC HANDLER TRIGGERED ***');
+            // console.log('*** ADD BOOK FORM SPECIFIC HANDLER TRIGGERED ***');
             try {
                 e.preventDefault();
-                console.log('Add book form submitted');
+                // console.log('Add book form submitted');
                 
                 // Validate form
                 const titleInput = document.getElementById('title');
@@ -175,10 +175,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isbnInput = document.getElementById('isbn');
                 const ratingInput = document.getElementById('rating');
                 
-                console.log('Form elements:', {
-                    title: titleInput?.value,
-                    author: authorInput?.value
-                });
+                // console.log('Form elements:', {
+                //     title: titleInput?.value,
+                //     author: authorInput?.value
+                // });
                 
                 // Check required fields
                 if (!titleInput || !titleInput.value.trim()) {
@@ -224,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     rating: ratingValue ? parseFloat(ratingValue) : null
                 };
                 
-                console.log('Book data to submit:', bookData);
+                // console.log('Book data to submit:', bookData);
                 
                 // First, upload the book cover if provided
                 let coverPath = null;
@@ -236,15 +236,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     coverFormData.append('book_cover', bookCoverInput.files[0]);
                     
                     try {
-                        showFormMessage('Uploading cover image...', 'info');
-                        console.log('Uploading cover image...');
+                        // console.log('Uploading cover image...');
                         const coverResponse = await fetch('upload_book_cover.php', {
                             method: 'POST',
                             body: coverFormData
                         });
                         
                         const coverResult = await coverResponse.json();
-                        console.log('Cover upload response:', coverResult);
+                        // console.log('Cover upload response:', coverResult);
                         if (coverResult.status === 'success') {
                             coverPath = coverResult.data.file_path;
                         } else {
@@ -266,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Submit book data
                 try {
                     showFormMessage('Adding book to library...', 'info');
-                    console.log('Submitting book data to API:', bookData);
+                    // console.log('Submitting book data to API:', bookData);
                     const response = await fetch('api_books.php', {
                         method: 'POST',
                         headers: {
@@ -275,14 +274,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         body: JSON.stringify(bookData)
                     });
                     
-                    console.log('API response status:', response.status);
+                    // console.log('API response status:', response.status);
                     if (!response.ok) {
                         const errorText = await response.text();
                         throw new Error(`API error (${response.status}): ${errorText}`);
                     }
                     
                     const result = await response.json();
-                    console.log('API response data:', result);
+                    // console.log('API response data:', result);
                     
                     if (result.status === 'success') {
                         showFormMessage('Book added successfully!', 'success');
@@ -307,14 +306,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     } else {
-        console.warn('Add book form not found on this page');
+        // console.warn('Add book form not found on this page');
     }
 
     // Admin page buttons
     const exportDataBtn = document.getElementById('export-data');
     if (exportDataBtn) {
         exportDataBtn.addEventListener('click', () => {
-            console.log('Export data button clicked');
+            // console.log('Export data button clicked');
             exportAdminData();
             exportAdminData();
         });
@@ -324,16 +323,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', (e) => {
         if (e.target.matches('.btn-details')) {
             const bookId = e.target.getAttribute('data-book-id');
-            console.log('View details clicked for book ID:', bookId);
+            // console.log('View details clicked for book ID:', bookId);
             // Go to the book detail page
             window.location.href = `book_detail.php?id=${bookId}`;
         } else if (e.target.matches('.btn-borrow')) {
             const bookId = e.target.getAttribute('data-book-id');
-            console.log('Borrow clicked for book ID:', bookId);
+            // console.log('Borrow clicked for book ID:', bookId);
             // TODO: Implement borrow functionality
         } else if (e.target.matches('.btn-reserve')) {
             const bookId = e.target.getAttribute('data-book-id');
-            console.log('Reserve clicked for book ID:', bookId);
+            // console.log('Reserve clicked for book ID:', bookId);
             // TODO: Implement reserve functionality
         }
     });
@@ -342,27 +341,27 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', (e) => {
         if (e.target.matches('.btn-edit-user')) {
             const userId = e.target.dataset.userId;
-            console.log(`Edit user clicked for user ID: ${userId}`);
+            // console.log(`Edit user clicked for user ID: ${userId}`);
             // Navigate to user detail page
             window.location.href = `admin_user_detail.php?id=${userId}`;
         }
         
         if (e.target.matches('.btn-suspend-user')) {
             const userId = e.target.dataset.userId;
-            console.log(`Suspend user clicked for user ID: ${userId}`);
+            // console.log(`Suspend user clicked for user ID: ${userId}`);
             // TODO: Implement user suspension
         }
         
         if (e.target.matches('.btn-edit-book')) {
             const bookId = e.target.dataset.bookId;
-            console.log(`Edit book clicked for book ID: ${bookId}`);
+            // console.log(`Edit book clicked for book ID: ${bookId}`);
             // Navigate to book edit page
             window.location.href = `edit_book.php?id=${bookId}`;
         }
         
         if (e.target.matches('.btn-delete-book')) {
             const bookId = e.target.dataset.bookId;
-            console.log(`Delete book clicked for book ID: ${bookId}`);
+            // console.log(`Delete book clicked for book ID: ${bookId}`);
             
             if (confirm(`Are you sure you want to delete this book? This action cannot be undone.`)) {
                 deleteBook(bookId);
@@ -409,6 +408,14 @@ document.addEventListener('DOMContentLoaded', () => {
         loadAdminData();
         setupAdminEventListeners();
     }
+
+    // Global event handler for book edit buttons (works in both admin and profile pages)
+    document.addEventListener('click', (e) => {
+        if (e.target.matches('.btn-edit-book')) {
+            const bookId = e.target.dataset.bookId;
+            window.location.href = `edit_book.php?id=${bookId}`;
+        }
+    });
 });
 
 function checkPasswordRequirements(input) {
@@ -560,7 +567,7 @@ function showError(input) {
 }
 
 function handleFormSubmit(form) {
-    console.log('Form is valid, submitting...');
+    // console.log('Form is valid, submitting...');
     
     if (!validateForm(form)) {
         return false;
@@ -679,10 +686,10 @@ class BookCard {
 
 // Helper function to render book cards in a container
 function renderBookCards(books, containerId) {
-    console.log(`Rendering ${books.length} books in container: ${containerId}`);
+    // console.log(`Rendering ${books.length} books in container: ${containerId}`);
     const container = document.getElementById(containerId);
     if (!container) {
-        console.log(`Container ${containerId} not found`);
+        // console.log(`Container ${containerId} not found`);
         return;
     }
 
@@ -694,25 +701,25 @@ function renderBookCards(books, containerId) {
     }
     
     // Debug book data
-    console.log('Book data sample:', books[0]);
+    // console.log('Book data sample:', books[0]);
     
     books.forEach(bookData => {
         // Add image path debugging
         if (bookData.cover) {
-            console.log(`Book "${bookData.title}" has cover path: ${bookData.cover}`);
+            // console.log(`Book "${bookData.title}" has cover path: ${bookData.cover}`);
         } else {
-            console.log(`Book "${bookData.title}" has no cover path`);
+            // console.log(`Book "${bookData.title}" has no cover path`);
         }
         
         const bookCard = new BookCard(bookData);
         container.appendChild(bookCard.createCard());
     });
-    console.log(`Successfully rendered ${books.length} book cards`);
+    // console.log(`Successfully rendered ${books.length} book cards`);
     
     // Add image loading error event listeners
     document.querySelectorAll('.book-cover-img').forEach(img => {
         img.addEventListener('error', function() {
-            console.log(`Image failed to load: ${this.src}`);
+            // console.log(`Image failed to load: ${this.src}`);
             this.src = 'sample-image.avif';
         });
     });
@@ -946,7 +953,7 @@ function updatePassword() {
     passwordForm.classList.add('was-validated');
     
     if (!validateForm(passwordForm)) {
-        console.log('Password form validation failed');
+        // console.log('Password form validation failed');
         return;
     }
     
@@ -1088,7 +1095,7 @@ function handleAdminUserActions(e) {
     // Edit user
     if (e.target.matches('.btn-edit-user')) {
         const userId = e.target.dataset.userId;
-        console.log(`Edit user clicked for user ID: ${userId}`);
+        // console.log(`Edit user clicked for user ID: ${userId}`);
         // Navigate to user detail page
         window.location.href = `admin_user_detail.php?id=${userId}`;
     }
@@ -1110,7 +1117,7 @@ function handleAdminUserActions(e) {
  * Load users list
  */
 function loadUsers(search = '', status = '') {
-    console.log(`Loading users with search: "${search}", status: "${status}"`);
+    // console.log(`Loading users with search: "${search}", status: "${status}"`);
     const usersTable = document.getElementById('users-table');
     if (!usersTable) return;
     
@@ -1129,12 +1136,12 @@ function loadUsers(search = '', status = '') {
             if (data.status === 'success') {
                 renderUsersTable(data.data);
             } else {
-                console.error('Error loading users:', data.message);
+                // console.error('Error loading users:', data.message);
                 tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">${data.message}</td></tr>`;
             }
         })
         .catch(error => {
-            console.error('Error loading users:', error);
+            // console.error('Error loading users:', error);
             tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error loading users. Please try again.</td></tr>';
         });
 }
@@ -1191,7 +1198,7 @@ function renderUsersTable(users) {
  * Update user status
  */
 function updateUserStatus(userId, newStatus) {
-    console.log(`Updating user ${userId} status to ${newStatus}`);
+    // console.log(`Updating user ${userId} status to ${newStatus}`);
     
     const formData = new FormData();
     formData.append('action', 'update_user_status');
@@ -1226,7 +1233,7 @@ function loadAnalytics() {
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                console.log('Analytics data received:', data.data);
+                // console.log('Analytics data received:', data.data);
                 
                 // Update user analytics
                 document.getElementById('total-users').textContent = data.data.users.total;
@@ -1250,11 +1257,11 @@ function loadAnalytics() {
                 
                 loadChartData();
             } else {
-                console.error('Error loading analytics:', data.message);
+                // console.error('Error loading analytics:', data.message);
             }
         })
         .catch(error => {
-            console.error('Error loading analytics:', error);
+            // console.error('Error loading analytics:', error);
         });
 }
 
@@ -1276,32 +1283,32 @@ function loadChartData() {
                     try {
                         drawPieChart('book-status-chart', data.data.bookStatus, 'Book Status');
                     } catch (err) {
-                        console.error('Error drawing book status chart:', err);
+                        // console.error('Error drawing book status chart:', err);
                     }
                     
                     try {
                         drawPieChart('genre-distribution-chart', data.data.genreDistribution, 'Genre Distribution');
                     } catch (err) {
-                        console.error('Error drawing genre distribution chart:', err);
+                        // console.error('Error drawing genre distribution chart:', err);
                     }
                     
                     try {
                         drawBarChart('popular-books-chart', data.data.popularBooks, 'Borrow Count');
                     } catch (err) {
-                        console.error('Error drawing popular books chart:', err);
+                        // console.error('Error drawing popular books chart:', err);
                     }
                     
                     try {
                         drawPieChart('user-activity-chart', data.data.userActivity, 'User Count');
                     } catch (err) {
-                        console.error('Error drawing user activity chart:', err);
+                        // console.error('Error drawing user activity chart:', err);
                     }
                 } else {
-                    console.error('Error loading chart data:', data.message);
+                    // console.error('Error loading chart data:', data.message);
                 }
             })
             .catch(error => {
-                console.error('Error loading chart data:', error);
+                // console.error('Error loading chart data:', error);
             });
     }, 200); // Small delay before attempting to draw charts
 }
@@ -1315,13 +1322,13 @@ function loadChartData() {
 function drawPieChart(canvasId, data, labelText) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) {
-        console.error(`Canvas element with ID "${canvasId}" not found`);
+        // console.error(`Canvas element with ID "${canvasId}" not found`);
         return;
     }
     
     const ctx = canvas.getContext('2d');
     if (!ctx) {
-        console.error(`Could not get 2D context for canvas: ${canvasId}`);
+        // console.error(`Could not get 2D context for canvas: ${canvasId}`);
         return;
     }
     
@@ -1435,13 +1442,13 @@ function drawPieChart(canvasId, data, labelText) {
 function drawBarChart(canvasId, data, yAxisLabel) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) {
-        console.error(`Canvas element with ID "${canvasId}" not found`);
+        // console.error(`Canvas element with ID "${canvasId}" not found`);
         return;
     }
     
     const ctx = canvas.getContext('2d');
     if (!ctx) {
-        console.error(`Could not get 2D context for canvas: ${canvasId}`);
+        // console.error(`Could not get 2D context for canvas: ${canvasId}`);
         return;
     }
     
@@ -1579,7 +1586,7 @@ function debounce(func, wait) {
  * Load books list for admin panel
  */
 function loadBooks(search = '', sortField = 'title', sortOrder = 'asc') {
-    console.log(`Loading books with search: "${search}", sort: "${sortField}", order: "${sortOrder}"`);
+    // console.log(`Loading books with search: "${search}", sort: "${sortField}", order: "${sortOrder}"`);
     const booksTable = document.getElementById('books-table');
     if (!booksTable) return;
     
@@ -1599,12 +1606,12 @@ function loadBooks(search = '', sortField = 'title', sortOrder = 'asc') {
             if (data.status === 'success') {
                 renderBooksTable(data.data);
             } else {
-                console.error('Error loading books:', data.message);
+                // console.error('Error loading books:', data.message);
                 tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">${data.message}</td></tr>`;
             }
         })
         .catch(error => {
-            console.error('Error loading books:', error);
+            // console.error('Error loading books:', error);
             tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error loading books. Please try again.</td></tr>';
         });
 }
@@ -1680,7 +1687,7 @@ function handleAdminBookActions(e) {
     // Edit book
     if (e.target.matches('.btn-edit-book')) {
         const bookId = e.target.dataset.bookId;
-        console.log(`Edit book clicked for book ID: ${bookId}`);
+        // console.log(`Edit book clicked for book ID: ${bookId}`);
         // Navigate to book edit page
         window.location.href = `edit_book.php?id=${bookId}`;
     }
@@ -1688,7 +1695,7 @@ function handleAdminBookActions(e) {
     // Delete book
     if (e.target.matches('.btn-delete-book')) {
         const bookId = e.target.dataset.bookId;
-        console.log(`Delete book clicked for book ID: ${bookId}`);
+        // console.log(`Delete book clicked for book ID: ${bookId}`);
         
         if (confirm(`Are you sure you want to delete this book? This action cannot be undone.`)) {
             deleteBook(bookId);
@@ -1700,7 +1707,7 @@ function handleAdminBookActions(e) {
  * Delete a book
  */
 function deleteBook(bookId) {
-    console.log(`Deleting book with ID: ${bookId}`);
+    // console.log(`Deleting book with ID: ${bookId}`);
     
     const formData = new FormData();
     formData.append('action', 'delete_book');
@@ -1721,7 +1728,7 @@ function deleteBook(bookId) {
         }
     })
     .catch(error => {
-        console.error('Error deleting book:', error);
+        // console.error('Error deleting book:', error);
         showFormMessage('Error deleting book. Please try again later.', 'error');
     });
 }
@@ -1784,7 +1791,7 @@ function updateAdminUser() {
         }
     })
     .catch(error => {
-        console.error('Error updating user:', error);
+        // console.error('Error updating user:', error);
         showFormMessage('An error occurred while updating the user profile', 'error');
     });
 }
@@ -1812,7 +1819,7 @@ function updateBook() {
     
     // Create form data
     const formData = new FormData();
-    formData.append('action', 'update_book');
+    formData.append('action', 'update');
     formData.append('book_id', bookId);
     formData.append('title', title);
     formData.append('author', author);
@@ -1830,7 +1837,7 @@ function updateBook() {
     }
     
     // Send the request
-    fetch('api_admin.php', {
+    fetch('api_books.php', {
         method: 'POST',
         body: formData
     })
@@ -1838,12 +1845,22 @@ function updateBook() {
     .then(data => {
         if (data.status === 'success') {
             showFormMessage('Book updated successfully', 'success');
+            
+            // Wait 2 seconds then redirect the user based on the back link
+            setTimeout(() => {
+                const backLink = document.querySelector('.form-header a.btn-secondary');
+                if (backLink) {
+                    window.location.href = backLink.getAttribute('href');
+                } else {
+                    window.location.href = 'profile.php';
+                }
+            }, 2000);
         } else {
             showFormMessage(data.message, 'error');
         }
     })
     .catch(error => {
-        console.error('Error updating book:', error);
+        // console.error('Error updating book:', error);
         showFormMessage('An error occurred while updating the book', 'error');
     });
 }
@@ -1889,12 +1906,12 @@ function exportAdminData() {
                     showFormMessage('No data available to export for the selected type.', 'info');
                 }
             } else {
-                console.error('Error exporting data:', data.message);
+                // console.error('Error exporting data:', data.message);
                 showFormMessage(`Error: ${data.message}`, 'error');
             }
         })
         .catch(error => {
-            console.error('Network error during export:', error);
+            // console.error('Network error during export:', error);
             showFormMessage('Network error during export. Please try again.', 'error');
         });
 }

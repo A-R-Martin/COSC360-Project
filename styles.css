@@ -254,6 +254,55 @@ footer {}
     border-color: var(--accent-color);
 }
 
+/* Update the admin search inputs and select dropdowns to match catalog page */
+.admin-section .search-input,
+.admin-section #user-status-select,
+.admin-section #export-type {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--light-gray);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    transition: var(--transition-default);
+    background-color: var(--white);
+}
+
+.admin-section .search-input {
+    min-width: 250px;
+}
+
+.admin-section .search-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background-color: var(--light-gray);
+}
+
+.admin-section #user-status-select,
+.admin-section #export-type {
+    min-width: 150px;
+    cursor: pointer;
+    font-weight: 500;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 1em;
+    padding-right: 2.5rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.admin-section #user-status-select:hover,
+.admin-section #export-type:hover {
+    border-color: var(--dark-gray);
+}
+
+.admin-section #user-status-select:focus,
+.admin-section #export-type:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
+}
+
 .admin-section {
     background-color: var(--white);
     border-radius: var(--border-radius-lg);
@@ -536,6 +585,7 @@ textarea:focus {
     display: flex;
     flex-direction: column;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    min-height: 420px;
     height: 100%;
     width: 100%;
     max-width: 100%;
@@ -594,18 +644,19 @@ textarea:focus {
 }
 
 .book-card-content {
-    padding: 1rem;
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
     flex: 1;
     position: relative;
     justify-content: space-between;
+    gap: 1rem;
 }
 
 .book-card-top {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.8rem;
 }
 
 .book-card-bottom {
@@ -617,13 +668,14 @@ textarea:focus {
 .book-title {
     font-size: 1.15rem;
     font-weight: 600;
-    margin: 0;
+    margin: 0 0 0.5rem 0;
     color: var(--primary-color);
-    height: 2.8rem;
+    min-height: 3.8rem;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    line-height: 1.5;
 }
 
 .book-author {
@@ -900,10 +952,10 @@ textarea:focus {
 }
 
 .filter-btn {
-    background-color: var(--light-gray);
+    background-color: #f5f6fa;
     color: var(--primary-color);
     padding: 0.75rem var(--spacing-lg);
-    border: 2px solid var(--primary-color);
+    border: none;
     border-radius: var(--border-radius);
     cursor: pointer;
     text-decoration: none;
@@ -915,13 +967,14 @@ textarea:focus {
 }
 
 .filter-btn:hover {
-    background-color: var(--primary-color);
-    color: var(--white);
+    background-color: #e1e4e8;
+    color: var(--primary-color);
 }
 
 .filter-btn.active {
     background-color: var(--primary-color);
     color: var(--white);
+    border-color: var(--primary-color);
 }
 
 .catalog-grid {
@@ -1032,6 +1085,11 @@ textarea:focus {
     font-size: 2rem;
 }
 
+.book-detail-header .btn-primary {
+    margin-bottom: 10px;
+    display: inline-block;
+}
+
 .book-detail-content {
     display: grid;
     grid-template-columns: 300px 1fr;
@@ -1096,8 +1154,14 @@ textarea:focus {
 
 .borrowed-info,
 .reserved-info {
-    margin-top: var(--spacing-sm);
-    color: var(--dark-gray);
+    font-size: 0.85rem;
+    color: #666;
+    font-style: italic;
+    margin-top: 5px;
+    padding: 5px 10px;
+    background-color: #f8f9fa;
+    border-left: 3px solid #6c757d;
+    border-radius: 0 3px 3px 0;
 }
 
 .login-prompt {
@@ -1130,7 +1194,7 @@ textarea:focus {
 .book-card-top {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: 0.8rem;
 }
 
 /* Make sure bottom elements align properly */
@@ -1278,6 +1342,18 @@ input[type="number"]#rating {
     color: #155724;
     background-color: #d4edda;
     border-color: #c3e6cb;
+    display: block !important;
+}
+
+/* Book action success message specific styling */
+.book-action-success {
+    width: 100%;
+    max-width: 1000px;
+    margin: 1.5rem auto 1.5rem auto;
+    padding: 1rem 1.25rem;
+    box-shadow: none;
+    text-align: center;
+    font-weight: 500;
 }
 
 .alert-info {
@@ -1450,16 +1526,24 @@ input[type="number"]#rating {
 }
 
 /* Button styles for book management */
-.btn-edit-book {
-    background-color: #e6f2ff;
-    color: #0066cc;
-    font-size: 0.9rem;
+.btn-edit-book, 
+.btn-delete-book, 
+.return-book {
+    font-size: 0.85rem;
     padding: 0.4rem 0.8rem;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     margin: 0.25rem;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    text-align: center;
+    display: inline-block;
+}
+
+.btn-edit-book {
+    background-color: #e6f2ff;
+    color: #0066cc;
 }
 
 .btn-edit-book:hover {
@@ -1469,16 +1553,18 @@ input[type="number"]#rating {
 .btn-delete-book {
     background-color: #fbeaea;
     color: #a53636;
-    font-size: 0.9rem;
-    padding: 0.4rem 0.8rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin: 0.25rem;
-    transition: background-color 0.2s ease;
 }
 
 .btn-delete-book:hover {
+    background-color: #f8d7d7;
+}
+
+.return-book {
+    background-color: #fbeaea;
+    color: #a53636;
+}
+
+.return-book:hover {
     background-color: #f8d7d7;
 }
 
@@ -1832,4 +1918,71 @@ input[type="number"]#rating {
 .canvas-container canvas {
     max-width: 100%;
     max-height: 100%;
+}
+
+/* Book Detail Action Buttons */
+.btn-borrow, 
+.btn-return, 
+.btn-reserve, 
+.btn-cancel {
+    margin-top: 1rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    cursor: pointer;
+    min-width: 150px;
+    text-align: center;
+    border: none;
+    transition: var(--transition-default);
+}
+
+.btn-borrow {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+.btn-borrow:hover {
+    background-color: #333333;
+    opacity: 0.9;
+}
+
+.btn-return, .btn-cancel {
+    background-color: var(--error-color);
+    color: var(--white);
+}
+
+.btn-return:hover, .btn-cancel:hover {
+    opacity: 0.9;
+}
+
+.btn-reserve {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+.btn-reserve:hover {
+    background-color: #333333;
+    opacity: 0.9;
+}
+
+/* Prevent color change on hover for return button */
+.return-book:hover {
+    opacity: 0.9;
+    background-color: var(--error-color);
+}
+
+/* Prevent color change on hover for destructive buttons */
+.return-book:hover,
+#remove-profile-image:hover {
+    opacity: 0.9;
+    background-color: var(--error-color);
+}
+
+.return-book {
+    background-color: #fbeaea;
+    color: #a53636;
+}
+
+.return-book:hover {
+    background-color: #f8d7d7;
 }
