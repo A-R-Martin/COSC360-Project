@@ -903,10 +903,10 @@ textarea:focus {
 }
 
 .filter-btn {
-    background-color: var(--light-gray);
+    background-color: #f5f6fa;
     color: var(--primary-color);
     padding: 0.75rem var(--spacing-lg);
-    border: 2px solid var(--primary-color);
+    border: none;
     border-radius: var(--border-radius);
     cursor: pointer;
     text-decoration: none;
@@ -918,13 +918,14 @@ textarea:focus {
 }
 
 .filter-btn:hover {
-    background-color: var(--primary-color);
-    color: var(--white);
+    background-color: #e1e4e8;
+    color: var(--primary-color);
 }
 
 .filter-btn.active {
     background-color: var(--primary-color);
     color: var(--white);
+    border-color: var(--primary-color);
 }
 
 .catalog-grid {
