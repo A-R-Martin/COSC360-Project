@@ -1085,6 +1085,11 @@ textarea:focus {
     font-size: 2rem;
 }
 
+.book-detail-header .btn-primary {
+    margin-bottom: 10px;
+    display: inline-block;
+}
+
 .book-detail-content {
     display: grid;
     grid-template-columns: 300px 1fr;

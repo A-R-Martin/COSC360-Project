@@ -68,7 +68,7 @@ include 'includes/header.php';
     <?php elseif ($book): ?>
         <div class="book-detail">
             <div class="book-detail-header">
-                <a href="<?php echo $is_logged_in ? 'member-catalog.php' : 'catalog.php'; ?>" class="back-link">
+                <a href="catalog.php" class="btn btn-primary">
                     &larr; Back to Catalog
                 </a>
                 <h1><?php echo htmlspecialchars($book['title']); ?></h1>
