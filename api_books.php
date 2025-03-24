@@ -196,8 +196,19 @@ if ($method === 'GET') {
 
 // Handle POST requests (for borrowing, reserving, etc.)
 else if ($method === 'POST') {
-    // Check if user is logged in
-    if (!isset($_SESSION['user_id'])) {
+    // Get JSON data from request body
+    $json = file_get_contents('php://input');
+    $data = json_decode($json, true);
+    
+    // If JSON parsing failed or no data, check for form data
+    if (json_last_error() !== JSON_ERROR_NONE || empty($data)) {
+        $data = $_POST;
+    }
+    
+    // Check if user is logged in for most actions (except test)
+    $action = $data['action'] ?? '';
+    
+    if ($action !== 'test' && !isset($_SESSION['user_id'])) {
         $response = [
             'status' => 'error',
             'message' => 'You must be logged in to perform this action',
@@ -207,42 +218,14 @@ else if ($method === 'POST') {
         exit;
     }
     
-    // Get JSON data from request body
-    $json = file_get_contents('php://input');
-    if (empty($json)) {
-        $response = [
-            'status' => 'error',
-            'message' => 'No data received. Empty request body.',
-            'data' => null
-        ];
-        echo json_encode($response);
-        exit;
-    }
-    
-    $data = json_decode($json, true);
-    
-    if (!$data) {
-        $response = [
-            'status' => 'error',
-            'message' => 'Invalid JSON data: ' . json_last_error_msg(),
-            'data' => [
-                'received_data' => $json,
-                'json_error' => json_last_error(),
-                'json_error_msg' => json_last_error_msg()
-            ]
-        ];
-        echo json_encode($response);
-        exit;
-    }
-    
-    $action = isset($data['action']) ? $data['action'] : '';
+    $user_id = $_SESSION['user_id'] ?? null;
     $book_id = isset($data['book_id']) ? (int)$data['book_id'] : 0;
-    $user_id = $_SESSION['user_id'];
     
     // Log the action for debugging
     error_log("API action: $action, user_id: $user_id, data: " . json_encode($data));
     
-    if ($action !== 'add' && $action !== 'test' && !$book_id) {
+    // Check book_id for actions that require it
+    if ($action !== 'add' && $action !== 'test' && $action !== 'update' && !$book_id) {
         $response = [
             'status' => 'error',
             'message' => 'Book ID is required',
@@ -619,6 +602,108 @@ else if ($method === 'POST') {
                         'message' => 'Error deleting book: ' . $e->getMessage(),
                         'data' => null
                     ];
+                }
+                break;
+                
+            case 'update':
+                // Validate required fields
+                $requiredFields = ['book_id', 'title', 'author'];
+                foreach ($requiredFields as $field) {
+                    if (empty($data[$field])) {
+                        $response['message'] = "Missing required field: $field";
+                        echo json_encode($response);
+                        exit;
+                    }
+                }
+                
+                $bookId = (int)$data['book_id'];
+                
+                // Check if the book exists and the user has permission to edit it
+                try {
+                    $stmt = $conn->prepare("SELECT owner_id FROM books WHERE book_id = :book_id");
+                    $stmt->execute(['book_id' => $bookId]);
+                    $book = $stmt->fetch(PDO::FETCH_ASSOC);
+                    
+                    if (!$book) {
+                        $response['message'] = 'Book not found';
+                        echo json_encode($response);
+                        exit;
+                    }
+                    
+                    // Check if user owns the book or is an admin
+                    $isAdmin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+                    $isOwner = $book['owner_id'] == $_SESSION['user_id'];
+                    
+                    if (!$isAdmin && !$isOwner) {
+                        $response['message'] = 'You do not have permission to update this book';
+                        echo json_encode($response);
+                        exit;
+                    }
+                    
+                    // Handle file upload if present
+                    $coverImagePath = null;
+                    if (isset($_FILES['cover_image']) && $_FILES['cover_image']['error'] === UPLOAD_ERR_OK) {
+                        $uploadDir = 'uploads/covers/';
+                        if (!file_exists($uploadDir)) {
+                            mkdir($uploadDir, 0777, true);
+                        }
+                        
+                        $fileName = time() . '_' . $_FILES['cover_image']['name'];
+                        $targetPath = $uploadDir . $fileName;
+                        
+                        if (move_uploaded_file($_FILES['cover_image']['tmp_name'], $targetPath)) {
+                            $coverImagePath = $targetPath;
+                        } else {
+                            $response['message'] = 'Failed to upload cover image';
+                            echo json_encode($response);
+                            exit;
+                        }
+                    }
+                    
+                    // Update book in database
+                    $sql = "UPDATE books SET 
+                            title = :title, 
+                            author = :author, 
+                            isbn = :isbn, 
+                            description = :description, 
+                            year_published = :year_published, 
+                            genre = :genre, 
+                            rating = :rating, 
+                            status = :status";
+                    
+                    // Add cover image to update if it was uploaded
+                    if ($coverImagePath) {
+                        $sql .= ", cover_image = :cover_image";
+                    }
+                    
+                    $sql .= " WHERE book_id = :book_id";
+                    
+                    $stmt = $conn->prepare($sql);
+                    
+                    $params = [
+                        'title' => $data['title'],
+                        'author' => $data['author'],
+                        'isbn' => $data['isbn'] ?? null,
+                        'description' => $data['description'] ?? null,
+                        'year_published' => !empty($data['year_published']) ? (int)$data['year_published'] : null,
+                        'genre' => $data['genre'] ?? null,
+                        'rating' => !empty($data['rating']) ? (float)$data['rating'] : null,
+                        'status' => $data['status'] ?? 'available',
+                        'book_id' => $bookId
+                    ];
+                    
+                    if ($coverImagePath) {
+                        $params['cover_image'] = $coverImagePath;
+                    }
+                    
+                    $stmt->execute($params);
+                    
+                    $response['status'] = 'success';
+                    $response['message'] = 'Book updated successfully';
+                    $response['data'] = ['book_id' => $bookId];
+                    
+                } catch (PDOException $e) {
+                    $response['message'] = 'Database error: ' . $e->getMessage();
                 }
                 break;
                 

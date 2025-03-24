@@ -7,10 +7,12 @@ ini_set('display_errors', 1);
 require_once 'db_connect.php';
 
 // Small debug element for development
+/*
 echo "<div style='background:#f8f8f8; border:1px solid #ccc; padding:5px; margin-bottom:10px; font-size:11px; font-family:monospace;'>";
 echo "DB: " . ($conn ? "Connected" : "Failed") . " | ";
 echo "POST: " . (empty($_POST) ? "No" : "Yes");
 echo "</div>";
+*/
 
 // Check if user is already logged in
 if (isset($_SESSION['user_id'])) {
@@ -42,9 +44,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if (isset($user['status']) && $user['status'] === 'banned') {
                 $error_message = "Your account has been banned. Please contact the administrator.";
             } else {
+                /* 
                 echo "<div style='background:#e8f5e9; border:1px solid #2e7d32; padding:10px; margin:10px 0; font-family:monospace;'>";
                 echo "<strong>Login Successful!</strong> User ID: " . $user['user_id'] . " | Username: " . $user['username'];
                 echo "</div>";
+                */
                 
                 // Password is correct, set session variables
                 $_SESSION['user_id'] = $user['user_id'];

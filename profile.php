@@ -298,7 +298,7 @@ if (isset($user['status']) && $user['status'] === 'banned') {
                                         <td class="${statusClass}">${statusText}</td>
                                         <td>${book.borrower_name || '-'}</td>
                                         <td>
-                                            <button class="btn-secondary edit-book" data-book-id="${book.book_id}">Edit</button>
+                                            <button class="btn-edit-book" data-book-id="${book.book_id}">Edit</button>
                                             <button class="btn-danger delete-book" data-book-id="${book.book_id}">Delete</button>
                                         </td>
                                     `;
@@ -307,6 +307,7 @@ if (isset($user['status']) && $user['status'] === 'banned') {
                                 });
                                 
                                 // Add event listeners for action buttons
+                                /* Edit button is now handled by global event handler in scripts.js
                                 const editButtons = document.querySelectorAll('.edit-book');
                                 editButtons.forEach(button => {
                                     button.addEventListener('click', function() {
@@ -314,6 +315,7 @@ if (isset($user['status']) && $user['status'] === 'banned') {
                                         window.location.href = `edit_book.php?id=${bookId}`;
                                     });
                                 });
+                                */
                                 
                                 const deleteButtons = document.querySelectorAll('.delete-book');
                                 deleteButtons.forEach(button => {

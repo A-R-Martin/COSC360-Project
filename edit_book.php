@@ -1,8 +1,8 @@
 <?php
 session_start();
-// Check if user is logged in and is an admin
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    // Redirect to login page if not logged in or not admin
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    // Redirect to login page if not logged in
     header("Location: signin.php");
     exit();
 }
@@ -14,7 +14,7 @@ $book_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 // Redirect if no book ID provided
 if (!$book_id) {
-    header('Location: admin.php');
+    header('Location: index.php');
     exit;
 }
 
@@ -27,7 +27,17 @@ try {
     
     if (!$book) {
         // Book not found
-        header('Location: admin.php');
+        header('Location: index.php');
+        exit;
+    }
+    
+    // Check if user is an admin or the owner of the book
+    $isAdmin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+    $isOwner = $book['owner_id'] == $_SESSION['user_id'];
+    
+    if (!$isAdmin && !$isOwner) {
+        // Not authorized to edit this book
+        header('Location: index.php');
         exit;
     }
     
@@ -42,9 +52,9 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Edit book details in the Virtual Library admin system">
-    <meta name="keywords" content="edit book, admin, book management, library admin">
-    <title>Edit Book - Admin - Virtual Library</title>
+    <meta name="description" content="Edit book details in the Virtual Library">
+    <meta name="keywords" content="edit book, book management, library">
+    <title>Edit Book - Virtual Library</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -54,7 +64,11 @@ try {
         <div class="form-container">
             <div class="form-header">
                 <h1>Edit Book</h1>
-                <a href="admin.php" class="btn-secondary">Back to Admin Dashboard</a>
+                <?php if ($isAdmin): ?>
+                    <a href="admin.php" class="btn-secondary">Back to Admin Dashboard</a>
+                <?php else: ?>
+                    <a href="profile.php" class="btn-secondary">Back to My Profile</a>
+                <?php endif; ?>
             </div>
             
             <div id="form-message-container" class="form-message-container"></div>

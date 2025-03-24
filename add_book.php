@@ -111,13 +111,14 @@ if (!isset($_SESSION['user_id'])) {
                 
                 <div class="form-actions">
                     <button type="button" class="btn-secondary" id="cancel-add-book">Cancel</button>
-                    <button type="submit" class="btn-primary" id="submit-add-book" onclick="console.log('FORM SUBMIT BUTTON CLICKED');">Add Book</button>
+                    <button type="submit" class="btn-primary" id="submit-add-book">Add Book</button>
                 </div>
             </form>
             
             <div id="form-response-message" class="alert" style="display: none;"></div>
             
             <!-- Debugging Tools -->
+            <!--
             <div class="debug-tools" style="margin-top: 2rem; padding: 1rem; background: #f8f8f8; border-radius: 4px;">
                 <h3>Debugging Tools</h3>
                 <p>If you're having trouble submitting the form, you can use these debugging tools:</p>
@@ -125,12 +126,14 @@ if (!isset($_SESSION['user_id'])) {
                 <button type="button" id="manual-submit-btn" class="btn-secondary" style="margin-left: 1rem">Manual API Submit</button>
                 <div id="debug-output" style="margin-top: 1rem; padding: 1rem; background: #efefef; white-space: pre-wrap; font-family: monospace;"></div>
             </div>
+            -->
         </section>
     </main>
     
     <script src="scripts.js"></script>
     <script>
         // Additional debugging script
+        /*
         document.getElementById('debug-submit-btn')?.addEventListener('click', function() {
             const debugOutput = document.getElementById('debug-output');
             
@@ -247,6 +250,7 @@ if (!isset($_SESSION['user_id'])) {
                 console.error('Manual submission error:', error);
             }
         });
+        */
     </script>
 </body>
 </html> 
