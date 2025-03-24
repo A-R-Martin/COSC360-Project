@@ -416,7 +416,59 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = `edit_book.php?id=${bookId}`;
         }
     });
+
+    // Load comments when on book detail page
+    const commentsContainer = document.getElementById('comments-container');
+    if (commentsContainer) {
+        const bookId = commentsContainer.dataset.bookId;
+        loadComments(bookId);
+
+        const commentForm = document.getElementById('comment-form');
+        if (commentForm) {
+            commentForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const commentText = document.getElementById('comment-text').value;
+                submitComment(bookId, commentText);
+            });
+        }
+    }
 });
+
+async function loadComments(bookId) {
+    try {
+        const response = await fetch(`api_book_comments.php?book_id=${bookId}`);
+        const data = await response.json();
+        const commentsContainer = document.getElementById('comments-container');
+        // Assuming data.comments is an array of comment objects
+        commentsContainer.innerHTML = data.data.map(comment =>
+            `<div class="comment">
+                <p>${comment.comment}</p>
+                <small>by ${comment.username}</small>
+            </div>`
+        ).join('');
+    } catch (error) {
+        console.error('Error loading comments:', error);
+    }
+}
+
+async function submitComment(bookId, commentText) {
+    try {
+      const response = await fetch('api_book_comments.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'add_comment', book_id: bookId, comment: commentText })
+      });
+      const result = await response.json();
+      if (result.status === 'success') {
+        // Reload comments to reflect the new addition
+        loadComments(bookId);
+      } else {
+        console.error('Error submitting comment:', result.message);
+      }
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+    }
+  }
 
 function checkPasswordRequirements(input) {
     const requirements = {
