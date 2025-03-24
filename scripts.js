@@ -42,31 +42,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Handle form submission
         form.addEventListener('submit', (event) => {
+            if (form.hasAttribute('data-custom-submit')) {
+                // console.log(`Skipping generic handler for form ${form.id} - has custom handler`);
+                return;
+            }
+            
             event.preventDefault();
+            // console.log('Generic form submit handler triggered for form:', form.id);
             form.classList.remove('was-validated', 'form-valid');
             form.classList.add('was-validated');
             
-            if (validateForm(form)) {
+            const isValid = validateForm(form);
+            // console.log(`Form ${form.id} validation result:`, isValid);
+            
+            if (isValid) {
                 form.classList.add('form-valid');
+                // console.log(`Calling handleFormSubmit for form ${form.id}`);
                 handleFormSubmit(form);
+            } else {
+                // console.log(`Form ${form.id} validation failed`);
             }
         });
     });
 
-    // Profile page buttons
-    const saveProfileBtn = document.getElementById('save-profile');
-    if (saveProfileBtn) {
-        saveProfileBtn.addEventListener('click', () => {
-            console.log('Save profile button clicked');
-            // TODO: Implement save profile functionality
+    // Profile image upload
+    const profileImageInput = document.getElementById('profile-image');
+    const currentProfileImage = document.getElementById('current-profile-image');
+    
+    if (profileImageInput) {
+        profileImageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                // Show image preview
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    currentProfileImage.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+                
+                // Upload the image
+                uploadProfileImage(file);
+            }
         });
     }
 
     const removeProfileImageBtn = document.getElementById('remove-profile-image');
     if (removeProfileImageBtn) {
         removeProfileImageBtn.addEventListener('click', () => {
-            console.log('Remove profile image button clicked');
-            // TODO: Implement profile image removal
+            // console.log('Remove profile image button clicked');
+            removeProfileImage();
         });
     }
 
@@ -74,46 +98,242 @@ document.addEventListener('DOMContentLoaded', () => {
     if (updateProfileBtn) {
         updateProfileBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            console.log('Update profile button clicked');
-            // TODO: Implement profile update functionality
+            // console.log('Update profile button clicked');
+            updateUserProfile();
+        });
+    }
+    
+    // Password change form handler
+    const changePasswordBtn = document.getElementById('change-password');
+    if (changePasswordBtn) {
+        changePasswordBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            // console.log('Change password button clicked');
+            updatePassword();
         });
     }
 
+    // Load user profile data when on profile page
+    if (document.querySelector('.profile-container')) {
+        loadUserProfile();
+    }
+
+    // Profile page buttons
     const addBookBtn = document.getElementById('add-book');
     if (addBookBtn) {
         addBookBtn.addEventListener('click', () => {
-            console.log('Add book button clicked');
-            // TODO: Implement add book functionality
+            // console.log('Add book button clicked');
+            window.location.href = 'add_book.php';
         });
+    }
+
+    // Add book form handlers
+    const addBookForm = document.getElementById('add-book-form');
+    const bookCoverInput = document.getElementById('book-cover');
+    const coverPreview = document.getElementById('cover-preview');
+    const cancelAddBookBtn = document.getElementById('cancel-add-book');
+    
+    // Book cover preview
+    if (bookCoverInput) {
+        bookCoverInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    coverPreview.src = e.target.result;
+                    coverPreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                coverPreview.src = '#';
+                coverPreview.style.display = 'none';
+            }
+        });
+    }
+    
+    // Cancel button
+    if (cancelAddBookBtn) {
+        cancelAddBookBtn.addEventListener('click', () => {
+            window.location.href = 'profile.php';
+        });
+    }
+    
+    // Form submission
+    if (addBookForm) {
+        // Log that the form was found
+        // console.log('Add book form found with ID:', addBookForm.id);
+        
+        addBookForm.addEventListener('submit', async (e) => {
+            // console.log('*** ADD BOOK FORM SPECIFIC HANDLER TRIGGERED ***');
+            try {
+                e.preventDefault();
+                // console.log('Add book form submitted');
+                
+                // Validate form
+                const titleInput = document.getElementById('title');
+                const authorInput = document.getElementById('author');
+                const isbnInput = document.getElementById('isbn');
+                const ratingInput = document.getElementById('rating');
+                
+                // console.log('Form elements:', {
+                //     title: titleInput?.value,
+                //     author: authorInput?.value
+                // });
+                
+                // Check required fields
+                if (!titleInput || !titleInput.value.trim()) {
+                    showFormMessage('Please enter a book title', 'error');
+                    if (titleInput) titleInput.focus();
+                    return;
+                }
+                
+                if (!authorInput || !authorInput.value.trim()) {
+                    showFormMessage('Please enter an author name', 'error');
+                    if (authorInput) authorInput.focus();
+                    return;
+                }
+                
+                // Validate ISBN if provided (must be 10 or 13 digits)
+                const isbnValue = isbnInput ? isbnInput.value.trim() : '';
+                if (isbnValue && !/^(\d{10}|\d{13})$/.test(isbnValue)) {
+                    showFormMessage('ISBN must be exactly 10 or 13 digits', 'error');
+                    isbnInput.focus();
+                    return;
+                }
+                
+                // Validate rating if provided
+                const ratingValue = ratingInput ? ratingInput.value.trim() : '';
+                if (ratingValue) {
+                    const rating = parseFloat(ratingValue);
+                    if (isNaN(rating) || rating < 0 || rating > 5) {
+                        showFormMessage('Rating must be a number between 0 and 5', 'error');
+                        ratingInput.focus();
+                        return;
+                    }
+                }
+                
+                // Create book data object
+                const bookData = {
+                    action: 'add',
+                    title: titleInput.value.trim(),
+                    author: authorInput.value.trim(),
+                    description: document.getElementById('description')?.value?.trim() || '',
+                    isbn: isbnValue,
+                    year: document.getElementById('year')?.value || '',
+                    genre: document.getElementById('genre')?.value || '',
+                    rating: ratingValue ? parseFloat(ratingValue) : null
+                };
+                
+                // console.log('Book data to submit:', bookData);
+                
+                // First, upload the book cover if provided
+                let coverPath = null;
+                const bookCoverInput = document.getElementById('book-cover');
+                const coverPreview = document.getElementById('cover-preview');
+                
+                if (bookCoverInput && bookCoverInput.files.length > 0) {
+                    const coverFormData = new FormData();
+                    coverFormData.append('book_cover', bookCoverInput.files[0]);
+                    
+                    try {
+                        // console.log('Uploading cover image...');
+                        const coverResponse = await fetch('upload_book_cover.php', {
+                            method: 'POST',
+                            body: coverFormData
+                        });
+                        
+                        const coverResult = await coverResponse.json();
+                        // console.log('Cover upload response:', coverResult);
+                        if (coverResult.status === 'success') {
+                            coverPath = coverResult.data.file_path;
+                        } else {
+                            showFormMessage('Error uploading cover: ' + coverResult.message, 'error');
+                            return;
+                        }
+                    } catch (error) {
+                        console.error('Error uploading cover:', error);
+                        showFormMessage('Error uploading cover: ' + error.message, 'error');
+                        return;
+                    }
+                }
+                
+                // Add cover path to book data if available
+                if (coverPath) {
+                    bookData.cover_image = coverPath;
+                }
+                
+                // Submit book data
+                try {
+                    showFormMessage('Adding book to library...', 'info');
+                    // console.log('Submitting book data to API:', bookData);
+                    const response = await fetch('api_books.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(bookData)
+                    });
+                    
+                    // console.log('API response status:', response.status);
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`API error (${response.status}): ${errorText}`);
+                    }
+                    
+                    const result = await response.json();
+                    // console.log('API response data:', result);
+                    
+                    if (result.status === 'success') {
+                        showFormMessage('Book added successfully!', 'success');
+                        // Reset form
+                        addBookForm.reset();
+                        if (coverPreview) coverPreview.style.display = 'none';
+                        
+                        // Redirect to profile after 2 seconds
+                        setTimeout(() => {
+                            window.location.href = 'profile.php';
+                        }, 2000);
+                    } else {
+                        showFormMessage('Error adding book: ' + result.message, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error submitting book data:', error);
+                    showFormMessage('Error adding book: ' + error.message, 'error');
+                }
+            } catch (err) {
+                console.error('Global form submission error:', err);
+                showFormMessage('An unexpected error occurred: ' + err.message, 'error');
+            }
+        });
+    } else {
+        // console.warn('Add book form not found on this page');
     }
 
     // Admin page buttons
     const exportDataBtn = document.getElementById('export-data');
     if (exportDataBtn) {
         exportDataBtn.addEventListener('click', () => {
-            console.log('Export data button clicked');
-            // TODO: Implement data export functionality
+            // console.log('Export data button clicked');
+            exportAdminData();
+            exportAdminData();
         });
     }
 
     // Book card action buttons (for catalog pages)
     document.addEventListener('click', (e) => {
         if (e.target.matches('.btn-details')) {
-            const isbn = e.target.dataset.isbn;
-            console.log(`View details clicked for book ISBN: ${isbn}`);
-            // TODO: Implement book details view
-        }
-        
-        if (e.target.matches('.btn-borrow')) {
-            const isbn = e.target.dataset.isbn;
-            console.log(`Borrow clicked for book ISBN: ${isbn}`);
-            // TODO: Implement book borrowing
-        }
-        
-        if (e.target.matches('.btn-return')) {
-            const isbn = e.target.dataset.isbn;
-            console.log(`Return clicked for book ISBN: ${isbn}`);
-            // TODO: Implement book return
+            const bookId = e.target.getAttribute('data-book-id');
+            // console.log('View details clicked for book ID:', bookId);
+            // Go to the book detail page
+            window.location.href = `book_detail.php?id=${bookId}`;
+        } else if (e.target.matches('.btn-borrow')) {
+            const bookId = e.target.getAttribute('data-book-id');
+            // console.log('Borrow clicked for book ID:', bookId);
+            // TODO: Implement borrow functionality
+        } else if (e.target.matches('.btn-reserve')) {
+            const bookId = e.target.getAttribute('data-book-id');
+            // console.log('Reserve clicked for book ID:', bookId);
+            // TODO: Implement reserve functionality
         }
     });
 
@@ -121,29 +341,134 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', (e) => {
         if (e.target.matches('.btn-edit-user')) {
             const userId = e.target.dataset.userId;
-            console.log(`Edit user clicked for user ID: ${userId}`);
-            // TODO: Implement user edit functionality
+            // console.log(`Edit user clicked for user ID: ${userId}`);
+            // Navigate to user detail page
+            window.location.href = `admin_user_detail.php?id=${userId}`;
         }
         
         if (e.target.matches('.btn-suspend-user')) {
             const userId = e.target.dataset.userId;
-            console.log(`Suspend user clicked for user ID: ${userId}`);
+            // console.log(`Suspend user clicked for user ID: ${userId}`);
             // TODO: Implement user suspension
         }
         
         if (e.target.matches('.btn-edit-book')) {
-            const isbn = e.target.dataset.isbn;
-            console.log(`Edit book clicked for ISBN: ${isbn}`);
-            // TODO: Implement book edit functionality
+            const bookId = e.target.dataset.bookId;
+            // console.log(`Edit book clicked for book ID: ${bookId}`);
+            // Navigate to book edit page
+            window.location.href = `edit_book.php?id=${bookId}`;
         }
         
         if (e.target.matches('.btn-delete-book')) {
-            const isbn = e.target.dataset.isbn;
-            console.log(`Delete book clicked for ISBN: ${isbn}`);
-            // TODO: Implement book deletion
+            const bookId = e.target.dataset.bookId;
+            // console.log(`Delete book clicked for book ID: ${bookId}`);
+            
+            if (confirm(`Are you sure you want to delete this book? This action cannot be undone.`)) {
+                deleteBook(bookId);
+            }
         }
     });
+
+    // Initialize custom form handling
+    document.querySelectorAll('[data-custom-submit="true"]').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleFormSubmit(form);
+        });
+    });
+    
+    // Initialize cover image preview
+    const coverImageInput = document.getElementById('cover_image');
+    if (coverImageInput) {
+        coverImageInput.addEventListener('change', function() {
+            previewBookCover(this);
+        });
+    }
+    
+    // Admin user form submit
+    const adminUserForm = document.getElementById('admin-user-form');
+    if (adminUserForm) {
+        adminUserForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            updateAdminUser();
+        });
+    }
+    
+    // Edit book form submit
+    const editBookForm = document.getElementById('edit-book-form');
+    if (editBookForm) {
+        editBookForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            updateBook();
+        });
+    }
+    
+    // Load admin data if on admin page
+    if (document.querySelector('.admin-container')) {
+        loadAdminData();
+        setupAdminEventListeners();
+    }
+
+    // Global event handler for book edit buttons (works in both admin and profile pages)
+    document.addEventListener('click', (e) => {
+        if (e.target.matches('.btn-edit-book')) {
+            const bookId = e.target.dataset.bookId;
+            window.location.href = `edit_book.php?id=${bookId}`;
+        }
+    });
+
+    // Load comments when on book detail page
+    const commentsContainer = document.getElementById('comments-container');
+    if (commentsContainer) {
+        const bookId = commentsContainer.dataset.bookId;
+        loadComments(bookId);
+
+        const commentForm = document.getElementById('comment-form');
+        if (commentForm) {
+            commentForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const commentText = document.getElementById('comment-text').value;
+                submitComment(bookId, commentText);
+            });
+        }
+    }
 });
+
+async function loadComments(bookId) {
+    try {
+        const response = await fetch(`api_book_comments.php?book_id=${bookId}`);
+        const data = await response.json();
+        const commentsContainer = document.getElementById('comments-container');
+        // Assuming data.comments is an array of comment objects
+        commentsContainer.innerHTML = data.data.map(comment =>
+            `<div class="comment">
+                <p>${comment.comment}</p>
+                <small>by ${comment.username}</small>
+            </div>`
+        ).join('');
+    } catch (error) {
+        console.error('Error loading comments:', error);
+    }
+}
+
+async function submitComment(bookId, commentText) {
+    try {
+      const response = await fetch('api_book_comments.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'add_comment', book_id: bookId, comment: commentText })
+      });
+      const result = await response.json();
+      if (result.status === 'success') {
+        // Reload comments to reflect the new addition
+        loadComments(bookId);
+      } else {
+        console.error('Error submitting comment:', result.message);
+      }
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+    }
+  }
 
 function checkPasswordRequirements(input) {
     const requirements = {
@@ -176,71 +501,95 @@ function checkPasswordRequirements(input) {
 }
 
 function validateField(input) {
-    input.setCustomValidity('');
+    const errorMessages = [];
     
-    // Required field validation
-    if (input.hasAttribute('required') && !input.value.trim()) {
-        input.setCustomValidity(VALIDATION_MESSAGES.required);
-        showError(input);
-        return false;
+    // Check required fields
+    if (input.required && !input.value.trim()) {
+        errorMessages.push(VALIDATION_MESSAGES.required);
     }
     
-    // Type-specific validation
-    if (input.value.trim()) {
-        switch(true) {
-            case input.type === 'email':
-                if (!VALIDATION_PATTERNS.email.test(input.value)) {
-                    input.setCustomValidity(VALIDATION_MESSAGES.email);
-                }
-                break;
-                
-            case input.id === 'password' && input.form.id === 'signup-form':
-            case input.id === 'new-password':
-                if (!VALIDATION_PATTERNS.password.test(input.value)) {
-                    input.setCustomValidity(VALIDATION_MESSAGES.password);
-                }
-                break;
-                
-            case input.id === 'confirm-password':
-                const passwordField = input.form.querySelector('#password, #new-password');
-                if (passwordField && input.value !== passwordField.value) {
-                    input.setCustomValidity(VALIDATION_MESSAGES.passwordMatch);
-                }
-                break;
-                
-            case input.id === 'username':
-                if (!VALIDATION_PATTERNS.username.test(input.value)) {
-                    input.setCustomValidity(VALIDATION_MESSAGES.username);
-                }
-                break;
-                
-            case input.type === 'file' && input.files.length > 0:
-                validateFile(input);
-                break;
+    // Email validation
+    if (input.type === 'email' && input.value.trim() && !VALIDATION_PATTERNS.email.test(input.value)) {
+        errorMessages.push(VALIDATION_MESSAGES.email);
+    }
+    
+    // Username validation
+    if (input.id === 'username' && input.value.trim() && !VALIDATION_PATTERNS.username.test(input.value)) {
+        errorMessages.push(VALIDATION_MESSAGES.username);
+    }
+    
+    // Password validation
+    if ((input.id === 'password' || input.id === 'new-password') && input.value.trim() && !VALIDATION_PATTERNS.password.test(input.value)) {
+        errorMessages.push(VALIDATION_MESSAGES.password);
+    }
+    
+    // Confirm password validation
+    if (input.id === 'confirm-password' || input.id === 'confirm-new-password') {
+        const passwordField = input.id === 'confirm-password' 
+            ? document.getElementById('password') 
+            : document.getElementById('new-password');
+        
+        if (passwordField && input.value !== passwordField.value) {
+            errorMessages.push(VALIDATION_MESSAGES.passwordMatch);
         }
     }
     
-    if (!input.validity.valid) {
-        showError(input);
+    // Add or remove validation classes based on result
+    if (errorMessages.length > 0) {
+        input.classList.add('is-invalid');
+        input.classList.remove('is-valid');
+        
+        // Create or update error messages
+        errorMessages.forEach((message) => {
+            displayError(input, message);
+        });
+        
+        return false;
+    } else if (input.value.trim()) {
+        input.classList.add('is-valid');
+        input.classList.remove('is-invalid');
+        removeError(input);
+        return true;
+    }
+    
+    return !input.required;
+}
+
+function validateFile(input) {
+    // Validate file type and size
+    if (input.files.length === 0) {
+        return true; // No file selected is valid (might be optional)
+    }
+    
+    const file = input.files[0];
+    const fileType = file.type;
+    const fileSize = file.size;
+    
+    // Check file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(fileType)) {
+        displayError(input, 'Invalid file type. Only JPG, PNG and GIF are allowed');
+        return false;
+    }
+    
+    // Check file size (max 2MB)
+    const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+    if (fileSize > maxSize) {
+        displayError(input, 'File size exceeds the limit (2MB)');
         return false;
     }
     
     return true;
 }
 
-function validateFile(input) {
-    // TODO: Implement profile pic / book picture validation
-}
-
 function validateForm(form) {
-    const isValid = Array.from(form.querySelectorAll('input, textarea, select'))
-        .every(input => validateField(input));
-        
-    if (!isValid) {
-        console.log(`Form validation failed for ${form.id}`);
-    } else {
-        console.log(`Form validation successful for ${form.id}`);
-    }
+    let isValid = true;
+    const formFields = form.querySelectorAll('input, textarea, select');
+    
+    formFields.forEach((field) => {
+        const fieldIsValid = validateField(field);
+        isValid = isValid && fieldIsValid;
+    });
     
     return isValid;
 }
@@ -248,6 +597,17 @@ function validateForm(form) {
 function removeError(input) {
     const errorMessage = input.parentNode.querySelector('.error-message');
     errorMessage?.remove();
+}
+
+function displayError(input, message) {
+    // Remove any existing error first
+    removeError(input);
+    
+    // Create and add new error message
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = message;
+    input.parentNode.appendChild(errorDiv);
 }
 
 function showError(input) {
@@ -259,35 +619,73 @@ function showError(input) {
 }
 
 function handleFormSubmit(form) {
-    console.log(`Form submission started for: ${form.id}`);
-    const formActions = {
-        'signin-form': () => {
-            console.log('Sign in form submitted successfully');
-            // TODO: Implement sign in logic
-        },
-        'signup-form': () => {
-            console.log('Sign up form submitted successfully');
-            // TODO: Implement sign up logic
-        },
-        'profile-form': () => {
-            console.log('Profile form submitted successfully');
-            // TODO: Implement profile update logic
-        }
-    };
-
-    (formActions[form.id] || (() => console.log(`Form ${form.id} submitted successfully`)))();
+    // console.log('Form is valid, submitting...');
+    
+    if (!validateForm(form)) {
+        return false;
+    }
+    
+    const formId = form.id;
+    
+    // Handle specific forms
+    if (formId === 'admin-user-form') {
+        updateAdminUser();
+        return false;
+    } else if (formId === 'edit-book-form') {
+        updateBook();
+        return false;
+    }
+    
+    // For regular forms, submit normally
+    form.submit();
+    return true;
 }
 
-// Book Card Component
+// Book Card Component - Generic version for reuse
 class BookCard {
     constructor(bookData) {
+        this.bookId = bookData.book_id;
         this.title = bookData.title;
         this.author = bookData.author;
-        this.cover = bookData.cover;
-        this.price = bookData.price;
-        this.isbn = bookData.isbn;
+        this.cover = bookData.cover || 'sample-image.avif';
         this.description = bookData.description;
-        this.rating = bookData.rating || 0;
+        this.isbn = bookData.isbn;
+        // Ensure rating is a number
+        this.rating = parseFloat(bookData.rating) || 0;
+        this.status = bookData.status || 'available';
+        
+        // Fix the cover path if needed
+        this.fixCoverPath();
+    }
+    
+    fixCoverPath() {
+        // If cover is null or undefined, set a placeholder
+        if (!this.cover) {
+            this.cover = 'sample-image.avif';
+            return;
+        }
+        
+        // Check if the path already includes http:// or https:// or is an absolute path
+        if (this.cover.startsWith('http://') || this.cover.startsWith('https://') || this.cover.startsWith('/')) {
+            return; // Path is already correct
+        }
+        
+        if (this.cover === 'null' || this.cover === 'undefined') {
+            this.cover = 'sample-image.avif';
+            return;
+        }
+        
+        // Log for debugging
+        console.log('Original cover path:', this.cover);
+        
+        if (this.cover.startsWith('./')) {
+            this.cover = this.cover.substring(2);
+        } else if (this.cover.startsWith('../')) {
+            this.cover = this.cover.substring(3);
+        }
+        
+        // Log for debugging
+        console.log('Processed cover path:', this.cover);
     }
 
     createStarRating() {
@@ -310,53 +708,73 @@ class BookCard {
     createCard() {
         const card = document.createElement('div');
         card.className = 'book-card';
+        
+        // Create shortened description (first 100 characters)
+        const shortDescription = this.description 
+            ? (this.description.length > 100 ? this.description.substring(0, 100) + '...' : this.description)
+            : 'No description available';
+        
         card.innerHTML = `
             <div class="book-card-cover">
-                <img src="${this.cover}" alt="${this.title}" loading="lazy">
+                <img src="${this.cover}" alt="${this.title}" loading="lazy" onerror="this.src='sample-image.avif'; this.onerror=null;" class="book-cover-img">
             </div>
             <div class="book-card-content">
-                <h3 class="book-title">${this.title}</h3>
-                <p class="book-author">By ${this.author}</p>
-                ${this.createStarRating()}
-                <p class="book-price">$${this.price.toFixed(2)}</p>
-                <p class="book-description">${this.description}</p>
-                <button class="btn-details" data-isbn="${this.isbn}">View Details</button>
+                <div class="book-card-top">
+                    <h3 class="book-title">${this.title}</h3>
+                    <p class="book-author">By ${this.author}</p>
+                    ${this.createStarRating()}
+                    <p class="book-description">${shortDescription}</p>
+                    <p class="book-status ${this.status}">${this.status.toUpperCase()}</p>
+                </div>
+                <div class="book-card-bottom">
+                    <button class="btn-details" data-book-id="${this.bookId}">View Details</button>
+                </div>
             </div>
         `;
 
-        // Add event listener for the details button
-        card.querySelector('.btn-details').addEventListener('click', () => {
-            this.handleViewDetails();
-        });
-
         return card;
-    }
-
-    handleViewDetails() {
-        console.log(`Viewing details for book: ${this.isbn}`);
-        console.log(`Title: ${this.title}`);
-        console.log(`Author: ${this.author}`);
-        console.log(`Price: $${this.price}`);
-        // TODO: Implement book details view
     }
 }
 
 // Helper function to render book cards in a container
 function renderBookCards(books, containerId) {
-    console.log(`Rendering ${books.length} books in container: ${containerId}`);
+    // console.log(`Rendering ${books.length} books in container: ${containerId}`);
     const container = document.getElementById(containerId);
     if (!container) {
-        console.log(`Container ${containerId} not found`);
+        // console.log(`Container ${containerId} not found`);
         return;
     }
 
     container.innerHTML = ''; // Clear existing content
     
+    if (books.length === 0) {
+        container.innerHTML = '<div class="no-results">No books found</div>';
+        return;
+    }
+    
+    // Debug book data
+    // console.log('Book data sample:', books[0]);
+    
     books.forEach(bookData => {
+        // Add image path debugging
+        if (bookData.cover) {
+            // console.log(`Book "${bookData.title}" has cover path: ${bookData.cover}`);
+        } else {
+            // console.log(`Book "${bookData.title}" has no cover path`);
+        }
+        
         const bookCard = new BookCard(bookData);
         container.appendChild(bookCard.createCard());
     });
-    console.log(`Successfully rendered ${books.length} book cards`);
+    // console.log(`Successfully rendered ${books.length} book cards`);
+    
+    // Add image loading error event listeners
+    document.querySelectorAll('.book-cover-img').forEach(img => {
+        img.addEventListener('error', function() {
+            // console.log(`Image failed to load: ${this.src}`);
+            this.src = 'sample-image.avif';
+        });
+    });
 }
 
 // Sample featured books data with ratings
@@ -431,3 +849,1190 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+/**
+ * Display form response message
+ */
+function showFormMessage(message, type = 'info') {
+    const container = document.getElementById('form-message-container');
+    if (!container) return;
+    
+    // Clear any existing messages
+    container.innerHTML = '';
+    
+    // Create new message element
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `alert alert-${type}`;
+    messageDiv.textContent = message;
+    messageDiv.style.display = 'block';
+    
+    // Add to container
+    container.appendChild(messageDiv);
+    
+    // Scroll to message
+    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    
+    // Auto-hide after 5 seconds for success messages
+    if (type === 'success') {
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 5000);
+    }
+}
+
+/**
+ * Load user profile data
+ */
+function loadUserProfile() {
+    fetch('api_user_profile.php?action=get_profile')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Populate form fields with user data
+                const user = data.data;
+                document.getElementById('username').value = user.username;
+                document.getElementById('email').value = user.email;
+                document.getElementById('bio').value = user.bio || '';
+                
+                // Set profile image
+                const profileImage = document.getElementById('current-profile-image');
+                if (user.profile_image) {
+                    profileImage.src = user.profile_image;
+                } else {
+                    // Black magic fuckery that makes a transparent gif for user profile image if no image is set, actually a really neat idea tbh
+                    profileImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                }
+            } else {
+                showFormMessage(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading user profile:', error);
+            showFormMessage('Error loading user profile. Please try again later.', 'error');
+        });
+}
+
+/**
+ * Upload profile image
+ */
+function uploadProfileImage(file) {
+    const formData = new FormData();
+    formData.append('profile_image', file);
+    
+    fetch('upload_profile_image.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showFormMessage('Profile image updated successfully', 'success');
+        } else {
+            showFormMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error uploading profile image:', error);
+        showFormMessage('Error uploading profile image. Please try again later.', 'error');
+    });
+}
+
+/**
+ * Remove profile image
+ */
+function removeProfileImage() {
+    fetch('api_user_profile.php?action=delete_profile_image', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Reset profile image to default
+            // Black magic fuckery again that makes a transparent gif for user profile image if no image is set, actually a really neat idea tbh
+            document.getElementById('current-profile-image').src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+            showFormMessage('Profile image removed successfully', 'success');
+        } else {
+            showFormMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error removing profile image:', error);
+        showFormMessage('Error removing profile image. Please try again later.', 'error');
+    });
+}
+
+/**
+ * Update user profile data
+ */
+function updateUserProfile() {
+    const username = document.getElementById('username').value;
+    const email = document.getElementById('email').value;
+    const bio = document.getElementById('bio').value;
+    
+    const formData = new FormData();
+    formData.append('action', 'update_profile');
+    formData.append('username', username);
+    formData.append('email', email);
+    formData.append('bio', bio);
+    
+    fetch('api_user_profile.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showFormMessage('Profile updated successfully', 'success');
+        } else {
+            showFormMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating user profile:', error);
+        showFormMessage('Error updating profile. Please try again later.', 'error');
+    });
+}
+
+/**
+ * Update user password
+ */
+function updatePassword() {
+    // Get password form
+    const passwordForm = document.getElementById('password-form');
+    
+    // Validate form
+    passwordForm.classList.remove('was-validated', 'form-valid');
+    passwordForm.classList.add('was-validated');
+    
+    if (!validateForm(passwordForm)) {
+        // console.log('Password form validation failed');
+        return;
+    }
+    
+    // Get password values
+    const currentPassword = document.getElementById('current-password').value;
+    const newPassword = document.getElementById('new-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+    
+    // Check if passwords match
+    if (newPassword !== confirmPassword) {
+        showFormMessage('New passwords do not match', 'error');
+        return;
+    }
+    
+    // Create form data
+    const formData = new FormData();
+    formData.append('action', 'update_password');
+    formData.append('current_password', currentPassword);
+    formData.append('new_password', newPassword);
+    formData.append('confirm_password', confirmPassword);
+    
+    // Send request to update password
+    fetch('api_user_profile.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showFormMessage('Password updated successfully', 'success');
+            // Reset form
+            passwordForm.reset();
+            passwordForm.classList.remove('was-validated', 'form-valid');
+        } else {
+            showFormMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating password:', error);
+        showFormMessage('Error updating password. Please try again later.', 'error');
+    });
+}
+
+/**
+ * Admin functionality
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    // Load admin data if on admin page
+    if (document.querySelector('.admin-container')) {
+        loadAdminData();
+        setupAdminEventListeners();
+    }
+});
+
+/**
+ * Load admin dashboard data
+ */
+function loadAdminData() {
+    // Load users data
+    loadUsers();
+    
+    // Load books data
+    loadBooks();
+    
+    // Load analytics data
+    loadAnalytics();
+}
+
+/**
+ * Set up admin page event listeners
+ */
+function setupAdminEventListeners() {
+    // User search functionality
+    const userSearchInput = document.getElementById('user-search-input');
+    if (userSearchInput) {
+        userSearchInput.addEventListener('input', debounce(() => {
+            loadUsers(userSearchInput.value);
+        }, 300));
+    }
+    
+    // User status filter
+    const userStatusSelect = document.getElementById('user-status-select');
+    if (userStatusSelect) {
+        userStatusSelect.addEventListener('change', () => {
+            loadUsers(userSearchInput ? userSearchInput.value : '', userStatusSelect.value);
+        });
+    }
+    
+    // Book search functionality
+    const bookSearchInput = document.getElementById('book-search-input');
+    if (bookSearchInput) {
+        bookSearchInput.addEventListener('input', debounce(() => {
+            loadBooks(bookSearchInput.value);
+        }, 300));
+    }
+    
+    const sortableHeaders = document.querySelectorAll('#books-table th.sortable');
+    if (sortableHeaders.length > 0) {
+        sortableHeaders.forEach(header => {
+            header.addEventListener('click', () => {
+                sortableHeaders.forEach(h => {
+                    h.classList.remove('sort-asc', 'sort-desc');
+                });
+                
+                const sortField = header.getAttribute('data-sort');
+                let sortOrder = 'asc';
+                
+                if (header.getAttribute('data-current-sort') === 'asc') {
+                    sortOrder = 'desc';
+                    header.classList.add('sort-desc');
+                } else {
+                    header.classList.add('sort-asc');
+                }
+                
+                header.setAttribute('data-current-sort', sortOrder);
+                
+                loadBooks(bookSearchInput ? bookSearchInput.value : '', sortField, sortOrder);
+            });
+        });
+    }
+    
+    // Default sort on first load (by title ascending)
+    const titleHeader = document.querySelector('#books-table th[data-sort="title"]');
+    if (titleHeader) {
+        titleHeader.classList.add('sort-asc');
+        titleHeader.setAttribute('data-current-sort', 'asc');
+    }
+    
+    // Delegate event handler for user actions
+    document.addEventListener('click', handleAdminUserActions);
+    
+    document.addEventListener('click', handleAdminBookActions);
+}
+
+/**
+ * Handle admin user action clicks
+ */
+function handleAdminUserActions(e) {
+    // Edit user
+    if (e.target.matches('.btn-edit-user')) {
+        const userId = e.target.dataset.userId;
+        // console.log(`Edit user clicked for user ID: ${userId}`);
+        // Navigate to user detail page
+        window.location.href = `admin_user_detail.php?id=${userId}`;
+    }
+    
+    // Ban/activate user
+    if (e.target.matches('.btn-suspend-user')) {
+        const userId = e.target.dataset.userId;
+        const currentStatus = e.target.dataset.status;
+        const newStatus = currentStatus === 'active' ? 'banned' : 'active';
+        const actionText = newStatus === 'active' ? 'activate' : 'ban';
+        
+        if (confirm(`Are you sure you want to ${actionText} this user?`)) {
+            updateUserStatus(userId, newStatus);
+        }
+    }
+}
+
+/**
+ * Load users list
+ */
+function loadUsers(search = '', status = '') {
+    // console.log(`Loading users with search: "${search}", status: "${status}"`);
+    const usersTable = document.getElementById('users-table');
+    if (!usersTable) return;
+    
+    const tableBody = usersTable.querySelector('tbody');
+    tableBody.innerHTML = '<tr><td colspan="5" class="text-center">Loading...</td></tr>';
+    
+    // Build query string
+    let queryParams = new URLSearchParams();
+    queryParams.append('action', 'get_users');
+    if (search) queryParams.append('search', search);
+    if (status) queryParams.append('status', status);
+    
+    fetch(`api_admin.php?${queryParams.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                renderUsersTable(data.data);
+            } else {
+                // console.error('Error loading users:', data.message);
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">${data.message}</td></tr>`;
+            }
+        })
+        .catch(error => {
+            // console.error('Error loading users:', error);
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error loading users. Please try again.</td></tr>';
+        });
+}
+
+/**
+ * Render users table with data
+ */
+function renderUsersTable(users) {
+    const tableBody = document.querySelector('#users-table tbody');
+    if (!tableBody) return;
+    
+    if (users.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No users found</td></tr>';
+        return;
+    }
+    
+    tableBody.innerHTML = '';
+    
+    users.forEach(user => {
+        // Format date
+        const joinDate = new Date(user.created_at).toLocaleDateString();
+        
+        // Make sure status has a default value if it's null or undefined
+        const status = user.status || 'active';
+        
+        // Create status badge class
+        const statusClass = status === 'active' ? 'status-active' : 'status-banned';
+        
+        // Create action button (don't allow banning own account)
+        const isCurrentUser = user.username === document.querySelector('.user-name')?.textContent?.trim();
+        const actionButton = isCurrentUser ? 
+            '' : 
+            `<button class="btn-suspend-user" data-user-id="${user.user_id}" data-status="${status}">
+                ${status === 'active' ? 'Ban' : 'Activate'}
+            </button>`;
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${user.username}${user.role === 'admin' ? ' <span class="admin-badge">Admin</span>' : ''}</td>
+            <td>${user.email}</td>
+            <td><span class="status-badge ${statusClass}">${status === 'active' ? 'Active' : 'Banned'}</span></td>
+            <td>${joinDate}</td>
+            <td class="actions">
+                <button class="btn-edit-user" data-user-id="${user.user_id}">Details</button>
+                ${actionButton}
+            </td>
+        `;
+        
+        tableBody.appendChild(row);
+    });
+}
+
+/**
+ * Update user status
+ */
+function updateUserStatus(userId, newStatus) {
+    // console.log(`Updating user ${userId} status to ${newStatus}`);
+    
+    const formData = new FormData();
+    formData.append('action', 'update_user_status');
+    formData.append('user_id', userId);
+    formData.append('status', newStatus);
+    
+    fetch('api_admin.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Reload the users table
+            loadUsers();
+            showFormMessage(`User ${newStatus === 'active' ? 'activated' : 'banned'} successfully`, 'success');
+        } else {
+            showFormMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating user status:', error);
+        showFormMessage('Error updating user status. Please try again later.', 'error');
+    });
+}
+
+/**
+ * Load analytics data for admin dashboard
+ */
+function loadAnalytics() {
+    fetch('api_admin.php?action=get_analytics')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // console.log('Analytics data received:', data.data);
+                
+                // Update user analytics
+                document.getElementById('total-users').textContent = data.data.users.total;
+                document.getElementById('active-users').textContent = data.data.users.active;
+                document.getElementById('banned-users').textContent = data.data.users.banned;
+                
+                // Update book analytics
+                document.getElementById('total-books').textContent = data.data.books.total;
+                document.getElementById('available-books').textContent = data.data.books.available;
+                document.getElementById('borrowed-books').textContent = data.data.books.borrowed;
+                document.getElementById('reserved-books').textContent = data.data.books.reserved;
+                document.getElementById('overdue-books').textContent = data.data.books.overdue;
+                
+                // Add visual indicator if there are overdue books
+                const overdueElement = document.getElementById('overdue-books');
+                if (data.data.books.overdue > 0) {
+                    overdueElement.classList.add('overdue');
+                } else {
+                    overdueElement.classList.remove('overdue');
+                }
+                
+                loadChartData();
+            } else {
+                // console.error('Error loading analytics:', data.message);
+            }
+        })
+        .catch(error => {
+            // console.error('Error loading analytics:', error);
+        });
+}
+
+/**
+ * Load chart data for admin dashboard
+ */
+function loadChartData() {
+    const chartElements = document.querySelectorAll('canvas[id$="-chart"]');
+    if (chartElements.length === 0) {
+        return;
+    }
+    
+    setTimeout(() => {
+        fetch('api_admin.php?action=get_chart_data')
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Draw each chart
+                    try {
+                        drawPieChart('book-status-chart', data.data.bookStatus, 'Book Status');
+                    } catch (err) {
+                        // console.error('Error drawing book status chart:', err);
+                    }
+                    
+                    try {
+                        drawPieChart('genre-distribution-chart', data.data.genreDistribution, 'Genre Distribution');
+                    } catch (err) {
+                        // console.error('Error drawing genre distribution chart:', err);
+                    }
+                    
+                    try {
+                        drawBarChart('popular-books-chart', data.data.popularBooks, 'Borrow Count');
+                    } catch (err) {
+                        // console.error('Error drawing popular books chart:', err);
+                    }
+                    
+                    try {
+                        drawPieChart('user-activity-chart', data.data.userActivity, 'User Count');
+                    } catch (err) {
+                        // console.error('Error drawing user activity chart:', err);
+                    }
+                } else {
+                    // console.error('Error loading chart data:', data.message);
+                }
+            })
+            .catch(error => {
+                // console.error('Error loading chart data:', error);
+            });
+    }, 200); // Small delay before attempting to draw charts
+}
+
+/**
+ * Draw a pie chart on a canvas element
+ * @param {string} canvasId - The ID of the canvas element
+ * @param {Object} data - Chart data with labels and datasets
+ * @param {string} labelText - Text for the legend labels
+ */
+function drawPieChart(canvasId, data, labelText) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        // console.error(`Canvas element with ID "${canvasId}" not found`);
+        return;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+        // console.error(`Could not get 2D context for canvas: ${canvasId}`);
+        return;
+    }
+    
+    // Set canvas dimensions explicitly
+    if (!canvas.hasAttribute('width')) {
+        canvas.width = 300;
+    }
+    if (!canvas.hasAttribute('height')) {
+        canvas.height = 200;
+    }
+    
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = Math.min(centerX, centerY) * 0.6; // Reduced radius slightly
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw pie segments
+    let startAngle = 0;
+    const total = data.datasets[0].data.reduce((sum, value) => sum + value, 0);
+    
+    if (total === 0) {
+        ctx.font = '14px Arial, sans-serif';
+        ctx.fillStyle = '#7f8c8d';
+        ctx.textAlign = 'center';
+        ctx.fillText('No data available', centerX, centerY);
+        return;
+    }
+    
+    // Draw each segment
+    data.labels.forEach((label, i) => {
+        const value = data.datasets[0].data[i];
+        if (value === 0) return; // Skip zero-value segments
+        
+        const sliceAngle = (value / total) * 2 * Math.PI;
+        
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
+        ctx.closePath();
+        
+        // Fill segment
+        ctx.fillStyle = data.datasets[0].backgroundColor[i] || '#3498db'; // Fallback color
+        ctx.fill();
+        
+        // Calculate label position
+        const midAngle = startAngle + sliceAngle / 2;
+        const labelRadius = radius * 0.7;
+        const labelX = centerX + Math.cos(midAngle) * labelRadius;
+        const labelY = centerY + Math.sin(midAngle) * labelRadius;
+        
+        if (sliceAngle > 0.2) {
+            ctx.font = 'bold 12px Arial, sans-serif';
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const percent = Math.round((value / total) * 100) + '%';
+            ctx.fillText(percent, labelX, labelY);
+        }
+        
+        startAngle += sliceAngle;
+    });
+    
+    // Draw legend
+    const legendY = canvas.height - 20;
+    const legendX = 10;
+    const legendCircleRadius = 5;
+    
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.font = '10px Arial, sans-serif';
+    
+    let currentX = legendX;
+    let currentY = legendY;
+    const lineHeight = 15;
+    
+    data.labels.forEach((label, i) => {
+        const value = data.datasets[0].data[i];
+        if (value === 0) return; // Skip zero-value legends
+        
+        const text = `${label}: ${value}`;
+        const textWidth = ctx.measureText(text).width;
+        
+        // Check if legend item would go beyond canvas width
+        if (currentX + textWidth + 30 > canvas.width) {
+            currentX = legendX;
+            currentY += lineHeight;
+        }
+        
+        // Draw legend color circle
+        ctx.beginPath();
+        ctx.arc(currentX, currentY, legendCircleRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = data.datasets[0].backgroundColor[i] || '#3498db';
+        ctx.fill();
+        
+        // Draw legend text
+        ctx.fillStyle = '#2c3e50';
+        ctx.fillText(text, currentX + 10, currentY);
+        
+        currentX += textWidth + 30;
+    });
+}
+
+/**
+ * Draw a bar chart on a canvas element
+ * @param {string} canvasId - The ID of the canvas element
+ * @param {Object} data - Chart data with labels and datasets
+ * @param {string} yAxisLabel - Text for the y-axis label
+ */
+function drawBarChart(canvasId, data, yAxisLabel) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        // console.error(`Canvas element with ID "${canvasId}" not found`);
+        return;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+        // console.error(`Could not get 2D context for canvas: ${canvasId}`);
+        return;
+    }
+    
+    // Set canvas dimensions explicitly
+    if (!canvas.hasAttribute('width')) {
+        canvas.width = 300;
+    }
+    if (!canvas.hasAttribute('height')) {
+        canvas.height = 200;
+    }
+    
+    // Chart dimensions
+    const chartWidth = canvas.width - 60;  // Leave space for y-axis
+    const chartHeight = canvas.height - 60; // Leave space for x-axis labels
+    const barSpacing = 10;
+    const chartX = 40; // X position of chart area
+    const chartY = 20; // Y position of chart area
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Check if we have data
+    if (!data.labels || !data.labels.length || !data.datasets || !data.datasets[0].data) {
+        ctx.font = '14px Arial, sans-serif';
+        ctx.fillStyle = '#7f8c8d';
+        ctx.textAlign = 'center';
+        ctx.fillText('No data available', canvas.width / 2, canvas.height / 2);
+        return;
+    }
+    
+    // Calculate max value for scaling (with a minimum of 1)
+    const maxValue = Math.max(1, ...data.datasets[0].data);
+    const barWidth = Math.max(10, (chartWidth - (data.labels.length - 1) * barSpacing) / data.labels.length);
+    
+    // Draw y-axis
+    ctx.beginPath();
+    ctx.moveTo(chartX, chartY);
+    ctx.lineTo(chartX, chartY + chartHeight);
+    ctx.strokeStyle = '#ddd';
+    ctx.stroke();
+    
+    // Draw x-axis
+    ctx.beginPath();
+    ctx.moveTo(chartX, chartY + chartHeight);
+    ctx.lineTo(chartX + chartWidth, chartY + chartHeight);
+    ctx.strokeStyle = '#ddd';
+    ctx.stroke();
+    
+    // Draw y-axis grid lines and labels
+    const gridLines = 5;
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#7f8c8d';
+    ctx.font = '10px Arial, sans-serif';
+    
+    for (let i = 0; i <= gridLines; i++) {
+        const y = chartY + chartHeight - (i * chartHeight / gridLines);
+        const value = Math.round(maxValue * i / gridLines);
+        
+        // Grid line
+        ctx.beginPath();
+        ctx.moveTo(chartX, y);
+        ctx.lineTo(chartX + chartWidth, y);
+        ctx.strokeStyle = '#eee';
+        ctx.stroke();
+        
+        // Label
+        ctx.fillText(value, chartX - 5, y);
+    }
+    
+    // Y-axis label
+    ctx.save();
+    ctx.translate(15, chartY + chartHeight / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.fillText(yAxisLabel, 0, 0);
+    ctx.restore();
+    
+    // Draw bars
+    data.labels.forEach((label, i) => {
+        const value = data.datasets[0].data[i];
+        if (value === 0) return; // Skip zero-value bars
+        
+        const barHeight = (value / maxValue) * chartHeight;
+        const x = chartX + i * (barWidth + barSpacing);
+        const y = chartY + chartHeight - barHeight;
+        
+        // Draw bar
+        ctx.fillStyle = data.datasets[0].backgroundColor || '#3498db';
+        ctx.fillRect(x, y, barWidth, barHeight);
+        
+        // Draw value on top of bar
+        if (barHeight > 15) {
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 10px Arial, sans-serif';
+            ctx.fillText(value, x + barWidth / 2, y + 10);
+        } else {
+            ctx.fillStyle = '#2c3e50';
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 10px Arial, sans-serif';
+            ctx.fillText(value, x + barWidth / 2, y - 5);
+        }
+        
+        // Draw x-axis label
+        ctx.fillStyle = '#2c3e50';
+        ctx.textAlign = 'center';
+        ctx.font = '10px Arial, sans-serif';
+        
+        // Handle long labels by truncating
+        let displayLabel = label;
+        if (ctx.measureText(label).width > barWidth * 1.2) {
+            displayLabel = label.substring(0, 8) + '...';
+        }
+        
+        ctx.fillText(displayLabel, x + barWidth / 2, chartY + chartHeight + 15);
+    });
+}
+
+/**
+ * Debounce function for search inputs
+ */
+function debounce(func, wait) {
+    let timeout;
+    return function() {
+        const context = this;
+        const args = arguments;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            func.apply(context, args);
+        }, wait);
+    };
+}
+
+/**
+ * Load books list for admin panel
+ */
+function loadBooks(search = '', sortField = 'title', sortOrder = 'asc') {
+    // console.log(`Loading books with search: "${search}", sort: "${sortField}", order: "${sortOrder}"`);
+    const booksTable = document.getElementById('books-table');
+    if (!booksTable) return;
+    
+    const tableBody = booksTable.querySelector('tbody');
+    tableBody.innerHTML = '<tr><td colspan="7" class="text-center">Loading...</td></tr>';
+    
+    // Build query string
+    let queryParams = new URLSearchParams();
+    queryParams.append('action', 'get_books');
+    if (search) queryParams.append('search', search);
+    if (sortField) queryParams.append('sort', sortField);
+    if (sortOrder) queryParams.append('sort_order', sortOrder);
+    
+    fetch(`api_admin.php?${queryParams.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                renderBooksTable(data.data);
+            } else {
+                // console.error('Error loading books:', data.message);
+                tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">${data.message}</td></tr>`;
+            }
+        })
+        .catch(error => {
+            // console.error('Error loading books:', error);
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error loading books. Please try again.</td></tr>';
+        });
+}
+
+/**
+ * Render books table with data
+ */
+function renderBooksTable(books) {
+    const tableBody = document.querySelector('#books-table tbody');
+    if (!tableBody) return;
+    
+    if (books.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No books found</td></tr>';
+        return;
+    }
+    
+    tableBody.innerHTML = '';
+    
+    books.forEach(book => {
+        // Create status badge class based on book status
+        let statusClass;
+        let statusText = book.status;
+        
+        // Check if the book is overdue
+        const isOverdue = book.status === 'borrowed' && book.is_overdue;
+        
+        if (isOverdue) {
+            statusClass = 'status-overdue';
+            statusText = 'Overdue';
+        } else {
+            switch (book.status) {
+                case 'available':
+                    statusClass = 'status-active';
+                    break;
+                case 'borrowed':
+                    statusClass = 'status-borrowed';
+                    break;
+                case 'reserved':
+                    statusClass = 'status-reserved';
+                    break;
+                default:
+                    statusClass = 'status-banned';
+            }
+        }
+        
+        // Create action buttons
+        const actionButtons = `
+            <button class="btn-edit-book" data-book-id="${book.book_id}">Edit</button>
+            <button class="btn-delete-book" data-book-id="${book.book_id}">Delete</button>
+        `;
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${book.title}</td>
+            <td>${book.author}</td>
+            <td>${book.isbn || 'N/A'}</td>
+            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+            <td>${book.borrower_name || 'N/A'}</td>
+            <td>${book.reserver_name || 'N/A'}</td>
+            <td class="actions">
+                ${actionButtons}
+            </td>
+        `;
+        
+        tableBody.appendChild(row);
+    });
+}
+
+/**
+ * Handle admin book action clicks
+ */
+function handleAdminBookActions(e) {
+    // Edit book
+    if (e.target.matches('.btn-edit-book')) {
+        const bookId = e.target.dataset.bookId;
+        // console.log(`Edit book clicked for book ID: ${bookId}`);
+        // Navigate to book edit page
+        window.location.href = `edit_book.php?id=${bookId}`;
+    }
+    
+    // Delete book
+    if (e.target.matches('.btn-delete-book')) {
+        const bookId = e.target.dataset.bookId;
+        // console.log(`Delete book clicked for book ID: ${bookId}`);
+        
+        if (confirm(`Are you sure you want to delete this book? This action cannot be undone.`)) {
+            deleteBook(bookId);
+        }
+    }
+}
+
+/**
+ * Delete a book
+ */
+function deleteBook(bookId) {
+    // console.log(`Deleting book with ID: ${bookId}`);
+    
+    const formData = new FormData();
+    formData.append('action', 'delete_book');
+    formData.append('book_id', bookId);
+    
+    fetch('api_admin.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Reload the books table
+            loadBooks();
+            showFormMessage('Book deleted successfully', 'success');
+        } else {
+            showFormMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        // console.error('Error deleting book:', error);
+        showFormMessage('Error deleting book. Please try again later.', 'error');
+    });
+}
+
+/**
+ * Export admin data
+ */
+function previewBookCover(input) {
+    const preview = document.getElementById('cover-image-preview');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+/**
+ * Update user from admin page
+ */
+function updateAdminUser() {
+    const form = document.getElementById('admin-user-form');
+    if (!form) return;
+    
+    if (!validateForm(form)) {
+        return false;
+    }
+    
+    const userId = document.getElementById('user-id').value;
+    const username = document.getElementById('username').value;
+    const email = document.getElementById('email').value;
+    const status = document.getElementById('status').value;
+    const role = document.getElementById('role').value;
+    const bio = document.getElementById('bio').value;
+    
+    // Create form data
+    const formData = new FormData();
+    formData.append('action', 'update_admin_user');
+    formData.append('user_id', userId);
+    formData.append('username', username);
+    formData.append('email', email);
+    formData.append('status', status);
+    formData.append('role', role);
+    formData.append('bio', bio);
+    
+    // Send the request
+    fetch('api_admin.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showFormMessage('User profile updated successfully', 'success');
+        } else {
+            showFormMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        // console.error('Error updating user:', error);
+        showFormMessage('An error occurred while updating the user profile', 'error');
+    });
+}
+
+/**
+ * Update book details
+ */
+function updateBook() {
+    const form = document.getElementById('edit-book-form');
+    if (!form) return;
+    
+    if (!validateForm(form)) {
+        return false;
+    }
+    
+    const bookId = document.getElementById('book-id').value;
+    const title = document.getElementById('title').value;
+    const author = document.getElementById('author').value;
+    const isbn = document.getElementById('isbn').value;
+    const description = document.getElementById('description').value;
+    const yearPublished = document.getElementById('year_published').value;
+    const genre = document.getElementById('genre').value;
+    const rating = document.getElementById('rating').value;
+    const status = document.getElementById('status').value;
+    
+    // Create form data
+    const formData = new FormData();
+    formData.append('action', 'update');
+    formData.append('book_id', bookId);
+    formData.append('title', title);
+    formData.append('author', author);
+    formData.append('isbn', isbn);
+    formData.append('description', description);
+    formData.append('year_published', yearPublished);
+    formData.append('genre', genre);
+    formData.append('rating', rating);
+    formData.append('status', status);
+    
+    // Add the cover image if provided
+    const coverImage = document.getElementById('cover_image');
+    if (coverImage && coverImage.files.length > 0) {
+        formData.append('cover_image', coverImage.files[0]);
+    }
+    
+    // Send the request
+    fetch('api_books.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showFormMessage('Book updated successfully', 'success');
+            
+            // Wait 2 seconds then redirect the user based on the back link
+            setTimeout(() => {
+                const backLink = document.querySelector('.form-header a.btn-secondary');
+                if (backLink) {
+                    window.location.href = backLink.getAttribute('href');
+                } else {
+                    window.location.href = 'profile.php';
+                }
+            }, 2000);
+        } else {
+            showFormMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        // console.error('Error updating book:', error);
+        showFormMessage('An error occurred while updating the book', 'error');
+    });
+}
+
+/**
+ * Export admin data as CSV files
+ */
+function exportAdminData() {
+    const exportType = document.getElementById('export-type').value || 'all';
+    
+    showFormMessage('Preparing export, please wait...', 'info');
+    
+    fetch(`api_admin.php?action=export_data&type=${exportType}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                let downloadCount = 0;
+                
+                // Generate and download CSV files
+                if (data.data.users && data.data.users.length > 0) {
+                    const usersCSV = convertToCSV(data.data.users);
+                    downloadCSV(usersCSV, `users_export_${timestamp}.csv`);
+                    downloadCount++;
+                }
+                
+                if (data.data.books && data.data.books.length > 0) {
+                    const booksCSV = convertToCSV(data.data.books);
+                    downloadCSV(booksCSV, `books_export_${timestamp}.csv`);
+                    downloadCount++;
+                }
+                
+                if (data.data.analytics && Object.keys(data.data.analytics).length > 0) {
+                    // Convert analytics data to CSV format
+                    const analyticsCSV = convertAnalyticsToCSV(data.data.analytics);
+                    downloadCSV(analyticsCSV, `analytics_export_${timestamp}.csv`);
+                    downloadCount++;
+                }
+                
+                if (downloadCount > 0) {
+                    showFormMessage(`Export completed successfully! ${downloadCount} file(s) downloaded.`, 'success');
+                } else {
+                    showFormMessage('No data available to export for the selected type.', 'info');
+                }
+            } else {
+                // console.error('Error exporting data:', data.message);
+                showFormMessage(`Error: ${data.message}`, 'error');
+            }
+        })
+        .catch(error => {
+            // console.error('Network error during export:', error);
+            showFormMessage('Network error during export. Please try again.', 'error');
+        });
+}
+
+/**
+ * Convert array of objects to CSV string
+ */
+function convertToCSV(data) {
+    if (!data || data.length === 0) return '';
+    
+    // Get headers from first object
+    const headers = Object.keys(data[0]);
+    
+    // Create CSV header row
+    let csv = headers.join(',') + '\n';
+    
+    // Add data rows
+    data.forEach(row => {
+        let csvRow = headers.map(header => {
+            let value = row[header] !== null ? row[header] : '';
+            if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+                value = '"' + value.replace(/"/g, '""') + '"';
+            }
+            return value;
+        }).join(',');
+        csv += csvRow + '\n';
+    });
+    
+    return csv;
+}
+
+/**
+ * Convert analytics data to CSV format
+ */
+function convertAnalyticsToCSV(analytics) {
+    let csv = 'Category,Metric,Value\n';
+    
+    // Add user statistics
+    if (analytics.users) {
+        csv += 'Users,Total,' + analytics.users.total + '\n';
+        csv += 'Users,Active,' + analytics.users.active + '\n';
+        csv += 'Users,Banned,' + analytics.users.banned + '\n';
+    }
+    
+    // Add book statistics
+    if (analytics.books) {
+        csv += 'Books,Total,' + analytics.books.total + '\n';
+        csv += 'Books,Available,' + analytics.books.available + '\n';
+        csv += 'Books,Borrowed,' + analytics.books.borrowed + '\n';
+        csv += 'Books,Reserved,' + analytics.books.reserved + '\n';
+        csv += 'Books,Overdue,' + analytics.books.overdue + '\n';
+    }
+    
+    return csv;
+}
+
+/**
+ * Download CSV data as a file
+ */
+function downloadCSV(csv, filename) {
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.display = 'none';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
