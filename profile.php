@@ -158,7 +158,7 @@ if (isset($user['status']) && $user['status'] === 'banned') {
                                 <!-- Will be populated with uploaded books from db -->
                             </tbody>
                         </table>
-                        <div class="button-container" style="margin-top: 1rem;">
+                        <div class="button-container" style="margin-top: 1rem; display: flex; justify-content: flex-end;">
                             <button class="btn-primary" id="add-book">Add New Book</button>
                         </div>
                     </div>
