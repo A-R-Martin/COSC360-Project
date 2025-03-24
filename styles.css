@@ -536,6 +536,7 @@ textarea:focus {
     display: flex;
     flex-direction: column;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    min-height: 420px;
     height: 100%;
     width: 100%;
     max-width: 100%;
@@ -594,18 +595,19 @@ textarea:focus {
 }
 
 .book-card-content {
-    padding: 1rem;
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
     flex: 1;
     position: relative;
     justify-content: space-between;
+    gap: 1rem;
 }
 
 .book-card-top {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.8rem;
 }
 
 .book-card-bottom {
@@ -617,13 +619,14 @@ textarea:focus {
 .book-title {
     font-size: 1.15rem;
     font-weight: 600;
-    margin: 0;
+    margin: 0 0 0.5rem 0;
     color: var(--primary-color);
-    height: 2.8rem;
+    min-height: 3.8rem;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    line-height: 1.5;
 }
 
 .book-author {
@@ -1130,7 +1133,7 @@ textarea:focus {
 .book-card-top {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: 0.8rem;
 }
 
 /* Make sure bottom elements align properly */
