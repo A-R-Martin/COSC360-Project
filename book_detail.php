@@ -147,11 +147,16 @@ include 'includes/header.php';
                             <div class="book-actions">
                                 <?php if ($user_book_status === 'borrowed'): ?>
                                     <button class="btn btn-return" data-book-id="<?php echo $book_id; ?>">Return Book</button>
-                                    <?php if ($user_book['borrow_date']): ?>
-                                        <p class="borrowed-info">Borrowed on: <?php echo date('M d, Y', strtotime($user_book['borrow_date'])); ?></p>
-                                    <?php endif; ?>
-                                    <?php if ($user_book['return_date']): ?>
-                                        <p class="borrowed-info">Due by: <?php echo date('M d, Y', strtotime($user_book['return_date'])); ?></p>
+                                    <?php if ($user_book['borrow_date'] || $user_book['return_date']): ?>
+                                        <p class="borrowed-info">
+                                            <?php if ($user_book['borrow_date']): ?>
+                                                Borrowed on: <?php echo date('M d, Y', strtotime($user_book['borrow_date'])); ?>
+                                            <?php endif; ?>
+                                            <?php if ($user_book['borrow_date'] && $user_book['return_date']): ?> | <?php endif; ?>
+                                            <?php if ($user_book['return_date']): ?>
+                                                Due by: <?php echo date('M d, Y', strtotime($user_book['return_date'])); ?>
+                                            <?php endif; ?>
+                                        </p>
                                     <?php endif; ?>
                                 <?php elseif ($user_book_status === 'reserved'): ?>
                                     <button class="btn btn-cancel" data-book-id="<?php echo $book_id; ?>">Cancel Reservation</button>

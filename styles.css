@@ -1099,8 +1099,14 @@ textarea:focus {
 
 .borrowed-info,
 .reserved-info {
-    margin-top: var(--spacing-sm);
-    color: var(--dark-gray);
+    font-size: 0.85rem;
+    color: #666;
+    font-style: italic;
+    margin-top: 5px;
+    padding: 5px 10px;
+    background-color: #f8f9fa;
+    border-left: 3px solid #6c757d;
+    border-radius: 0 3px 3px 0;
 }
 
 .login-prompt {
@@ -1835,4 +1841,49 @@ input[type="number"]#rating {
 .canvas-container canvas {
     max-width: 100%;
     max-height: 100%;
+}
+
+/* Book Detail Action Buttons */
+.btn-borrow, 
+.btn-return, 
+.btn-reserve, 
+.btn-cancel {
+    margin-top: 1rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    cursor: pointer;
+    min-width: 150px;
+    text-align: center;
+    border: none;
+    transition: var(--transition-default);
+}
+
+.btn-borrow {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+.btn-borrow:hover {
+    background-color: #333333;
+    opacity: 0.9;
+}
+
+.btn-return, .btn-cancel {
+    background-color: var(--error-color);
+    color: var(--white);
+}
+
+.btn-return:hover, .btn-cancel:hover {
+    opacity: 0.9;
+}
+
+.btn-reserve {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+.btn-reserve:hover {
+    background-color: #333333;
+    opacity: 0.9;
 }
