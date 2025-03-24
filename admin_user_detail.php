@@ -77,7 +77,7 @@ try {
             <div class="admin-header">
                 <h1>User Profile: <?php echo htmlspecialchars($user['username']); ?></h1>
                 <div class="admin-actions">
-                    <a href="admin.php" class="btn-secondary">Back to Admin Dashboard</a>
+                    <a href="admin.php" class="btn-primary">Back to Admin Dashboard</a>
                 </div>
             </div>
             

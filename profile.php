@@ -236,7 +236,7 @@ if (isset($user['status']) && $user['status'] === 'banned') {
                                         <td>${new Date(book.return_date).toLocaleDateString()}</td>
                                         <td class="${statusClass}">${daysRemaining <= 0 ? 'Overdue' : `${daysRemaining} days remaining`}</td>
                                         <td>
-                                            <button class="btn-secondary return-book" data-book-id="${book.book_id}">Return</button>
+                                            <button class="return-book" data-book-id="${book.book_id}">Return</button>
                                         </td>
                                     `;
                                     
@@ -299,7 +299,7 @@ if (isset($user['status']) && $user['status'] === 'banned') {
                                         <td>${book.borrower_name || '-'}</td>
                                         <td>
                                             <button class="btn-edit-book" data-book-id="${book.book_id}">Edit</button>
-                                            <button class="btn-danger delete-book" data-book-id="${book.book_id}">Delete</button>
+                                            <button class="btn-delete-book" data-book-id="${book.book_id}">Delete</button>
                                         </td>
                                     `;
                                     

@@ -65,7 +65,7 @@ try {
             <div class="form-header">
                 <h1>Edit Book</h1>
                 <?php if ($isAdmin): ?>
-                    <a href="admin.php" class="btn-secondary">Back to Admin Dashboard</a>
+                    <a href="admin.php" class="btn-primary">Back to Admin Dashboard</a>
                 <?php else: ?>
                     <a href="profile.php" class="btn-secondary">Back to My Profile</a>
                 <?php endif; ?>

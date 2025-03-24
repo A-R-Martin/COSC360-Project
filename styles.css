@@ -1460,16 +1460,24 @@ input[type="number"]#rating {
 }
 
 /* Button styles for book management */
-.btn-edit-book {
-    background-color: #e6f2ff;
-    color: #0066cc;
-    font-size: 0.9rem;
+.btn-edit-book, 
+.btn-delete-book, 
+.return-book {
+    font-size: 0.85rem;
     padding: 0.4rem 0.8rem;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     margin: 0.25rem;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    text-align: center;
+    display: inline-block;
+}
+
+.btn-edit-book {
+    background-color: #e6f2ff;
+    color: #0066cc;
 }
 
 .btn-edit-book:hover {
@@ -1479,16 +1487,18 @@ input[type="number"]#rating {
 .btn-delete-book {
     background-color: #fbeaea;
     color: #a53636;
-    font-size: 0.9rem;
-    padding: 0.4rem 0.8rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin: 0.25rem;
-    transition: background-color 0.2s ease;
 }
 
 .btn-delete-book:hover {
+    background-color: #f8d7d7;
+}
+
+.return-book {
+    background-color: #fbeaea;
+    color: #a53636;
+}
+
+.return-book:hover {
     background-color: #f8d7d7;
 }
 
@@ -1887,4 +1897,26 @@ input[type="number"]#rating {
 .btn-reserve:hover {
     background-color: #333333;
     opacity: 0.9;
+}
+
+/* Prevent color change on hover for return button */
+.return-book:hover {
+    opacity: 0.9;
+    background-color: var(--error-color);
+}
+
+/* Prevent color change on hover for destructive buttons */
+.return-book:hover,
+#remove-profile-image:hover {
+    opacity: 0.9;
+    background-color: var(--error-color);
+}
+
+.return-book {
+    background-color: #fbeaea;
+    color: #a53636;
+}
+
+.return-book:hover {
+    background-color: #f8d7d7;
 }
