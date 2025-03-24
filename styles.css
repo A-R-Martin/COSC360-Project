@@ -1342,6 +1342,18 @@ input[type="number"]#rating {
     color: #155724;
     background-color: #d4edda;
     border-color: #c3e6cb;
+    display: block !important;
+}
+
+/* Book action success message specific styling */
+.book-action-success {
+    width: 100%;
+    max-width: 1000px;
+    margin: 1.5rem auto 1.5rem auto;
+    padding: 1rem 1.25rem;
+    box-shadow: none;
+    text-align: center;
+    font-weight: 500;
 }
 
 .alert-info {

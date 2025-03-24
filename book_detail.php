@@ -268,24 +268,39 @@ include 'includes/header.php';
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'success') {
-                            responseDiv.innerHTML = `<div class="success">${data.message}</div>`;
+                            // Create a form message similar to profile updated
+                            const successBanner = document.createElement('div');
+                            successBanner.className = 'alert alert-success book-action-success';
+                            successBanner.innerHTML = data.message;
+                            successBanner.style.display = 'block';
+                            
+                            // Insert the success banner at the top of the main container, but before the book-detail div
+                            const mainContainer = document.querySelector('main.container');
+                            const bookDetail = document.querySelector('.book-detail');
+                            mainContainer.insertBefore(successBanner, bookDetail);
+                            
+                            // Hide the response div
+                            responseDiv.classList.remove('visible');
+                            
+                            // Scroll to show the banner
+                            successBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            
                             // Reload the page after 2 seconds to show updated state
                             setTimeout(() => {
                                 window.location.reload();
                             }, 2000);
                         } else {
                             responseDiv.innerHTML = `<div class="error">${data.message}</div>`;
-                        }
-                    })
-                    .catch(error => {
-                        responseDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
-                    })
-                    .finally(() => {
-                        if (!responseDiv.querySelector('.success')) {
                             setTimeout(() => {
                                 responseDiv.classList.remove('visible');
                             }, 5000);
                         }
+                    })
+                    .catch(error => {
+                        responseDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                        setTimeout(() => {
+                            responseDiv.classList.remove('visible');
+                        }, 5000);
                     });
                 }
                 
