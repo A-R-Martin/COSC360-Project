@@ -45,6 +45,29 @@ session_start();
                 </div>
             </div>
         </section>
+        
+        <!-- Hot Books Section -->
+        <section class="hot-books">
+            <div class="container">
+                <h2>Trending Now</h2>
+                
+                <!-- Most Discussed Books -->
+                <div class="hot-section">
+                    <h3>Most Discussed Books</h3>
+                    <div id="most-discussed-container" class="books-container">
+                        <div class="loading-indicator">Loading most discussed books...</div>
+                    </div>
+                </div>
+                
+                <!-- Most Borrowed Books -->
+                <div class="hot-section">
+                    <h3>Most Popular Books</h3>
+                    <div id="most-borrowed-container" class="books-container">
+                        <div class="loading-indicator">Loading most borrowed books...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
     <script src="scripts.js"></script>
     <script>
@@ -57,22 +80,21 @@ session_start();
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success' && data.data && data.data.length > 0) {
-                        const books = data.data.map(book => ({
-                            book_id: book.book_id,
-                            title: book.title,
-                            author: book.author,
-                            cover: book.cover || 'sample-image.avif',
-                            description: book.description,
-                            isbn: book.isbn,
-                            rating: parseFloat(book.rating) || 0,
-                            status: book.status
-                        }));
-                        
                         container.innerHTML = ''; // Clear loading indicator
                         
-                        // Create book cards
-                        books.forEach(book => {
-                            const card = createBookCard(book);
+                        data.data.forEach(book => {
+                            const processedBook = {
+                                book_id: book.book_id,
+                                title: book.title,
+                                author: book.author,
+                                cover: book.cover || null,
+                                description: book.description || 'No description available',
+                                isbn: book.isbn || '',
+                                rating: parseFloat(book.rating) || 0,
+                                status: book.status || 'unknown'
+                            };
+                            
+                            const card = createBookCard(processedBook);
                             container.appendChild(card);
                         });
                     } else {
@@ -83,11 +105,18 @@ session_start();
                     console.error('Error:', error);
                     container.innerHTML = '<div class="error-message">Error loading featured books. Please try again later.</div>';
                 });
+            
+            loadHotBooks();
                 
             // Function to create a book card
             function createBookCard(book) {
                 const card = document.createElement('div');
                 card.className = 'book-card';
+                
+                let coverImage = 'sample-image.avif';
+                if (book.cover && book.cover !== 'null' && book.cover !== 'undefined') {
+                    coverImage = book.cover;
+                }
                 
                 // Create star rating
                 let stars = '';
@@ -112,7 +141,7 @@ session_start();
                 
                 card.innerHTML = `
                     <div class="book-card-cover">
-                        <img src="${book.cover}" alt="${book.title}" loading="lazy">
+                        <img src="${coverImage}" alt="${book.title}" loading="lazy" onerror="this.src='sample-image.avif'; this.onerror=null;">
                     </div>
                     <div class="book-card-content">
                         <div class="book-card-top">
@@ -133,6 +162,84 @@ session_start();
                 });
                 
                 return card;
+            }
+            
+            function loadHotBooks() {
+                const discussedContainer = document.getElementById('most-discussed-container');
+                const borrowedContainer = document.getElementById('most-borrowed-container');
+                
+                // Fetch hot books
+                fetch('api_books.php?action=get_hot_books&limit=3')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Handle most discussed books
+                            if (data.data.most_commented && data.data.most_commented.length > 0) {
+                                discussedContainer.innerHTML = ''; // Clear loading indicator
+                                
+                                // Create book cards for most discussed
+                                data.data.most_commented.forEach(book => {
+                                    const processedBook = {
+                                        book_id: book.book_id,
+                                        title: book.title,
+                                        author: book.author,
+                                        cover: book.cover || null,
+                                        description: book.description || 'No description available',
+                                        isbn: book.isbn || '',
+                                        rating: parseFloat(book.rating) || 0,
+                                        status: book.status || 'unknown',
+                                        comment_count: book.comment_count || 0
+                                    };
+                                    
+                                    const discussedCard = createBookCard(processedBook);
+                                    // Add comment count badge to the card
+                                    const commentBadge = document.createElement('div');
+                                    commentBadge.className = 'hot-badge';
+                                    commentBadge.innerHTML = `<span>${processedBook.comment_count}</span> comments`;
+                                    discussedCard.querySelector('.book-card-top').appendChild(commentBadge);
+                                    discussedContainer.appendChild(discussedCard);
+                                });
+                            } else {
+                                discussedContainer.innerHTML = '<div class="no-results">No discussed books available</div>';
+                            }
+                            
+                            if (data.data.most_borrowed && data.data.most_borrowed.length > 0) {
+                                borrowedContainer.innerHTML = ''; // Clear loading indicator
+                                
+                                // Create book cards for most borrowed
+                                data.data.most_borrowed.forEach(book => {
+                                    const processedBook = {
+                                        book_id: book.book_id,
+                                        title: book.title,
+                                        author: book.author,
+                                        cover: book.cover || null,
+                                        description: book.description || 'No description available',
+                                        isbn: book.isbn || '',
+                                        rating: parseFloat(book.rating) || 0,
+                                        status: book.status || 'unknown',
+                                        borrow_count: book.borrow_count || 0
+                                    };
+                                    
+                                    const borrowedCard = createBookCard(processedBook);
+                                    const borrowBadge = document.createElement('div');
+                                    borrowBadge.className = 'hot-badge';
+                                    borrowBadge.innerHTML = `<span>${processedBook.borrow_count}</span> borrows`;
+                                    borrowedCard.querySelector('.book-card-top').appendChild(borrowBadge);
+                                    borrowedContainer.appendChild(borrowedCard);
+                                });
+                            } else {
+                                borrowedContainer.innerHTML = '<div class="no-results">No borrowed books available</div>';
+                            }
+                        } else {
+                            discussedContainer.innerHTML = '<div class="error-message">Error loading hot books</div>';
+                            borrowedContainer.innerHTML = '<div class="error-message">Error loading hot books</div>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        discussedContainer.innerHTML = '<div class="error-message">Error loading hot books</div>';
+                        borrowedContainer.innerHTML = '<div class="error-message">Error loading hot books</div>';
+                    });
             }
         });
     </script>
