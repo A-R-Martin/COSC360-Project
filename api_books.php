@@ -34,8 +34,71 @@ if ($method === 'GET') {
     // User ID for user-specific book status (borrowed, reserved)
     $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
     
-
     $offset = ($page - 1) * $limit;
+    
+    // Get hot books (most commented/borrowed)
+    $action = isset($_GET['action']) ? $_GET['action'] : '';
+    
+    if ($action === 'get_hot_books' || isset($_GET['hot'])) {
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 5;
+        $type = isset($_GET['type']) ? $_GET['type'] : 'all';
+        
+        try {
+            $most_commented = [];
+            $most_borrowed = [];
+            
+            // Get most commented books
+            if ($type === 'all' || $type === 'commented') {
+                $sql = "SELECT b.*, 
+                        (SELECT COUNT(*) FROM book_comments WHERE book_id = b.book_id) AS comment_count
+                        FROM books b
+                        ORDER BY comment_count DESC
+                        LIMIT :limit";
+                        
+                $stmt = $conn->prepare($sql);
+                $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+                $stmt->execute();
+                $most_commented = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }
+            
+            // Get most borrowed books
+            if ($type === 'all' || $type === 'borrowed') {
+                $sql = "SELECT b.*, 
+                        (SELECT COUNT(*) FROM user_books WHERE book_id = b.book_id AND status = 'borrowed') AS borrow_count
+                        FROM books b
+                        ORDER BY borrow_count DESC
+                        LIMIT :limit";
+                        
+                $stmt = $conn->prepare($sql);
+                $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+                $stmt->execute();
+                $most_borrowed = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }
+            
+            $result = [
+                'status' => 'success',
+                'message' => 'Hot books retrieved successfully',
+                'data' => [
+                    'most_commented' => $most_commented,
+                    'most_borrowed' => $most_borrowed
+                ]
+            ];
+            
+            header('Content-Type: application/json');
+            echo json_encode($result);
+            exit;
+        } catch (PDOException $e) {
+            $result = [
+                'status' => 'error',
+                'message' => 'Database error: ' . $e->getMessage(),
+                'data' => null
+            ];
+            
+            header('Content-Type: application/json');
+            echo json_encode($result);
+            exit;
+        }
+    }
     
     try {
         // Base query parts
