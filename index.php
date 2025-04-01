@@ -188,15 +188,25 @@ session_start();
                                         isbn: book.isbn || '',
                                         rating: parseFloat(book.rating) || 0,
                                         status: book.status || 'unknown',
-                                        comment_count: book.comment_count || 0
+                                        comment_count: parseInt(book.comment_count) || 0,
+                                        last_borrowed_date: book.last_borrowed_date || null,
+                                        expected_return_date: book.expected_return_date || null,
+                                        last_reserved_date: book.last_reserved_date || null
                                     };
                                     
                                     const discussedCard = createBookCard(processedBook);
-                                    // Add comment count badge to the card
-                                    const commentBadge = document.createElement('div');
-                                    commentBadge.className = 'hot-badge';
-                                    commentBadge.innerHTML = `<span>${processedBook.comment_count}</span> comments`;
-                                    discussedCard.querySelector('.book-card-top').appendChild(commentBadge);
+                                    
+                                    if (processedBook.comment_count > 0) {
+                                        const commentBadge = document.createElement('div');
+                                        commentBadge.className = 'hot-badge';
+                                        commentBadge.innerHTML = `<span>${processedBook.comment_count}</span> comments`;
+                                        discussedCard.querySelector('.book-card-top').appendChild(commentBadge);
+                                    }
+                                    
+                                    if (processedBook.status !== 'available') {
+                                        addActivityInfo(discussedCard, processedBook);
+                                    }
+                                    
                                     discussedContainer.appendChild(discussedCard);
                                 });
                             } else {
@@ -217,14 +227,25 @@ session_start();
                                         isbn: book.isbn || '',
                                         rating: parseFloat(book.rating) || 0,
                                         status: book.status || 'unknown',
-                                        borrow_count: book.borrow_count || 0
+                                        borrow_count: parseInt(book.borrow_count) || 0,
+                                        last_borrowed_date: book.last_borrowed_date || null,
+                                        expected_return_date: book.expected_return_date || null,
+                                        last_reserved_date: book.last_reserved_date || null
                                     };
                                     
                                     const borrowedCard = createBookCard(processedBook);
-                                    const borrowBadge = document.createElement('div');
-                                    borrowBadge.className = 'hot-badge';
-                                    borrowBadge.innerHTML = `<span>${processedBook.borrow_count}</span> borrows`;
-                                    borrowedCard.querySelector('.book-card-top').appendChild(borrowBadge);
+                                    
+                                    if (processedBook.borrow_count > 0) {
+                                        const borrowBadge = document.createElement('div');
+                                        borrowBadge.className = 'hot-badge';
+                                        borrowBadge.innerHTML = `<span>${processedBook.borrow_count}</span> borrows`;
+                                        borrowedCard.querySelector('.book-card-top').appendChild(borrowBadge);
+                                    }
+                                    
+                                    if (processedBook.status !== 'available') {
+                                        addActivityInfo(borrowedCard, processedBook);
+                                    }
+                                    
                                     borrowedContainer.appendChild(borrowedCard);
                                 });
                             } else {
@@ -240,6 +261,45 @@ session_start();
                         discussedContainer.innerHTML = '<div class="error-message">Error loading hot books</div>';
                         borrowedContainer.innerHTML = '<div class="error-message">Error loading hot books</div>';
                     });
+            }
+            
+            // Function to add activity date information to a book card
+            function addActivityInfo(card, book) {
+                const activityInfo = document.createElement('div');
+                activityInfo.className = 'activity-info';
+                
+                // Format dates
+                const formatDate = (dateString) => {
+                    if (!dateString) return 'N/A';
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString();
+                };
+                
+                const borrowDate = book.last_borrowed_date || book.borrow_date || null;
+                const returnDate = book.expected_return_date || book.return_date || null;
+                const reserveDate = book.last_reserved_date || book.reserve_date || null;
+                
+                let activityHTML = '';
+                
+                if (book.status === 'borrowed') {
+                    activityHTML = `
+                        <div class="activity-date borrowed-info">
+                            Borrowed: ${formatDate(borrowDate)}<br>
+                            Expected Return: ${formatDate(returnDate)}
+                        </div>
+                    `;
+                } else if (book.status === 'reserved') {
+                    activityHTML = `
+                        <div class="activity-date reserved-info">
+                            Reserved: ${formatDate(reserveDate)}
+                        </div>
+                    `;
+                }
+                
+                if (activityHTML) {
+                    activityInfo.innerHTML = activityHTML;
+                    card.querySelector('.book-card-top').appendChild(activityInfo);
+                }
             }
         });
     </script>

@@ -20,6 +20,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </div>
         <div class="nav-links">
             <a href="catalog.php" class="nav-button <?php echo ($current_page == 'catalog.php') ? 'active' : ''; ?>">Catalog</a>
+            <a href="activity.php" class="nav-button <?php echo ($current_page == 'activity.php') ? 'active' : ''; ?>">Activity</a>
             <div class="auth-links">
                 <?php if ($isLoggedIn): ?>
                     <!-- Show these links when logged in -->

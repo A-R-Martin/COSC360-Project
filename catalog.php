@@ -201,50 +201,35 @@ $is_logged_in = isset($_SESSION['user_id']);
                     stars += '☆';
                 }
                 
+                const coverImage = book.cover || 'sample-image.avif';
+                
                 // Create shortened description (first 100 characters)
                 const shortDescription = book.description 
                     ? (book.description.length > 100 ? book.description.substring(0, 100) + '...' : book.description)
                     : 'No description available';
                 
-                // Add additional info for member views (borrowed, reserved, history)
-                let additionalInfo = '';
-                if (isLoggedIn) {
-                    if (currentView === 'borrowed' && book.return_date) {
-                        const returnDate = new Date(book.return_date);
-                        additionalInfo = `<p class="return-date">Return by: ${returnDate.toLocaleDateString()}</p>`;
-                    } else if (currentView === 'reserved' && book.reserve_date) {
-                        const reserveDate = new Date(book.reserve_date);
-                        additionalInfo = `<p class="reserve-date">Reserved on: ${reserveDate.toLocaleDateString()}</p>`;
-                    } else if (currentView === 'history' && book.borrow_date && book.return_date) {
-                        const borrowDate = new Date(book.borrow_date);
-                        const returnDate = new Date(book.return_date);
-                        additionalInfo = `
-                            <p class="borrow-date">Borrowed: ${borrowDate.toLocaleDateString()}</p>
-                            <p class="return-date">Returned: ${returnDate.toLocaleDateString()}</p>
-                        `;
-                    }
-                }
+                const statusText = book.status ? book.status.charAt(0).toUpperCase() + book.status.slice(1) : 'Unknown';
                 
-                let displayStatus = book.status;
-                if (currentView === 'reserved' || book.has_reservation) {
-                    displayStatus = 'reserved';
-                }
-
+                const commentCount = parseInt(book.comment_count) || 0;
+                
                 card.innerHTML = `
                     <div class="book-card-cover">
-                        <img src="${book.cover}" alt="${book.title}" loading="lazy">
+                        <img src="${coverImage}" alt="${book.title}" class="book-cover-img" loading="lazy" onerror="this.src='sample-image.avif'; this.onerror=null;">
                     </div>
                     <div class="book-card-content">
                         <div class="book-card-top">
                             <h3 class="book-title">${book.title}</h3>
-                            <p class="book-author">by ${book.author}</p>
+                            <p class="book-author">By ${book.author}</p>
                             <div class="book-rating">${stars} <span class="rating-number">(${rating.toFixed(1)})</span></div>
-                            <span class="book-status ${displayStatus}">${displayStatus.toUpperCase()}</span>
-                            ${additionalInfo}
+                            <p class="book-description">${shortDescription}</p>
+                            <p class="book-status ${book.status}">${statusText}</p>
+                            
+                            ${getActivityDateHTML(book)}
+                            
+                            ${commentCount > 0 ? `<div class="hot-badge"><span>${commentCount}</span> comments</div>` : ''}
                         </div>
                         <div class="book-card-bottom">
-                            <p class="book-description">${shortDescription}</p>
-                            <a href="book_detail.php?id=${book.book_id}" class="btn-details">View Details</a>
+                            <button class="btn-details" data-book-id="${book.book_id}">View Details</button>
                         </div>
                     </div>
                 `;
@@ -255,6 +240,59 @@ $is_logged_in = isset($_SESSION['user_id']);
                 });
                 
                 return card;
+            }
+            
+            // Function to generate activity date HTML
+            function getActivityDateHTML(book) {
+                const formatDate = (dateString) => {
+                    if (!dateString) return 'N/A';
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString();
+                };
+                
+                const borrowDate = book.last_borrowed_date || book.borrow_date || null;
+                const returnDate = book.expected_return_date || book.return_date || null;
+                const reserveDate = book.last_reserved_date || book.reserve_date || null;
+                
+                let activityHTML = '';
+                
+                if (book.status === 'borrowed') {
+                    activityHTML = `
+                        <div class="activity-info">
+                            <div class="activity-date borrowed-info">
+                                Borrowed: ${formatDate(borrowDate)}<br>
+                                Expected Return: ${formatDate(returnDate)}
+                            </div>
+                        </div>
+                    `;
+                } else if (book.status === 'reserved') {
+                    activityHTML = `
+                        <div class="activity-info">
+                            <div class="activity-date reserved-info">
+                                Reserved: ${formatDate(reserveDate)}
+                            </div>
+                        </div>
+                    `;
+                } else if (book.user_status === 'borrowed') {
+                    activityHTML = `
+                        <div class="activity-info">
+                            <div class="activity-date borrowed-info">
+                                Borrowed: ${formatDate(borrowDate)}<br>
+                                Due Date: ${formatDate(returnDate)}
+                            </div>
+                        </div>
+                    `;
+                } else if (book.user_status === 'reserved') {
+                    activityHTML = `
+                        <div class="activity-info">
+                            <div class="activity-date reserved-info">
+                                Reserved: ${formatDate(reserveDate)}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                return activityHTML;
             }
             
             // Function to update pagination controls

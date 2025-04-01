@@ -671,6 +671,7 @@ textarea:focus {
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
+    min-height: 200px;
 }
 
 .book-card-bottom {
@@ -2123,5 +2124,191 @@ input[type="number"]#rating {
 @media (max-width: 768px) {
     .hot-books .books-container {
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+}
+
+.activity-info {
+    margin-top: 8px;
+}
+
+.activity-date {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 5px;
+    padding: 8px 10px;
+    background-color: #f8f9fa;
+    border-left: 3px solid #6c757d;
+    border-radius: 0 3px 3px 0;
+    line-height: 1.4;
+}
+
+.borrowed-info {
+    border-left-color: #e67e22;
+    background-color: #fff9f2;
+}
+
+.reserved-info {
+    border-left-color: #3498db;
+    background-color: #f0f8ff;
+}
+
+.activity-page .subtitle {
+    color: var(--dark-gray);
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+.activity-container {
+    padding: var(--spacing-xl) 0;
+}
+
+.timeline {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: var(--spacing-md);
+}
+
+.timeline-month {
+    margin-bottom: var(--spacing-xl);
+}
+
+.timeline-month h2 {
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--light-gray);
+    margin-bottom: var(--spacing-md);
+}
+
+.timeline-items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.activity-card {
+    background-color: var(--white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+}
+
+.activity-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.activity-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--light-gray);
+}
+
+.activity-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.activity-badge.borrowed {
+    background-color: #fdebd0;
+    color: #e67e22;
+}
+
+.activity-badge.reserved {
+    background-color: #e8f4fd;
+    color: #3498db;
+}
+
+.activity-date {
+    font-size: 0.85rem;
+    color: var(--dark-gray);
+}
+
+.activity-card-content {
+    padding: var(--spacing-md);
+}
+
+.activity-book-info {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+.activity-book-cover {
+    width: 80px;
+    height: 120px;
+    background-color: #f5f5f5;
+    overflow: hidden;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.activity-book-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.activity-book-details {
+    flex: 1;
+}
+
+.activity-book-title {
+    font-size: 1.1rem;
+    margin: 0 0 0.3rem 0;
+    color: var(--primary-color);
+}
+
+.activity-book-author {
+    font-size: 0.9rem;
+    color: var(--dark-gray);
+    margin: 0 0 0.3rem 0;
+}
+
+.activity-return-info {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+.activity-user {
+    font-size: 0.85rem;
+    color: var(--dark-gray);
+    margin: 0.5rem 0 0 0;
+}
+
+.overdue {
+    color: #e74c3c;
+    font-weight: 600;
+}
+
+.days-remaining {
+    color: #2ecc71;
+    font-weight: 600;
+}
+
+.activity-card .btn-details {
+    width: auto;
+    display: inline-block;
+    margin: 0 var(--spacing-md) var(--spacing-md) 0;
+    float: right;
+}
+
+@media (max-width: 600px) {
+    .activity-book-info {
+        flex-direction: column;
+    }
+    
+    .activity-book-cover {
+        width: 100%;
+        height: 180px;
     }
 }
