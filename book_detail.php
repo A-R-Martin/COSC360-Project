@@ -309,6 +309,8 @@ include 'includes/header.php';
                 const commentText = document.getElementById('comment-text');
                 const postCommentBtn = document.getElementById('post-comment');
                 
+                let commentsCollapsed = true;
+                
                 loadComments(<?php echo $book_id; ?>);
                 
                 // Post a new comment
@@ -330,6 +332,15 @@ include 'includes/header.php';
                         .then(data => {
                             if (data.status === 'success') {
                                 renderComments(data.data);
+                                
+                                if (!commentsCollapsed) {
+                                    commentsContainer.classList.remove('collapsed');
+                                    const toggleEl = document.getElementById('toggle-comments');
+                                    if (toggleEl) {
+                                        toggleEl.textContent = `collapse comments (${document.querySelectorAll('.comment').length})`;
+                                        toggleEl.classList.add('expanded');
+                                    }
+                                }
                             } else {
                                 commentsContainer.innerHTML = `<div class="error">${data.message}</div>`;
                             }
@@ -343,6 +354,8 @@ include 'includes/header.php';
                 function postComment(bookId, comment) {
                     postCommentBtn.disabled = true;
                     postCommentBtn.textContent = 'Posting...';
+                    
+                    const currentCollapsedState = commentsCollapsed;
                     
                     fetch('api_book_comments.php', {
                         method: 'POST',
@@ -361,8 +374,24 @@ include 'includes/header.php';
                             // Clear comment input
                             commentText.value = '';
                             
-                            // Reload comments
                             loadComments(bookId);
+                            
+                            setTimeout(() => {
+                                commentsCollapsed = currentCollapsedState;
+                                
+                                if (!commentsCollapsed) {
+                                    const collapsibleComments = document.querySelectorAll('.collapsible-comment');
+                                    collapsibleComments.forEach(comment => {
+                                        comment.style.display = 'block';
+                                    });
+                                    
+                                    const toggleEl = document.getElementById('toggle-comments');
+                                    if (toggleEl) {
+                                        toggleEl.textContent = `collapse comments (${document.querySelectorAll('.comment').length})`;
+                                        toggleEl.classList.add('expanded');
+                                    }
+                                }
+                            }, 100); // Small delay to ensure DOM is updated
                         } else {
                             alert(data.message);
                         }
@@ -385,12 +414,14 @@ include 'includes/header.php';
                     
                     let commentHtml = '';
                     
-                    comments.forEach(comment => {
+                    comments.forEach((comment, index) => {
                         const date = new Date(comment.created_at);
                         const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                         
+                        const commentClass = index === 0 ? 'comment' : 'comment collapsible-comment';
+                        
                         commentHtml += `
-                            <div class="comment">
+                            <div class="${commentClass}">
                                 <div class="comment-header">
                                     <div class="comment-user">
                                         <span class="username">${comment.username}</span>
@@ -404,7 +435,61 @@ include 'includes/header.php';
                         `;
                     });
                     
-                    commentsContainer.innerHTML = commentHtml;
+                    let actionsHtml = '';
+                    if (comments.length > 1) {
+                        actionsHtml = `
+                            <div class="comments-actions">
+                                <span id="toggle-comments" class="btn-toggle-comments" style="cursor: pointer; color: #7f8c8d; font-size: 14px; display: inline;">
+                                    expand comments (${comments.length})
+                                </span>
+                            </div>
+                        `;
+                    }
+                    
+                    commentsContainer.innerHTML = commentHtml + actionsHtml;
+                    
+                    const collapsibleComments = document.querySelectorAll('.collapsible-comment');
+                    if (collapsibleComments.length > 0) {
+                        collapsibleComments.forEach(comment => {
+                            comment.style.display = 'none';
+                        });
+                        commentsCollapsed = true;
+                    }
+                    
+                    const toggleEl = document.getElementById('toggle-comments');
+                    if (toggleEl) {
+                        toggleEl.addEventListener('click', function() {
+                            toggleComments();
+                        });
+                    }
+                }
+                
+                function toggleComments() {
+                    const toggleEl = document.getElementById('toggle-comments');
+                    const collapsibleComments = document.querySelectorAll('.collapsible-comment');
+                    const commentsCount = document.querySelectorAll('.comment').length;
+                    
+                    commentsCollapsed = !commentsCollapsed;
+                    
+                    if (commentsCollapsed) {
+                        collapsibleComments.forEach(comment => {
+                            comment.style.display = 'none';
+                        });
+                        
+                        if (toggleEl) {
+                            toggleEl.textContent = `expand comments (${commentsCount})`;
+                            toggleEl.classList.remove('expanded');
+                        }
+                    } else {
+                        collapsibleComments.forEach(comment => {
+                            comment.style.display = 'block';
+                        });
+                        
+                        if (toggleEl) {
+                            toggleEl.textContent = `collapse comments (${commentsCount})`;
+                            toggleEl.classList.add('expanded');
+                        }
+                    }
                 }
             });
         </script>
