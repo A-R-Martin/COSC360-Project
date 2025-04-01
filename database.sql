@@ -113,6 +113,20 @@ CREATE TABLE IF NOT EXISTS book_comments (
     INDEX (user_id)
 );
 
+CREATE TABLE IF NOT EXISTS history_entries (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    book_id INT NOT NULL,
+    action ENUM('borrowed', 'returned', 'reserved', 'cancelled') NOT NULL,
+    action_date TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (book_id) REFERENCES books(book_id) ON DELETE CASCADE,
+    INDEX (user_id),
+    INDEX (book_id),
+    INDEX (action_date)
+);
+
 -- Insert some initial categories
 INSERT INTO discussion_categories (name, description) VALUES 
 ('General Discussion', 'General discussions about books and reading'),
@@ -154,18 +168,25 @@ SELECT 2, book_id, 'borrowed', NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY)
 FROM books WHERE title = 'The Catcher in the Rye';
 
 -- Add some history entries to demonstrate the borrowing history
-INSERT INTO user_books (user_id, book_id, status, borrow_date, return_date) 
-SELECT 2, book_id, 'history', DATE_SUB(NOW(), INTERVAL 30 DAY), DATE_SUB(NOW(), INTERVAL 16 DAY) 
-FROM books WHERE title = 'The Hobbit';
+INSERT INTO user_books (user_id, book_id, status, reserve_date) 
+SELECT 2, book_id, 'reserved', NOW()
+FROM books WHERE title = 'Brave New World';
 
 INSERT INTO user_books (user_id, book_id, status, borrow_date, return_date) 
-SELECT 2, book_id, 'history', DATE_SUB(NOW(), INTERVAL 60 DAY), DATE_SUB(NOW(), INTERVAL 46 DAY) 
-FROM books WHERE title = 'Moby-Dick';
+SELECT 1, book_id, 'borrowed', DATE_SUB(NOW(), INTERVAL 7 DAY), DATE_ADD(NOW(), INTERVAL 7 DAY) 
+FROM books WHERE title = 'The Lord of the Rings';
 
--- Add sample book comments
-INSERT INTO book_comments (book_id, user_id, comment) VALUES 
-(1, 2, 'This book is amazing! I highly recommend it to anyone who enjoys classic literature.'),
-(1, 1, 'One of my favorite classics. The character development is superb.'),
-(2, 2, 'A powerful book that everyone should read. It teaches important lessons about empathy and justice.');
+UPDATE books SET status = 'borrowed' WHERE title = 'The Lord of the Rings';
+
+UPDATE books SET status = 'available';
+
+DELETE FROM history_entries;
+DELETE FROM user_books;
+DELETE FROM book_comments;
+
+INSERT INTO user_books (user_id, book_id, status, borrow_date, return_date) 
+VALUES 
+(2, (SELECT book_id FROM books WHERE title = 'The Catcher in the Rye'), 'history', DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_ADD(NOW(), INTERVAL 9 DAY)),
+(1, (SELECT book_id FROM books WHERE title = 'The Lord of the Rings'), 'history', DATE_SUB(NOW(), INTERVAL 7 DAY), DATE_ADD(NOW(), INTERVAL 7 DAY));
 
 SET FOREIGN_KEY_CHECKS = 1; 

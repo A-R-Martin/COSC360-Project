@@ -50,8 +50,12 @@ if ($method === 'GET') {
             // Get most commented books
             if ($type === 'all' || $type === 'commented') {
                 $sql = "SELECT b.*, 
-                        (SELECT COUNT(*) FROM book_comments WHERE book_id = b.book_id) AS comment_count
+                        (SELECT COUNT(*) FROM book_comments WHERE book_id = b.book_id) AS comment_count,
+                        (SELECT MAX(ub.borrow_date) FROM user_books ub WHERE ub.book_id = b.book_id AND ub.status = 'borrowed') AS borrow_date,
+                        (SELECT MAX(ub.return_date) FROM user_books ub WHERE ub.book_id = b.book_id AND ub.status = 'borrowed') AS return_date,
+                        (SELECT MAX(ub.reserve_date) FROM user_books ub WHERE ub.book_id = b.book_id AND ub.status = 'reserved') AS reserve_date
                         FROM books b
+                        HAVING comment_count > 0
                         ORDER BY comment_count DESC
                         LIMIT :limit";
                         
@@ -64,8 +68,12 @@ if ($method === 'GET') {
             // Get most borrowed books
             if ($type === 'all' || $type === 'borrowed') {
                 $sql = "SELECT b.*, 
-                        (SELECT COUNT(*) FROM user_books WHERE book_id = b.book_id AND status = 'borrowed') AS borrow_count
+                        (SELECT COUNT(*) FROM user_books WHERE book_id = b.book_id AND status = 'borrowed') AS borrow_count,
+                        (SELECT MAX(ub.borrow_date) FROM user_books ub WHERE ub.book_id = b.book_id AND ub.status = 'borrowed') AS borrow_date,
+                        (SELECT MAX(ub.return_date) FROM user_books ub WHERE ub.book_id = b.book_id AND ub.status = 'borrowed') AS return_date,
+                        (SELECT MAX(ub.reserve_date) FROM user_books ub WHERE ub.book_id = b.book_id AND ub.status = 'reserved') AS reserve_date
                         FROM books b
+                        HAVING borrow_count > 0
                         ORDER BY borrow_count DESC
                         LIMIT :limit";
                         
@@ -82,6 +90,104 @@ if ($method === 'GET') {
                     'most_commented' => $most_commented,
                     'most_borrowed' => $most_borrowed
                 ]
+            ];
+            
+            header('Content-Type: application/json');
+            echo json_encode($result);
+            exit;
+        } catch (PDOException $e) {
+            $result = [
+                'status' => 'error',
+                'message' => 'Database error: ' . $e->getMessage(),
+                'data' => null
+            ];
+            
+            header('Content-Type: application/json');
+            echo json_encode($result);
+            exit;
+        }
+    }
+    
+    // Get activity timeline of books (borrowed/reserved with dates)
+    if ($action === 'get_activity') {
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $type = isset($_GET['type']) ? $_GET['type'] : 'all'; // all, borrowed, reserved
+        
+        try {
+            $books = [];
+            
+            $sql = "SELECT b.book_id, b.title, b.author, b.description, b.cover_image as cover, b.isbn, 
+                    b.year_published, b.genre, b.rating, b.status,
+                    ub.status as user_book_status,
+                    ub.borrow_date, ub.return_date, ub.reserve_date, ub.cancel_date,
+                    u.username as borrower_name
+                    FROM books b
+                    JOIN user_books ub ON b.book_id = ub.book_id
+                    JOIN users u ON ub.user_id = u.user_id
+                    WHERE 1=1 ";
+            
+            $params = [];
+            
+            if ($type === 'borrowed') {
+                $sql .= "AND ub.status = 'borrowed' ";
+            } else if ($type === 'reserved') {
+                $sql .= "AND ub.status = 'reserved' ";
+            } else {
+                $sql .= "AND (ub.status = 'borrowed' OR ub.status = 'reserved') ";
+            }
+            
+            $sql .= "ORDER BY 
+                     CASE 
+                        WHEN ub.status = 'borrowed' THEN ub.borrow_date 
+                        WHEN ub.status = 'reserved' THEN ub.reserve_date
+                        ELSE ub.borrow_date
+                     END DESC 
+                     LIMIT :limit";
+            
+            $stmt = $conn->prepare($sql);
+            $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Process book data to validate cover images
+            foreach ($books as &$book) {
+                if (isset($book['cover']) && $book['cover']) {
+                    if (!filter_var($book['cover'], FILTER_VALIDATE_URL) && !file_exists($book['cover'])) {
+                        $book['cover'] = 'sample-image.avif';
+                    }
+                } else {
+                    $book['cover'] = 'sample-image.avif';
+                }
+                
+                $book['borrow_date'] = $book['borrow_date'] ?? null;
+                $book['return_date'] = $book['return_date'] ?? null;
+                $book['reserve_date'] = $book['reserve_date'] ?? null;
+                if (isset($book['borrow_date']) && $book['borrow_date']) {
+                    $book['borrow_date_formatted'] = date('F j, Y', strtotime($book['borrow_date']));
+                }
+                
+                if (isset($book['return_date']) && $book['return_date']) {
+                    $book['return_date_formatted'] = date('F j, Y', strtotime($book['return_date']));
+                    
+                    // Calculate days until return
+                    $return_date = new DateTime($book['return_date']);
+                    $today = new DateTime();
+                    $days_until_return = $today->diff($return_date)->days;
+                    $book['days_until_return'] = $days_until_return;
+                    
+                    $book['is_overdue'] = ($today > $return_date);
+                }
+                
+                if (isset($book['reserve_date']) && $book['reserve_date']) {
+                    $book['reserve_date_formatted'] = date('F j, Y', strtotime($book['reserve_date']));
+                }
+            }
+            
+            $result = [
+                'status' => 'success',
+                'message' => 'Activity data retrieved successfully',
+                'data' => $books
             ];
             
             header('Content-Type: application/json');
