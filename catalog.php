@@ -185,6 +185,11 @@ $is_logged_in = isset($_SESSION['user_id']);
                 const card = document.createElement('div');
                 card.className = 'book-card';
                 
+                let coverImage = 'sample-image.avif';
+                if (book.cover && book.cover !== 'null' && book.cover !== 'undefined') {
+                    coverImage = book.cover;
+                }
+                
                 // Create star rating
                 let stars = '';
                 // Ensure rating is a number
@@ -201,8 +206,6 @@ $is_logged_in = isset($_SESSION['user_id']);
                     stars += '☆';
                 }
                 
-                const coverImage = book.cover || 'sample-image.avif';
-                
                 // Create shortened description (first 100 characters)
                 const shortDescription = book.description 
                     ? (book.description.length > 100 ? book.description.substring(0, 100) + '...' : book.description)
@@ -214,7 +217,7 @@ $is_logged_in = isset($_SESSION['user_id']);
                 
                 card.innerHTML = `
                     <div class="book-card-cover">
-                        <img src="${coverImage}" alt="${book.title}" class="book-cover-img" loading="lazy" onerror="this.src='sample-image.avif'; this.onerror=null;">
+                        <img src="${coverImage}" alt="${book.title}" loading="lazy" onerror="this.src='sample-image.avif'; this.onerror=null;">
                     </div>
                     <div class="book-card-content">
                         <div class="book-card-top">
