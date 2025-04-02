@@ -226,6 +226,8 @@ function drawBarChart(canvasId, data, yAxisLabel) {
 }
 
 function resizeCanvas(canvas) {
+    if (!canvas) return;
+    
     const container = canvas.closest('.chart-wrapper');
     if (!container) return;
     
@@ -233,39 +235,131 @@ function resizeCanvas(canvas) {
     
     const devicePixelRatio = window.devicePixelRatio || 1;
     
-    canvas.style.width = rect.width + 'px';
-    canvas.style.height = rect.height + 'px';
+    canvas.style.width = '';
+    canvas.style.height = '';
     
-    canvas.width = rect.width * devicePixelRatio;
-    canvas.height = rect.height * devicePixelRatio;
+    const width = Math.max(300, rect.width);
+    const height = Math.max(200, rect.height);
+    
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    
+    canvas.width = width * devicePixelRatio;
+    canvas.height = height * devicePixelRatio;
     
     const ctx = canvas.getContext('2d');
-    ctx.scale(devicePixelRatio, devicePixelRatio);
+    if (ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.scale(devicePixelRatio, devicePixelRatio);
+    }
+    
+    return { width, height };
 }
 
 window.addEventListener('resize', function() {
-    setTimeout(function() {
-        const canvases = document.querySelectorAll('canvas');
-        canvases.forEach(canvas => {
-            if (canvas.id.includes('chart')) {
-                const chartType = canvas.id.includes('pie') || 
-                                 canvas.id.includes('usage') || 
-                                 canvas.id.includes('status') ? 'pie' : 'bar';
-                
-                try {
-                    if (canvas.id === 'page-views-chart' && window.pageViewsData) {
-                        drawBarChart(canvas.id, window.pageViewsData, 'View Count');
-                    } else if (canvas.id === 'api-usage-chart' && window.apiUsageData) {
-                        drawPieChart(canvas.id, window.apiUsageData, 'API Calls');
-                    } else if (canvas.id === 'user-activity-chart' && window.userActivityData) {
-                        drawBarChart(canvas.id, window.userActivityData, 'Count');
-                    } else if (canvas.id === 'book-status-chart' && window.bookStatusData) {
-                        drawPieChart(canvas.id, window.bookStatusData, 'Book Count');
-                    }
-                } catch (e) {
-                    console.log('Could not redraw chart on resize: ' + e.message);
-                }
+    clearTimeout(window.resizeTimer);
+    window.resizeTimer = setTimeout(function() {
+        const chartData = window.globalChartData || {};
+        
+        if (chartData.pageViews) {
+            const canvas = document.getElementById('page-views-chart');
+            if (canvas) {
+                resizeCanvas(canvas);
+                drawBarChart('page-views-chart', chartData.pageViews, 'View Count');
             }
-        });
+        }
+        
+        if (chartData.apiUsage) {
+            const canvas = document.getElementById('api-usage-chart');
+            if (canvas) {
+                resizeCanvas(canvas);
+                drawPieChart('api-usage-chart', chartData.apiUsage, 'API Calls');
+            }
+        }
+        
+        if (chartData.bookStatus) {
+            const canvas = document.getElementById('book-status-chart');
+            if (canvas) {
+                resizeCanvas(canvas);
+                drawPieChart('book-status-chart', chartData.bookStatus, 'Book Status');
+            }
+        }
+        
+        if (chartData.userActivity) {
+            const canvas = document.getElementById('user-activity-chart');
+            if (canvas && window.updateUserActivityChart) {
+                resizeCanvas(canvas);
+                window.updateUserActivityChart(chartData.userActivity.originalData || []);
+            }
+        }
     }, 250);
-}); 
+});
+
+/**
+ * Updates the API usage chart with data from the API
+ * @param {Array} apiData - The API usage data
+ */
+function updateApiUsageChart(apiData) {
+    if (!apiData || !apiData.length) {
+        return;
+    }
+    
+    const labels = [];
+    const callCounts = [];
+    const responseTimesMs = [];
+    const backgroundColors = [];
+    
+    // Generate colors
+    const baseColors = [
+        '#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', 
+        '#1abc9c', '#d35400', '#34495e', '#2980b9', '#27ae60'
+    ];
+    
+    // Process data
+    apiData.forEach((item, index) => {
+        const label = `${item.endpoint} (${item.method})`;
+        labels.push(label);
+        callCounts.push(item.call_count);
+        responseTimesMs.push(Math.round(item.avg_response_time));
+        backgroundColors.push(baseColors[index % baseColors.length]);
+    });
+    
+    // Create chart data
+    const chartData = {
+        labels: labels,
+        datasets: [{
+            data: callCounts,
+            backgroundColor: backgroundColors
+        }]
+    };
+    
+    // Create response time data
+    const responseTimeData = {
+        labels: labels,
+        datasets: [{
+            data: responseTimesMs,
+            backgroundColor: backgroundColors
+        }]
+    };
+    
+    // Draw charts
+    drawBarChart('api-usage-chart', chartData, 'Call Count');
+    
+    const tableBody = document.querySelector('#api-usage-table tbody');
+    if (tableBody) {
+        let tableHTML = '';
+        
+        apiData.forEach(item => {
+            tableHTML += `<tr>
+                <td>${item.endpoint}</td>
+                <td>${item.method}</td>
+                <td>${item.call_count}</td>
+                <td>${Math.round(item.avg_response_time)} ms</td>
+                <td>${item.unique_users}</td>
+            </tr>`;
+        });
+        
+        tableBody.innerHTML = tableHTML;
+    }
+} 

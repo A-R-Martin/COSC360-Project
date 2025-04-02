@@ -123,15 +123,40 @@ $page_title = "Analytics Dashboard";
                                 <tr>
                                     <th>Page</th>
                                     <th>Views</th>
+                                    <th>Unique Users</th>
+                                    <th>Sessions</th>
+                                    <th>Last Viewed</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td colspan="2" class="loading-cell">Loading data...</td></tr>
+                                <tr><td colspan="5" class="loading-cell">Loading data...</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
                 
+                <div class="table-container">
+                    <h2>API Usage Details</h2>
+                    <div class="table-scroll">
+                        <table class="analytics-table" id="api-usage-table">
+                            <thead>
+                                <tr>
+                                    <th>Endpoint</th>
+                                    <th>Method</th>
+                                    <th>Call Count</th>
+                                    <th>Avg Response Time</th>
+                                    <th>Unique Users</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="5" class="loading-cell">Loading data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="analytics-row">
                 <div class="table-container">
                     <h2>Most Active Users</h2>
                     <div class="table-scroll">
@@ -203,20 +228,66 @@ $page_title = "Analytics Dashboard";
                 }, 100);
             });
             
+            let globalChartData = {
+                pageViews: null,
+                apiUsage: null,
+                userActivity: null,
+                bookStatus: null
+            };
+            
             /**
              * Load all dashboard data
              */
             function loadDashboardData() {
                 const period = document.getElementById('time-period').value;
                 
-                // Show loading states
+                // Show loading states for all charts
                 document.getElementById('page-views-loading').style.display = 'flex';
                 document.getElementById('api-usage-loading').style.display = 'flex';
                 document.getElementById('user-activity-loading').style.display = 'flex';
                 document.getElementById('book-status-loading').style.display = 'flex';
                 
-                // Load overview metrics
-                fetch(`api_tracking.php?action=get_analytics_dashboard`)
+                const canvases = ['page-views-chart', 'api-usage-chart', 'user-activity-chart', 'book-status-chart'];
+                canvases.forEach(id => {
+                    const canvas = document.getElementById(id);
+                    if (canvas && canvas.getContext) {
+                        const ctx = canvas.getContext('2d');
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    }
+                });
+                
+                loadOverviewData()
+                    .then(() => loadPageViewsData(period))
+                    .then(() => loadApiUsageData(period))
+                    .then(() => loadUserActivityData(period))
+                    .then(() => loadBookStatusData())
+                    .then(() => {
+                        setTimeout(() => {
+                            if (globalChartData.pageViews) {
+                                drawBarChart('page-views-chart', globalChartData.pageViews, 'View Count');
+                            }
+                            
+                            if (globalChartData.apiUsage) {
+                                drawPieChart('api-usage-chart', globalChartData.apiUsage, 'API Calls');
+                            }
+                            
+                            if (globalChartData.userActivity && globalChartData.userActivity.originalData) {
+                                updateUserActivityChart(globalChartData.userActivity.originalData);
+                            }
+                            
+                            if (globalChartData.bookStatus) {
+                                drawPieChart('book-status-chart', globalChartData.bookStatus, 'Book Status');
+                            }
+                        }, 300);
+                    })
+                    .catch(error => console.error('Error loading dashboard data:', error));
+            }
+            
+            /**
+             * Load overview metrics
+             */
+            function loadOverviewData() {
+                return fetch(`api_tracking.php?action=get_analytics_dashboard`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'success') {
@@ -229,9 +300,13 @@ $page_title = "Analytics Dashboard";
                         }
                     })
                     .catch(error => console.error('Error loading analytics dashboard:', error));
-                
-                // Load page views for chart
-                fetch(`api_tracking.php?action=get_page_views&period=${period}`)
+            }
+            
+            /**
+             * Load page views data
+             */
+            function loadPageViewsData(period) {
+                return fetch(`api_tracking.php?action=get_page_views&period=${period}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'success') {
@@ -244,13 +319,17 @@ $page_title = "Analytics Dashboard";
                         console.error('Error loading page views:', error);
                         document.getElementById('page-views-loading').style.display = 'none';
                     });
-                
-                // Load API usage
-                fetch(`api_tracking.php?action=get_api_usage&period=${period}`)
+            }
+            
+            /**
+             * Load API usage data
+             */
+            function loadApiUsageData(period) {
+                return fetch(`api_tracking.php?action=get_api_usage&period=${period}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'success') {
-                            updateAPIUsageChart(data.data);
+                            updateApiUsageChart(data.data);
                             document.getElementById('api-usage-loading').style.display = 'none';
                         }
                     })
@@ -258,9 +337,13 @@ $page_title = "Analytics Dashboard";
                         console.error('Error loading API usage:', error);
                         document.getElementById('api-usage-loading').style.display = 'none';
                     });
-                
-                // Load user activity
-                fetch(`api_tracking.php?action=get_user_activity&period=${period}`)
+            }
+            
+            /**
+             * Load user activity data
+             */
+            function loadUserActivityData(period) {
+                return fetch(`api_tracking.php?action=get_user_activity&period=${period}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'success') {
@@ -273,12 +356,17 @@ $page_title = "Analytics Dashboard";
                         console.error('Error loading user activity:', error);
                         document.getElementById('user-activity-loading').style.display = 'none';
                     });
-                
-                fetch('api_admin.php?action=get_chart_data')
+            }
+            
+            /**
+             * Load book status data
+             */
+            function loadBookStatusData() {
+                return fetch(`api_tracking.php?action=get_book_status`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'success') {
-                            updateBookStatusChart(data.data.bookStatusData);
+                            updateBookStatusChart(data.data);
                             document.getElementById('book-status-loading').style.display = 'none';
                         }
                     })
@@ -315,7 +403,7 @@ $page_title = "Analytics Dashboard";
                     }]
                 };
                 
-                window.pageViewsData = chartData;
+                globalChartData.pageViews = chartData;
                 
                 drawBarChart('page-views-chart', chartData, 'View Count');
             }
@@ -323,7 +411,7 @@ $page_title = "Analytics Dashboard";
             /**
              * Update API usage chart
              */
-            function updateAPIUsageChart(apiUsageData) {
+            function updateApiUsageChart(apiUsageData) {
                 if (!apiUsageData || apiUsageData.length === 0) {
                     const canvas = document.getElementById('api-usage-chart');
                     const ctx = canvas.getContext('2d');
@@ -335,24 +423,50 @@ $page_title = "Analytics Dashboard";
                     return;
                 }
                 
+                // Prepare data for the chart
+                const labels = [];
+                const callCounts = [];
+                const backgroundColors = [
+                    '#3498db', '#2ecc71', '#e67e22', '#9b59b6', 
+                    '#f1c40f', '#1abc9c', '#e74c3c', '#95a5a6'
+                ];
+                
+                apiUsageData.forEach((item, index) => {
+                    const label = `${item.endpoint} (${item.method})`;
+                    labels.push(label);
+                    callCounts.push(parseInt(item.call_count) || 0);
+                });
+                
                 const chartData = {
-                    labels: apiUsageData.map(item => {
-                        const endpoint = item.api_endpoint;
-                        return endpoint.replace('api_', '').replace('.php', '');
-                    }),
+                    labels: labels,
                     datasets: [{
-                        data: apiUsageData.map(item => parseInt(item.call_count)),
-                        backgroundColor: [
-                            '#3498db', '#2ecc71', '#e67e22', '#9b59b6', 
-                            '#f1c40f', '#1abc9c', '#e74c3c', '#95a5a6'
-                        ]
+                        data: callCounts,
+                        backgroundColor: backgroundColors
                     }]
                 };
                 
-                window.apiUsageData = chartData;
+                globalChartData.apiUsage = chartData;
                 
                 // Draw pie chart
                 drawPieChart('api-usage-chart', chartData, 'API Calls');
+                
+                // Update the table
+                const tableBody = document.querySelector('#api-usage-table tbody');
+                if (tableBody) {
+                    let tableHTML = '';
+                    
+                    apiUsageData.forEach(item => {
+                        tableHTML += `<tr>
+                            <td>${item.endpoint}</td>
+                            <td>${item.method}</td>
+                            <td>${item.call_count}</td>
+                            <td>${Math.round(item.avg_response_time || 0)} ms</td>
+                            <td>${item.unique_users}</td>
+                        </tr>`;
+                    });
+                    
+                    tableBody.innerHTML = tableHTML || '<tr><td colspan="5" class="empty-cell">No data available</td></tr>';
+                }
             }
             
             /**
@@ -370,52 +484,168 @@ $page_title = "Analytics Dashboard";
                     return;
                 }
                 
-                // Use top 5 users for the chart
+                // Prepare chart data
+                const chartLabels = [];
+                const booksViewed = [];
+                const searches = [];
+                const logins = [];
+                const chartColors = {
+                    books: '#3498db',
+                    searches: '#2ecc71',
+                    logins: '#e74c3c'
+                };
+                
+                // Limit to top 5 users
                 const topUsers = userData.slice(0, 5);
                 
-                // Create combined data for a bar chart
-                const allActivities = [];
-                
-                // Add book views
                 topUsers.forEach(user => {
-                    allActivities.push({
-                        label: `${user.username} (Books)`,
-                        value: parseInt(user.books_viewed) || 0
-                    });
-                });
-                
-                // Add searches
-                topUsers.forEach(user => {
-                    allActivities.push({
-                        label: `${user.username} (Searches)`,
-                        value: parseInt(user.search_count) || 0
-                    });
+                    chartLabels.push(user.username);
+                    booksViewed.push(parseInt(user.books_viewed) || 0);
+                    searches.push(parseInt(user.search_count) || 0);
+                    logins.push(parseInt(user.login_count) || 0);
                 });
                 
                 const chartData = {
-                    labels: allActivities.map(item => item.label),
-                    datasets: [{
-                        data: allActivities.map(item => item.value),
-                        backgroundColor: [
-                            '#3498db', '#3498db', '#3498db', '#3498db', '#3498db',
-                            '#2ecc71', '#2ecc71', '#2ecc71', '#2ecc71', '#2ecc71'
-                        ]
-                    }]
+                    labels: chartLabels,
+                    datasets: [
+                        {
+                            label: 'Books Viewed',
+                            data: booksViewed,
+                            backgroundColor: chartColors.books
+                        },
+                        {
+                            label: 'Searches',
+                            data: searches,
+                            backgroundColor: chartColors.searches
+                        },
+                        {
+                            label: 'Logins',
+                            data: logins,
+                            backgroundColor: chartColors.logins
+                        }
+                    ],
+                    originalData: userData
                 };
                 
-                window.userActivityData = chartData;
+                globalChartData.userActivity = chartData;
                 
-                drawBarChart('user-activity-chart', chartData, 'Count');
+                window.updateUserActivityChart = updateUserActivityChart;
+                
+                // Clear previous chart
+                const canvas = document.getElementById('user-activity-chart');
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw stacked bar chart
+                const barWidth = Math.min(40, (canvas.width - 100) / chartLabels.length / 3);
+                const chartHeight = canvas.height - 60;
+                const chartBottom = canvas.height - 40;
+                const chartLeft = 60;
+                
+                // Calculate maximum value for scaling
+                const maxValue = Math.max(
+                    ...booksViewed,
+                    ...searches,
+                    ...logins
+                );
+                
+                // Draw y-axis
+                ctx.beginPath();
+                ctx.moveTo(chartLeft, 20);
+                ctx.lineTo(chartLeft, chartBottom);
+                ctx.strokeStyle = '#ddd';
+                ctx.stroke();
+                
+                // Draw x-axis
+                ctx.beginPath();
+                ctx.moveTo(chartLeft, chartBottom);
+                ctx.lineTo(canvas.width - 20, chartBottom);
+                ctx.strokeStyle = '#ddd';
+                ctx.stroke();
+                
+                // Draw y-axis labels
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#7f8c8d';
+                ctx.font = '10px Arial, sans-serif';
+                
+                const ySteps = 5;
+                for (let i = 0; i <= ySteps; i++) {
+                    const y = chartBottom - (i * chartHeight / ySteps);
+                    const value = Math.round(maxValue * i / ySteps);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(chartLeft - 5, y);
+                    ctx.lineTo(chartLeft, y);
+                    ctx.strokeStyle = '#ddd';
+                    ctx.stroke();
+                    
+                    ctx.fillText(value, chartLeft - 8, y + 3);
+                }
+                
+                // Draw bars and legend
+                let currentBarX = chartLeft + 20;
+                
+                // Draw legend
+                const legendY = 15;
+                const legendSpacing = 80;
+                let legendX = chartLeft;
+                
+                // Books viewed legend
+                ctx.fillStyle = chartColors.books;
+                ctx.fillRect(legendX, legendY, 10, 10);
+                ctx.fillStyle = '#333';
+                ctx.textAlign = 'left';
+                ctx.fillText('Books Viewed', legendX + 15, legendY + 8);
+                
+                // Searches legend
+                legendX += legendSpacing;
+                ctx.fillStyle = chartColors.searches;
+                ctx.fillRect(legendX, legendY, 10, 10);
+                ctx.fillStyle = '#333';
+                ctx.fillText('Searches', legendX + 15, legendY + 8);
+                
+                // Logins legend
+                legendX += legendSpacing;
+                ctx.fillStyle = chartColors.logins;
+                ctx.fillRect(legendX, legendY, 10, 10);
+                ctx.fillStyle = '#333';
+                ctx.fillText('Logins', legendX + 15, legendY + 8);
+                
+                // Draw bars for each user
+                chartLabels.forEach((username, index) => {
+                    const barGroupWidth = barWidth * 3 + 10;
+                    
+                    // Books viewed bar
+                    const booksHeight = (booksViewed[index] / maxValue) * chartHeight;
+                    ctx.fillStyle = chartColors.books;
+                    ctx.fillRect(currentBarX, chartBottom - booksHeight, barWidth, booksHeight);
+                    
+                    // Searches bar
+                    const searchesHeight = (searches[index] / maxValue) * chartHeight;
+                    ctx.fillStyle = chartColors.searches;
+                    ctx.fillRect(currentBarX + barWidth, chartBottom - searchesHeight, barWidth, searchesHeight);
+                    
+                    // Logins bar
+                    const loginsHeight = (logins[index] / maxValue) * chartHeight;
+                    ctx.fillStyle = chartColors.logins;
+                    ctx.fillRect(currentBarX + barWidth * 2, chartBottom - loginsHeight, barWidth, loginsHeight);
+                    
+                    // Draw username label
+                    ctx.fillStyle = '#333';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(username, currentBarX + barWidth * 1.5, chartBottom + 15);
+                    
+                    currentBarX += barGroupWidth + 10;
+                });
             }
             
             /**
              * Update book status chart
              */
-            function updateBookStatusChart(bookStatusData) {
-                if (!bookStatusData || Object.keys(bookStatusData).length === 0) {
+            function updateBookStatusChart(bookData) {
+                if (!bookData || bookData.length === 0) {
                     const canvas = document.getElementById('book-status-chart');
                     const ctx = canvas.getContext('2d');
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.font = '14px Arial, sans-serif';
                     ctx.fillStyle = '#7f8c8d';
                     ctx.textAlign = 'center';
@@ -423,22 +653,23 @@ $page_title = "Analytics Dashboard";
                     return;
                 }
                 
+                // Extract data for chart
+                const labels = bookData.map(item => item.label);
+                const values = bookData.map(item => item.value);
+                const colors = bookData.map(item => item.color);
+                
+                // Create chart data
                 const chartData = {
-                    labels: Object.keys(bookStatusData),
+                    labels: labels,
                     datasets: [{
-                        data: Object.values(bookStatusData),
-                        backgroundColor: [
-                            '#2ecc71', // Available
-                            '#e67e22', // Borrowed
-                            '#3498db', // Reserved
-                            '#95a5a6'  // Other
-                        ]
+                        data: values,
+                        backgroundColor: colors
                     }]
                 };
                 
-                window.bookStatusData = chartData;
+                globalChartData.bookStatus = chartData;
                 
-                drawPieChart('book-status-chart', chartData, 'Book Count');
+                drawPieChart('book-status-chart', chartData, 'Book Status');
             }
             
             /**
@@ -448,7 +679,7 @@ $page_title = "Analytics Dashboard";
                 const tableBody = document.querySelector('#top-pages-table tbody');
                 
                 if (!pageViewsData || pageViewsData.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="2" class="empty-cell">No data available for the selected period</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="5" class="empty-cell">No data available for the selected period</td></tr>';
                     return;
                 }
                 
@@ -458,6 +689,9 @@ $page_title = "Analytics Dashboard";
                         <tr>
                             <td>${item.page}</td>
                             <td>${item.view_count}</td>
+                            <td>${item.unique_users || '0'}</td>
+                            <td>${item.unique_sessions || '0'}</td>
+                            <td>${item.last_viewed || 'N/A'}</td>
                         </tr>
                     `;
                 });

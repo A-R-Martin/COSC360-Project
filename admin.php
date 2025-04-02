@@ -183,6 +183,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
             }, 800);
         });
     </script>
+    <?php include 'footer.php'; ?>
 </body>
 
 </html> 

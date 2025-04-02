@@ -436,5 +436,6 @@ if (isset($user['status']) && $user['status'] === 'banned') {
             }
         });
     </script>
+    <?php include 'footer.php'; ?>
 </body>
 </html> 

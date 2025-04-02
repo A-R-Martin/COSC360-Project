@@ -1,4 +1,3 @@
-
 const VirtualLibraryTracking = {
     /**
      * Initialize tracking
@@ -40,15 +39,56 @@ const VirtualLibraryTracking = {
      * Track page view
      */
     trackPageView: function() {
-        const currentPage = window.location.pathname.split('/').pop() || 'index.php';
+        const currentPath = window.location.pathname;
+        let currentPage = currentPath.split('/').pop() || 'index.php';
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        if (currentPage === 'book_detail.php') {
+            const bookId = urlParams.get('id');
+            if (bookId) {
+                currentPage = 'book_detail.php';
+            }
+        }
+        
+        const pageTitle = document.title;
+        
+        let pageType = 'general';
+        
+        // Check for book detail pages
+        if (currentPage === 'book_detail.php') {
+            pageType = 'book_detail';
+        }
+        
+        // Check for user profile pages
+        if (currentPath.includes('profile') || document.querySelector('.profile-header')) {
+            pageType = 'profile';
+        }
+        
+        // Check for search results
+        if (currentPath.includes('search') || document.querySelector('.search-results')) {
+            pageType = 'search';
+        }
+        
         const referrer = document.referrer;
         
-        this.logEvent('page_view', {
+        const eventData = {
             page: currentPage,
+            page_type: pageType,
+            page_title: pageTitle,
             referrer: referrer,
-            title: document.title,
+            full_path: currentPath,
             screen_size: `${window.innerWidth}x${window.innerHeight}`
-        });
+        };
+        
+        if (currentPage === 'book_detail.php') {
+            const bookId = urlParams.get('id');
+            if (bookId) {
+                eventData.book_id = bookId;
+            }
+        }
+        
+        this.logEvent('page_view', eventData);
     },
     
     /**
@@ -76,6 +116,17 @@ const VirtualLibraryTracking = {
     },
     
     /**
+     * Track user login
+     * @param {string} username - Username of the logged in user
+     */
+    trackLogin: function(username) {
+        this.logEvent('login', {
+            username: username,
+            timestamp: new Date().toISOString()
+        });
+    },
+    
+    /**
      * Set up tracking for API calls
      */
     setupAPITracking: function() {
@@ -84,6 +135,11 @@ const VirtualLibraryTracking = {
         // Override fetch to track API calls
         window.fetch = (...args) => {
             const url = args[0];
+            let method = 'GET';
+            
+            if (args.length > 1 && args[1] && args[1].method) {
+                method = args[1].method;
+            }
             
             // Only track API calls to our endpoints
             if (typeof url === 'string' && url.includes('api_')) {
@@ -96,6 +152,7 @@ const VirtualLibraryTracking = {
                     
                     this.logEvent('api_call', {
                         endpoint: apiEndpoint,
+                        method: method,
                         response_time: responseTime,
                         status: response.status
                     });

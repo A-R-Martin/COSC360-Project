@@ -310,5 +310,6 @@ $is_logged_in = isset($_SESSION['user_id']);
             loadBooks();
         });
     </script>
+    <?php include 'footer.php'; ?>
 </body>
 </html> 

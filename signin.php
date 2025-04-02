@@ -115,11 +115,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </section>
     </main>
     <script src="scripts.js"></script>
+    <script src="tracking.js"></script>
     <script>
         // Password visibility toggle
         document.addEventListener('DOMContentLoaded', function() {
             const togglePassword = document.querySelector('.toggle-password');
             const passwordInput = document.getElementById('password');
+            
+            // Track form submission
+            const signinForm = document.getElementById('signin-form');
+            if (signinForm) {
+                signinForm.addEventListener('submit', function(e) {
+                    const emailInput = document.getElementById('email');
+                    if (emailInput && emailInput.value) {
+                        setTimeout(function() {
+                            if (window.VirtualLibraryTracking) {
+                                VirtualLibraryTracking.trackLogin(emailInput.value);
+                            }
+                        }, 100);
+                    }
+                });
+            }
             
             // Add styles for password field
             const style = document.createElement('style');

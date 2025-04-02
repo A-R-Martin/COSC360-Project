@@ -4,5 +4,6 @@
         </div>
     </footer>
     <script src="scripts.js"></script>
+    <script src="tracking.js"></script>
 </body>
 </html> 
