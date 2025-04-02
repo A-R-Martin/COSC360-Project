@@ -148,13 +148,15 @@ try {
             // Query to get user activity from activity_logs
             $stmt = $conn->prepare("SELECT u.username, 
                                    COUNT(CASE WHEN al.event_type = 'book_view' THEN 1 END) as books_viewed,
-                                   COUNT(CASE WHEN al.event_type = 'book_search' THEN 1 END) as search_count,
-                                   COUNT(CASE WHEN al.event_type = 'login' OR al.event_type = 'signin' THEN 1 END) as login_count
+                                   COUNT(CASE WHEN al.event_type = 'login' OR al.event_type = 'signin' THEN 1 END) as login_count,
+                                   (SELECT COUNT(*) FROM user_books ub WHERE ub.user_id = u.user_id AND ub.status = 'borrowed') as books_borrowed,
+                                   (SELECT COUNT(*) FROM user_books ub WHERE ub.user_id = u.user_id AND ub.status = 'returned') as books_returned,
+                                   (SELECT COUNT(*) FROM book_comments bc WHERE bc.user_id = u.user_id) as comments_added
                                    FROM users u
                                    LEFT JOIN activity_logs al ON u.user_id = al.user_id
                                    WHERE u.user_id > 0 $timeConstraint
                                    GROUP BY u.user_id, u.username
-                                   ORDER BY books_viewed DESC, search_count DESC
+                                   ORDER BY books_borrowed DESC, books_viewed DESC
                                    LIMIT 20");
             $stmt->execute();
             $userActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -164,14 +166,18 @@ try {
                     [
                         'username' => 'admin',
                         'books_viewed' => 5,
-                        'search_count' => 3,
-                        'login_count' => 2
+                        'login_count' => 2,
+                        'books_borrowed' => 3,
+                        'books_returned' => 2,
+                        'comments_added' => 4
                     ],
                     [
                         'username' => 'test_user',
                         'books_viewed' => 3,
-                        'search_count' => 4,
-                        'login_count' => 1
+                        'login_count' => 1,
+                        'books_borrowed' => 2,
+                        'books_returned' => 1,
+                        'comments_added' => 2
                     ]
                 ];
             }

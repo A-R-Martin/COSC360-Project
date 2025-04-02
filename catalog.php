@@ -75,6 +75,22 @@ $is_logged_in = isset($_SESSION['user_id']);
                     currentSearchTerm = this.value.trim();
                     currentPage = 1; // Reset to first page on new search
                     loadBooks();
+                    
+                    if (isLoggedIn && currentSearchTerm) {
+                        fetch('api_tracking.php?action=log_event', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                event_type: 'book_search',
+                                event_data: JSON.stringify({
+                                    query: currentSearchTerm,
+                                    timestamp: new Date().toISOString()
+                                })
+                            })
+                        }).catch(error => console.error('Error tracking search:', error));
+                    }
                 }
             });
             

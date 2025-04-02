@@ -55,6 +55,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['role'] = $user['role'];
                 
+                // Track successful login
+                $logEvent = "INSERT INTO activity_logs (user_id, event_type, event_data, ip_address, user_agent, created_at) 
+                            VALUES (:user_id, :event_type, :event_data, :ip_address, :user_agent, NOW())";
+                $logStmt = $conn->prepare($logEvent);
+                $eventData = json_encode(['username' => $user['username'], 'timestamp' => date('Y-m-d H:i:s')]);
+                $logStmt->execute([
+                    'user_id' => $user['user_id'],
+                    'event_type' => 'login',
+                    'event_data' => $eventData,
+                    'ip_address' => $_SERVER['REMOTE_ADDR'],
+                    'user_agent' => $_SERVER['HTTP_USER_AGENT']
+                ]);
+                
                 // Redirect to profile page
                 header("Location: profile.php");
                 exit();
@@ -126,14 +139,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             const signinForm = document.getElementById('signin-form');
             if (signinForm) {
                 signinForm.addEventListener('submit', function(e) {
-                    const emailInput = document.getElementById('email');
-                    if (emailInput && emailInput.value) {
-                        setTimeout(function() {
-                            if (window.VirtualLibraryTracking) {
-                                VirtualLibraryTracking.trackLogin(emailInput.value);
-                            }
-                        }, 100);
-                    }
                 });
             }
             

@@ -165,12 +165,13 @@ $page_title = "Analytics Dashboard";
                                 <tr>
                                     <th>Username</th>
                                     <th>Books Viewed</th>
-                                    <th>Searches</th>
-                                    <th>Logins</th>
+                                    <th>Books Borrowed</th>
+                                    <th>Books Returned</th>
+                                    <th>Comments</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td colspan="4" class="loading-cell">Loading data...</td></tr>
+                                <tr><td colspan="5" class="loading-cell">Loading data...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -487,12 +488,14 @@ $page_title = "Analytics Dashboard";
                 // Prepare chart data
                 const chartLabels = [];
                 const booksViewed = [];
-                const searches = [];
-                const logins = [];
+                const booksBorrowed = [];
+                const booksReturned = [];
+                const commentsAdded = [];
                 const chartColors = {
-                    books: '#3498db',
-                    searches: '#2ecc71',
-                    logins: '#e74c3c'
+                    viewed: '#3498db',
+                    borrowed: '#2ecc71',
+                    returned: '#e74c3c',
+                    comments: '#f39c12'
                 };
                 
                 // Limit to top 5 users
@@ -501,8 +504,9 @@ $page_title = "Analytics Dashboard";
                 topUsers.forEach(user => {
                     chartLabels.push(user.username);
                     booksViewed.push(parseInt(user.books_viewed) || 0);
-                    searches.push(parseInt(user.search_count) || 0);
-                    logins.push(parseInt(user.login_count) || 0);
+                    booksBorrowed.push(parseInt(user.books_borrowed) || 0);
+                    booksReturned.push(parseInt(user.books_returned) || 0);
+                    commentsAdded.push(parseInt(user.comments_added) || 0);
                 });
                 
                 const chartData = {
@@ -511,17 +515,22 @@ $page_title = "Analytics Dashboard";
                         {
                             label: 'Books Viewed',
                             data: booksViewed,
-                            backgroundColor: chartColors.books
+                            backgroundColor: chartColors.viewed
                         },
                         {
-                            label: 'Searches',
-                            data: searches,
-                            backgroundColor: chartColors.searches
+                            label: 'Books Borrowed',
+                            data: booksBorrowed,
+                            backgroundColor: chartColors.borrowed
                         },
                         {
-                            label: 'Logins',
-                            data: logins,
-                            backgroundColor: chartColors.logins
+                            label: 'Books Returned',
+                            data: booksReturned,
+                            backgroundColor: chartColors.returned
+                        },
+                        {
+                            label: 'Comments',
+                            data: commentsAdded,
+                            backgroundColor: chartColors.comments
                         }
                     ],
                     originalData: userData
@@ -537,7 +546,7 @@ $page_title = "Analytics Dashboard";
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
                 // Draw stacked bar chart
-                const barWidth = Math.min(40, (canvas.width - 100) / chartLabels.length / 3);
+                const barWidth = Math.min(40, (canvas.width - 100) / chartLabels.length / 4);
                 const chartHeight = canvas.height - 60;
                 const chartBottom = canvas.height - 40;
                 const chartLeft = 60;
@@ -545,8 +554,9 @@ $page_title = "Analytics Dashboard";
                 // Calculate maximum value for scaling
                 const maxValue = Math.max(
                     ...booksViewed,
-                    ...searches,
-                    ...logins
+                    ...booksBorrowed,
+                    ...booksReturned,
+                    ...commentsAdded
                 );
                 
                 // Draw y-axis
@@ -591,44 +601,56 @@ $page_title = "Analytics Dashboard";
                 let legendX = chartLeft;
                 
                 // Books viewed legend
-                ctx.fillStyle = chartColors.books;
+                ctx.fillStyle = chartColors.viewed;
                 ctx.fillRect(legendX, legendY, 10, 10);
                 ctx.fillStyle = '#333';
                 ctx.textAlign = 'left';
                 ctx.fillText('Books Viewed', legendX + 15, legendY + 8);
                 
-                // Searches legend
+                // Books borrowed legend
                 legendX += legendSpacing;
-                ctx.fillStyle = chartColors.searches;
+                ctx.fillStyle = chartColors.borrowed;
                 ctx.fillRect(legendX, legendY, 10, 10);
                 ctx.fillStyle = '#333';
-                ctx.fillText('Searches', legendX + 15, legendY + 8);
+                ctx.fillText('Books Borrowed', legendX + 15, legendY + 8);
                 
-                // Logins legend
+                // Books returned legend
                 legendX += legendSpacing;
-                ctx.fillStyle = chartColors.logins;
+                ctx.fillStyle = chartColors.returned;
                 ctx.fillRect(legendX, legendY, 10, 10);
                 ctx.fillStyle = '#333';
-                ctx.fillText('Logins', legendX + 15, legendY + 8);
+                ctx.fillText('Books Returned', legendX + 15, legendY + 8);
+                
+                // Comments legend
+                legendX += legendSpacing;
+                ctx.fillStyle = chartColors.comments;
+                ctx.fillRect(legendX, legendY, 10, 10);
+                ctx.fillStyle = '#333';
+                ctx.fillText('Comments', legendX + 15, legendY + 8);
                 
                 // Draw bars for each user
                 chartLabels.forEach((username, index) => {
-                    const barGroupWidth = barWidth * 3 + 10;
+                    const barGroupWidth = barWidth * 4 + 10;
                     
                     // Books viewed bar
                     const booksHeight = (booksViewed[index] / maxValue) * chartHeight;
-                    ctx.fillStyle = chartColors.books;
+                    ctx.fillStyle = chartColors.viewed;
                     ctx.fillRect(currentBarX, chartBottom - booksHeight, barWidth, booksHeight);
                     
-                    // Searches bar
-                    const searchesHeight = (searches[index] / maxValue) * chartHeight;
-                    ctx.fillStyle = chartColors.searches;
-                    ctx.fillRect(currentBarX + barWidth, chartBottom - searchesHeight, barWidth, searchesHeight);
+                    // Books borrowed bar
+                    const borrowedHeight = (booksBorrowed[index] / maxValue) * chartHeight;
+                    ctx.fillStyle = chartColors.borrowed;
+                    ctx.fillRect(currentBarX + barWidth, chartBottom - borrowedHeight, barWidth, borrowedHeight);
                     
-                    // Logins bar
-                    const loginsHeight = (logins[index] / maxValue) * chartHeight;
-                    ctx.fillStyle = chartColors.logins;
-                    ctx.fillRect(currentBarX + barWidth * 2, chartBottom - loginsHeight, barWidth, loginsHeight);
+                    // Books returned bar
+                    const returnedHeight = (booksReturned[index] / maxValue) * chartHeight;
+                    ctx.fillStyle = chartColors.returned;
+                    ctx.fillRect(currentBarX + barWidth * 2, chartBottom - returnedHeight, barWidth, returnedHeight);
+                    
+                    // Comments bar
+                    const commentsHeight = (commentsAdded[index] / maxValue) * chartHeight;
+                    ctx.fillStyle = chartColors.comments;
+                    ctx.fillRect(currentBarX + barWidth * 3, chartBottom - commentsHeight, barWidth, commentsHeight);
                     
                     // Draw username label
                     ctx.fillStyle = '#333';
@@ -706,7 +728,7 @@ $page_title = "Analytics Dashboard";
                 const tableBody = document.querySelector('#active-users-table tbody');
                 
                 if (!userData || userData.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="4" class="empty-cell">No data available for the selected period</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="5" class="empty-cell">No data available for the selected period</td></tr>';
                     return;
                 }
                 
@@ -716,8 +738,9 @@ $page_title = "Analytics Dashboard";
                         <tr>
                             <td>${user.username}</td>
                             <td>${user.books_viewed || '0'}</td>
-                            <td>${user.search_count || '0'}</td>
-                            <td>${user.login_count || '0'}</td>
+                            <td>${user.books_borrowed || '0'}</td>
+                            <td>${user.books_returned || '0'}</td>
+                            <td>${user.comments_added || '0'}</td>
                         </tr>
                     `;
                 });
