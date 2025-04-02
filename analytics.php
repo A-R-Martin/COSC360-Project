@@ -199,7 +199,6 @@ $page_title = "Analytics Dashboard";
     
     <?php include 'footer.php'; ?>
     
-    <script src="tracking.js"></script>
     <script src="analytics_chart_utils.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
