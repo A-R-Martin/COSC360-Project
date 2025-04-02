@@ -20,6 +20,45 @@ $page_title = "Analytics Dashboard";
     <title><?php echo $page_title; ?> - Virtual Library</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="analytics_styles.css">
+    <style>
+        .last-update-info {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-left: 15px;
+            display: inline-block;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 5px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .auto-refresh-toggle {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 15px;
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        
+        .auto-refresh-toggle input {
+            margin-left: 5px;
+        }
+        
+        #countdown {
+            color: #6c757d;
+        }
+    </style>
 </head>
 <body class="analytics-page">
     <?php include 'nav.php'; ?>
@@ -41,6 +80,9 @@ $page_title = "Analytics Dashboard";
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="refresh-icon"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path><path d="M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
                         Refresh Data
                     </button>
+                    <div class="last-update-info">
+                        Last updated: <span id="last-updated">-</span> <span id="countdown">(Auto-refresh in 30s)</span>
+                    </div>
                 </div>
             </div>
         </section>
@@ -201,12 +243,39 @@ $page_title = "Analytics Dashboard";
     
     <script src="analytics_chart_utils.js"></script>
     <script>
+        let countdownInterval;
+        let secondsLeft = 30;
+        
         document.addEventListener('DOMContentLoaded', function() {
             loadDashboardData();
             
-            document.getElementById('time-period').addEventListener('change', loadDashboardData);
             document.getElementById('refresh-data').addEventListener('click', loadDashboardData);
+            
+            // When time period changes, refresh data
+            document.getElementById('time-period').addEventListener('change', loadDashboardData);
+            
             document.getElementById('export-data').addEventListener('click', exportAnalyticsData);
+            
+            function startCountdown() {
+                clearInterval(countdownInterval);
+                secondsLeft = 30;
+                updateCountdownDisplay();
+                
+                countdownInterval = setInterval(() => {
+                    secondsLeft--;
+                    updateCountdownDisplay();
+                    
+                    if (secondsLeft <= 0) {
+                        loadDashboardData();
+                    }
+                }, 1000);
+            }
+            
+            function updateCountdownDisplay() {
+                document.getElementById('countdown').textContent = `(Auto-refresh in ${secondsLeft}s)`;
+            }
+            
+            startCountdown();
             
             window.addEventListener('resize', function() {
                 const canvasElements = document.querySelectorAll('canvas');
@@ -256,6 +325,13 @@ $page_title = "Analytics Dashboard";
                     }
                 });
                 
+                const refreshBtn = document.getElementById('refresh-data');
+                const originalBtnText = refreshBtn.innerHTML;
+                refreshBtn.innerHTML = '<span class="loading-spinner"></span> Loading...';
+                refreshBtn.disabled = true;
+                
+                clearInterval(countdownInterval);
+                
                 loadOverviewData()
                     .then(() => loadPageViewsData(period))
                     .then(() => loadApiUsageData(period))
@@ -278,9 +354,20 @@ $page_title = "Analytics Dashboard";
                             if (globalChartData.bookStatus) {
                                 drawPieChart('book-status-chart', globalChartData.bookStatus, 'Book Status');
                             }
+                            
+                            refreshBtn.innerHTML = originalBtnText;
+                            refreshBtn.disabled = false;
+                            
+                            document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+                            
+                            startCountdown();
                         }, 300);
                     })
-                    .catch(error => console.error('Error loading dashboard data:', error));
+                    .catch(error => {
+                        console.error('Error loading dashboard data:', error);
+                        refreshBtn.innerHTML = originalBtnText;
+                        refreshBtn.disabled = false;
+                    });
             }
             
             /**

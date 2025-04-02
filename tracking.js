@@ -9,6 +9,9 @@ const VirtualLibraryTracking = {
         
         this.setupEventListeners();
         
+        this.lastEventTime = {};
+        this.minTimeBetweenEvents = 2000; // 2 seconds minimum between same events
+        
         console.log('Tracking initialized');
     },
     
@@ -18,6 +21,20 @@ const VirtualLibraryTracking = {
      * @param {object} eventData - Event data
      */
     logEvent: function(eventType, eventData = {}) {
+        if (eventType === 'api_call' && eventData.endpoint && 
+            (eventData.endpoint.includes('api_tracking.php') || 
+             eventData.endpoint.includes('log_event'))) {
+            return;
+        }
+        
+        const now = Date.now();
+        if (this.lastEventTime[eventType] && 
+            now - this.lastEventTime[eventType] < this.minTimeBetweenEvents) {
+            return;
+        }
+        
+        this.lastEventTime[eventType] = now;
+        
         const data = {
             event_type: eventType,
             event_data: JSON.stringify(eventData)
@@ -39,6 +56,18 @@ const VirtualLibraryTracking = {
      * Track page view
      */
     trackPageView: function() {
+        if (window.location.pathname.includes('analytics.php')) {
+            console.log('Page view tracking disabled on analytics page');
+            return;
+        }
+        
+        const sessionKey = 'vl_page_' + window.location.pathname;
+        if (sessionStorage.getItem(sessionKey)) {
+            return;
+        }
+        
+        sessionStorage.setItem(sessionKey, 'viewed');
+        
         const currentPath = window.location.pathname;
         let currentPage = currentPath.split('/').pop() || 'index.php';
         
@@ -132,6 +161,11 @@ const VirtualLibraryTracking = {
     setupAPITracking: function() {
         const originalFetch = window.fetch;
         
+        if (window.location.pathname.includes('analytics.php')) {
+            console.log('API tracking disabled on analytics page');
+            return;
+        }
+        
         // Override fetch to track API calls
         window.fetch = (...args) => {
             const url = args[0];
@@ -142,7 +176,10 @@ const VirtualLibraryTracking = {
             }
             
             // Only track API calls to our endpoints
-            if (typeof url === 'string' && url.includes('api_')) {
+            if (typeof url === 'string' && 
+                url.includes('api_') && 
+                !url.includes('api_tracking.php') &&
+                !url.includes('log_event')) {
                 const apiEndpoint = url.split('?')[0];
                 const startTime = performance.now();
                 
