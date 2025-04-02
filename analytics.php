@@ -58,6 +58,67 @@ $page_title = "Analytics Dashboard";
         #countdown {
             color: #6c757d;
         }
+        
+        .analytics-time-filters {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        .filter-controls {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .export-controls {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .export-message {
+            font-size: 0.85rem;
+            margin-left: 10px;
+            display: inline-block;
+        }
+        
+        .export-message.success {
+            color: #28a745;
+        }
+        
+        .export-message.error {
+            color: #dc3545;
+        }
+        
+        .export-message.info {
+            color: #17a2b8;
+        }
+        
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+        
+        @media (max-width: 768px) {
+            .analytics-time-filters {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .export-controls {
+                margin-top: 10px;
+                margin-left: 0;
+            }
+        }
     </style>
 </head>
 <body class="analytics-page">
@@ -70,18 +131,32 @@ $page_title = "Analytics Dashboard";
                 <p class="subtitle">Track usage patterns, user activity, and system performance</p>
                 
                 <div class="analytics-time-filters">
-                    <select id="time-period" class="filter-select">
-                        <option value="day">Last 24 Hours</option>
-                        <option value="week" selected>Last Week</option>
-                        <option value="month">Last Month</option>
-                        <option value="year">Last Year</option>
-                    </select>
-                    <button id="refresh-data" class="btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="refresh-icon"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path><path d="M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-                        Refresh Data
-                    </button>
-                    <div class="last-update-info">
-                        Last updated: <span id="last-updated">-</span> <span id="countdown">(Auto-refresh in 30s)</span>
+                    <div class="filter-controls">
+                        <select id="time-period" class="filter-select">
+                            <option value="day">Last 24 Hours</option>
+                            <option value="week" selected>Last Week</option>
+                            <option value="month">Last Month</option>
+                            <option value="year">Last Year</option>
+                        </select>
+                        <button id="refresh-data" class="btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="refresh-icon"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path><path d="M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                            Refresh Data
+                        </button>
+                        <div class="last-update-info">
+                            Last updated: <span id="last-updated">-</span> <span id="countdown">(Auto-refresh in 30s)</span>
+                        </div>
+                    </div>
+                    <div class="export-controls">
+                        <select id="export-type" class="filter-select">
+                            <option value="page_views">Page Views</option>
+                            <option value="api_usage">API Usage</option>
+                            <option value="user_activity">User Activity</option>
+                            <option value="all_analytics">All Analytics</option>
+                        </select>
+                        <button id="export-data" class="btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="download-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            Export CSV
+                        </button>
                     </div>
                 </div>
             </div>
@@ -219,23 +294,6 @@ $page_title = "Analytics Dashboard";
                     </div>
                 </div>
             </div>
-        </section>
-        
-        <section class="analytics-export container">
-            <h2>Export Data</h2>
-            <div class="export-controls">
-                <select id="export-type" class="filter-select">
-                    <option value="page_views">Page Views</option>
-                    <option value="api_usage">API Usage</option>
-                    <option value="user_activity">User Activity</option>
-                    <option value="all_analytics">All Analytics</option>
-                </select>
-                <button id="export-data" class="btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="download-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    Export CSV
-                </button>
-            </div>
-            <div id="export-message" class="export-message"></div>
         </section>
     </main>
     
@@ -843,26 +901,61 @@ $page_title = "Analytics Dashboard";
             function exportAnalyticsData() {
                 const exportType = document.getElementById('export-type').value;
                 const period = document.getElementById('time-period').value;
-                const messageElement = document.getElementById('export-message');
+                const exportBtn = document.getElementById('export-data');
                 
-                messageElement.textContent = 'Preparing export...';
-                messageElement.className = 'export-message info';
+                const originalBtnHTML = exportBtn.innerHTML;
+                const originalBtnClass = exportBtn.className;
+                
+                exportBtn.innerHTML = '<span class="loading-spinner"></span> Exporting...';
+                exportBtn.disabled = true;
                 
                 if (exportType === 'all_analytics') {
-                    downloadCSVForType('page_views', period);
-                    downloadCSVForType('api_usage', period);
-                    downloadCSVForType('user_activity', period);
-                    
-                    messageElement.textContent = 'All exports completed!';
-                    messageElement.className = 'export-message success';
+                    Promise.all([
+                        downloadCSVForType('page_views', period),
+                        downloadCSVForType('api_usage', period),
+                        downloadCSVForType('user_activity', period)
+                    ])
+                    .then(() => {
+                        exportBtn.innerHTML = 'Export Successful';
+                        exportBtn.className = 'btn btn-success';
+                        
+                        setTimeout(() => {
+                            exportBtn.innerHTML = originalBtnHTML;
+                            exportBtn.className = originalBtnClass;
+                            exportBtn.disabled = false;
+                        }, 2000);
+                    })
+                    .catch(error => {
+                        console.error('Error during export:', error);
+                        exportBtn.innerHTML = originalBtnHTML;
+                        exportBtn.className = originalBtnClass;
+                        exportBtn.disabled = false;
+                    });
                 } else {
-                    downloadCSVForType(exportType, period);
-                    
-                    messageElement.textContent = 'Export completed!';
-                    messageElement.className = 'export-message success';
+                    downloadCSVForType(exportType, period)
+                    .then(() => {
+                        exportBtn.innerHTML = 'Export Successful';
+                        exportBtn.className = 'btn btn-success';
+                        
+                        setTimeout(() => {
+                            exportBtn.innerHTML = originalBtnHTML;
+                            exportBtn.className = originalBtnClass;
+                            exportBtn.disabled = false;
+                        }, 2000);
+                    })
+                    .catch(error => {
+                        console.error('Error during export:', error);
+                        exportBtn.innerHTML = originalBtnHTML;
+                        exportBtn.className = originalBtnClass;
+                        exportBtn.disabled = false;
+                    });
                 }
             }
             
+            /**
+             * Download CSV for a specific type
+             * @returns {Promise} A promise that resolves when download is complete
+             */
             function downloadCSVForType(exportType, period) {
                 let apiEndpoint = '';
                 switch (exportType) {
@@ -876,11 +969,10 @@ $page_title = "Analytics Dashboard";
                         apiEndpoint = `api_tracking.php?action=get_user_activity&period=${period}`;
                         break;
                     default:
-                        console.error('Invalid export type');
-                        return;
+                        return Promise.reject(new Error('Invalid export type'));
                 }
                 
-                fetch(apiEndpoint)
+                return fetch(apiEndpoint)
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'success' && data.data) {
@@ -890,12 +982,10 @@ $page_title = "Analytics Dashboard";
                             // Download the CSV file
                             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
                             downloadCSV(csv, `${exportType}_${timestamp}.csv`);
+                            return true;
                         } else {
-                            console.error('Error fetching data:', data.message || 'Unknown error');
+                            throw new Error(data.message || 'Unknown error');
                         }
-                    })
-                    .catch(error => {
-                        console.error('Error during fetch:', error);
                     });
             }
             
