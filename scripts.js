@@ -899,8 +899,11 @@ function loadUserProfile() {
                 if (user.profile_image) {
                     profileImage.src = user.profile_image;
                 } else {
-                    // Black magic fuckery that makes a transparent gif for user profile image if no image is set, actually a really neat idea tbh
                     profileImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                }
+
+                if (user.comments) {
+                    displayUserComments(user.comments);
                 }
             } else {
                 showFormMessage(data.message, 'error');
@@ -910,6 +913,52 @@ function loadUserProfile() {
             console.error('Error loading user profile:', error);
             showFormMessage('Error loading user profile. Please try again later.', 'error');
         });
+}
+
+/**
+ * Display user comments in the comments container
+ */
+function displayUserComments(comments) {
+    const container = document.getElementById('comments-container');
+    
+    if (!container) return;
+    
+    if (comments.length === 0) {
+        container.innerHTML = '<p class="no-comments">You haven\'t made any comments yet.</p>';
+        return;
+    }
+    
+    let tableHTML = `
+        <div class="data-table">
+            <table id="user-comments">
+                <thead>
+                    <tr>
+                        <th>Book Title</th>
+                        <th>Comment</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    comments.forEach(comment => {
+        const commentDate = new Date(comment.created_at).toLocaleDateString();
+        tableHTML += `
+            <tr>
+                <td>${comment.book_title}</td>
+                <td class="comment-text">${comment.comment}</td>
+                <td>${commentDate}</td>
+            </tr>
+        `;
+    });
+    
+    tableHTML += `
+                </tbody>
+            </table>
+        </div>
+    `;
+    
+    container.innerHTML = tableHTML;
 }
 
 /**

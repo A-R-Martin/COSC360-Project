@@ -110,7 +110,8 @@ CREATE TABLE IF NOT EXISTS book_comments (
     FOREIGN KEY (book_id) REFERENCES books(book_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     INDEX (book_id),
-    INDEX (user_id)
+    INDEX (user_id),
+    INDEX (created_at)
 );
 
 CREATE TABLE IF NOT EXISTS history_entries (
