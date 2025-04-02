@@ -762,6 +762,22 @@ $page_title = "Analytics Dashboard";
                 messageElement.textContent = 'Preparing export...';
                 messageElement.className = 'export-message info';
                 
+                if (exportType === 'all_analytics') {
+                    downloadCSVForType('page_views', period);
+                    downloadCSVForType('api_usage', period);
+                    downloadCSVForType('user_activity', period);
+                    
+                    messageElement.textContent = 'All exports completed!';
+                    messageElement.className = 'export-message success';
+                } else {
+                    downloadCSVForType(exportType, period);
+                    
+                    messageElement.textContent = 'Export completed!';
+                    messageElement.className = 'export-message success';
+                }
+            }
+            
+            function downloadCSVForType(exportType, period) {
                 let apiEndpoint = '';
                 switch (exportType) {
                     case 'page_views':
@@ -773,9 +789,9 @@ $page_title = "Analytics Dashboard";
                     case 'user_activity':
                         apiEndpoint = `api_tracking.php?action=get_user_activity&period=${period}`;
                         break;
-                    case 'all_analytics':
-                        apiEndpoint = `api_tracking.php?action=get_analytics_dashboard`;
-                        break;
+                    default:
+                        console.error('Invalid export type');
+                        return;
                 }
                 
                 fetch(apiEndpoint)
@@ -788,18 +804,12 @@ $page_title = "Analytics Dashboard";
                             // Download the CSV file
                             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
                             downloadCSV(csv, `${exportType}_${timestamp}.csv`);
-                            
-                            messageElement.textContent = 'Export completed successfully!';
-                            messageElement.className = 'export-message success';
                         } else {
-                            messageElement.textContent = 'Error exporting data: ' + (data.message || 'Unknown error');
-                            messageElement.className = 'export-message error';
+                            console.error('Error fetching data:', data.message || 'Unknown error');
                         }
                     })
                     .catch(error => {
-                        console.error('Error exporting data:', error);
-                        messageElement.textContent = 'Error exporting data: ' + error.message;
-                        messageElement.className = 'export-message error';
+                        console.error('Error during fetch:', error);
                     });
             }
             
