@@ -546,8 +546,8 @@ $page_title = "Analytics Dashboard";
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
                 // Draw stacked bar chart
-                const barWidth = Math.min(40, (canvas.width - 100) / chartLabels.length / 4);
-                const chartHeight = canvas.height - 60;
+                const barWidth = Math.min(30, (canvas.width - 120) / chartLabels.length / 4);
+                const chartHeight = canvas.height - 90;
                 const chartBottom = canvas.height - 40;
                 const chartLeft = 60;
                 
@@ -557,11 +557,11 @@ $page_title = "Analytics Dashboard";
                     ...booksBorrowed,
                     ...booksReturned,
                     ...commentsAdded
-                );
+                ) * 1.1;
                 
                 // Draw y-axis
                 ctx.beginPath();
-                ctx.moveTo(chartLeft, 20);
+                ctx.moveTo(chartLeft, 30);
                 ctx.lineTo(chartLeft, chartBottom);
                 ctx.strokeStyle = '#ddd';
                 ctx.stroke();
@@ -596,9 +596,12 @@ $page_title = "Analytics Dashboard";
                 let currentBarX = chartLeft + 20;
                 
                 // Draw legend
-                const legendY = 15;
-                const legendSpacing = 80;
+                const legendY = 20;
+                const legendSpacing = Math.min(75, (canvas.width - 100) / 4); 
                 let legendX = chartLeft;
+                
+                const legendFontSize = canvas.width < 500 ? '8px' : '10px';
+                ctx.font = `${legendFontSize} Arial, sans-serif`;
                 
                 // Books viewed legend
                 ctx.fillStyle = chartColors.viewed;
