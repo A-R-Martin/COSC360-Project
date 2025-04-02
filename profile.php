@@ -183,9 +183,16 @@ if (isset($user['status']) && $user['status'] === 'banned') {
                         </table>
                     </div>
                 </div>
+
+                <div class="profile-section">
+                    <h2>My Comments</h2>
+                    <div id="comments-container" class="comments-list">
+                    </div>
+                </div>
             </div>
         </section>
     </main>
+
     <script src="scripts.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {

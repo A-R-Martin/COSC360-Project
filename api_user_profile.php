@@ -33,6 +33,18 @@ try {
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if ($user) {
+                $stmt = $conn->prepare("
+                    SELECT bc.*, b.title as book_title 
+                    FROM book_comments bc 
+                    JOIN books b ON bc.book_id = b.book_id 
+                    WHERE bc.user_id = :user_id 
+                    ORDER BY bc.created_at DESC
+                ");
+                $stmt->execute(['user_id' => $_SESSION['user_id']]);
+                $comments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                $user['comments'] = $comments;
+                
                 $response = [
                     'status' => 'success',
                     'message' => 'User profile retrieved successfully',
