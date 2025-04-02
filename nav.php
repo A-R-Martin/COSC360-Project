@@ -26,6 +26,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     <!-- Show these links when logged in -->
                     <?php if ($isAdmin): ?>
                         <a href="admin.php" class="nav-button <?php echo ($current_page == 'admin.php') ? 'active' : ''; ?>">Admin</a>
+                        <a href="analytics.php" class="nav-button <?php echo ($current_page == 'analytics.php') ? 'active' : ''; ?>">Analytics</a>
                     <?php endif; ?>
                     <a href="profile.php" class="nav-button <?php echo ($current_page == 'profile.php') ? 'active' : ''; ?>">Profile</a>
                     <a href="logout.php" class="nav-button logout-btn">Logout</a>

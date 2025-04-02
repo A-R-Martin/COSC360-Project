@@ -15,6 +15,8 @@ if (!function_exists('db_log')) {
     <title>Virtual Library</title>
     <?php endif; ?>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="analytics_styles.css">
+    <script src="tracking.js"></script>
 </head>
 <body>
     <?php include_once 'nav.php'; ?> 

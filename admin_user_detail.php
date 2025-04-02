@@ -203,6 +203,7 @@ try {
         </section>
     </main>
     <script src="scripts.js"></script>
+    <?php include 'footer.php'; ?>
 </body>
 
 </html> 

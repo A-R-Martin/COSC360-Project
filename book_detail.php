@@ -28,6 +28,24 @@ try {
         exit;
     }
     
+    if ($is_logged_in) {
+        $logEvent = "INSERT INTO activity_logs (user_id, event_type, event_data, ip_address, user_agent, created_at) 
+                    VALUES (:user_id, :event_type, :event_data, :ip_address, :user_agent, NOW())";
+        $logStmt = $conn->prepare($logEvent);
+        $eventData = json_encode([
+            'book_id' => $book_id,
+            'title' => $book['title'],
+            'timestamp' => date('Y-m-d H:i:s')
+        ]);
+        $logStmt->execute([
+            'user_id' => $user_id,
+            'event_type' => 'book_view',
+            'event_data' => $eventData,
+            'ip_address' => $_SERVER['REMOTE_ADDR'],
+            'user_agent' => $_SERVER['HTTP_USER_AGENT']
+        ]);
+    }
+    
     // If user is logged in, check if they have a relationship with this book
     $user_book_status = null;
     if ($is_logged_in) {
