@@ -1,8 +1,8 @@
 <?php
 $host = "localhost";
-$username = "root";
-$password = "";
-$database = "virtual_library";
+$username = "zali05";
+$password = "zali05";
+$database = "zali05";
 
 // Create error log file
 $db_log_file = 'db_connect_log.txt';
