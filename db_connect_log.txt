@@ -1,0 +1,492 @@
+[2025-04-10 09:50:30] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 09:50:30] Successfully connected to database using PDO
+[2025-04-10 09:50:30] 'users' table exists in the database
+[2025-04-10 09:50:30] Error reporting enabled for local environment
+[2025-04-10 09:53:08] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 09:53:08] Successfully connected to database using PDO
+[2025-04-10 09:53:08] 'users' table exists in the database
+[2025-04-10 09:53:08] Error reporting enabled for local environment
+[2025-04-10 09:53:11] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 09:53:11] Successfully connected to database using PDO
+[2025-04-10 09:53:11] 'users' table exists in the database
+[2025-04-10 09:53:11] Error reporting enabled for local environment
+[2025-04-10 09:54:45] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 09:54:45] Successfully connected to database using PDO
+[2025-04-10 09:54:45] 'users' table exists in the database
+[2025-04-10 09:54:45] Error reporting enabled for local environment
+[2025-04-10 09:54:45] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 09:54:45] Successfully connected to database using PDO
+[2025-04-10 09:54:45] 'users' table exists in the database
+[2025-04-10 09:54:45] Error reporting enabled for local environment
+[2025-04-10 09:55:02] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 09:55:02] Successfully connected to database using PDO
+[2025-04-10 09:55:02] 'users' table exists in the database
+[2025-04-10 09:55:02] Error reporting enabled for local environment
+[2025-04-10 09:55:02] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 09:55:02] Successfully connected to database using PDO
+[2025-04-10 09:55:02] 'users' table exists in the database
+[2025-04-10 09:55:02] Error reporting enabled for local environment
+[2025-04-10 09:57:28] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 09:57:28] Successfully connected to database using PDO
+[2025-04-10 09:57:28] 'users' table exists in the database
+[2025-04-10 09:57:28] Error reporting enabled for local environment
+[2025-04-10 09:57:28] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 09:57:28] Successfully connected to database using PDO
+[2025-04-10 09:57:28] 'users' table exists in the database
+[2025-04-10 09:57:28] Error reporting enabled for local environment
+[2025-04-10 09:57:28] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 09:57:28] Successfully connected to database using PDO
+[2025-04-10 09:57:28] 'users' table exists in the database
+[2025-04-10 09:57:28] Error reporting enabled for local environment
+[2025-04-10 09:57:28] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 09:57:28] Successfully connected to database using PDO
+[2025-04-10 09:57:28] 'users' table exists in the database
+[2025-04-10 09:57:28] Error reporting enabled for local environment
+[2025-04-10 09:57:28] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 09:57:28] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 09:57:28] Successfully connected to database using PDO
+[2025-04-10 09:57:28] 'users' table exists in the database
+[2025-04-10 09:57:28] Error reporting enabled for local environment
+[2025-04-10 09:57:28] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 09:57:28] Successfully connected to database using PDO
+[2025-04-10 09:57:28] Successfully connected to database using PDO
+[2025-04-10 09:57:28] 'users' table exists in the database
+[2025-04-10 09:57:28] 'users' table exists in the database
+ronment
+[2025-04-10 09:57:28] Error reporting enabled for local environment
+[2025-04-10 09:57:34] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 09:57:34] Successfully connected to database using PDO
+[2025-04-10 09:57:34] 'users' table exists in the database
+[2025-04-10 09:57:34] Error reporting enabled for local environment
+[2025-04-10 09:58:03] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 09:58:03] Successfully connected to database using PDO
+[2025-04-10 09:58:03] 'users' table exists in the database
+[2025-04-10 09:58:03] Error reporting enabled for local environment
+[2025-04-10 09:58:03] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 09:58:03] Successfully connected to database using PDO
+[2025-04-10 09:58:03] 'users' table exists in the database
+[2025-04-10 09:58:03] Error reporting enabled for local environment
+[2025-04-10 09:58:03] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 09:58:03] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 09:58:03] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 09:58:03] Successfully connected to database using PDO
+[2025-04-10 09:58:03] Successfully connected to database using PDO
+[2025-04-10 09:58:03] 'users' table exists in the database
+[2025-04-10 09:58:03] Error reporting enabled for local environment
+[2025-04-10 09:58:03] 'users' table exists in the database
+[2025-04-10 09:58:03] Error reporting enabled for local environment
+[2025-04-10 09:58:03] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 09:58:03] Successfully connected to database using PDO
+[2025-04-10 09:58:03] 'users' table exists in the database
+[2025-04-10 09:58:03] Error reporting enabled for local environment
+[2025-04-10 09:58:03] Successfully connected to database using PDO
+[2025-04-10 09:58:03] 'users' table exists in the database
+[2025-04-10 09:58:03] Error reporting enabled for local environment
+[2025-04-10 20:01:35] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:01:35] Successfully connected to database using PDO
+[2025-04-10 20:01:35] 'users' table exists in the database
+[2025-04-10 20:01:35] Error reporting enabled for local environment
+[2025-04-10 20:01:35] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:01:35] Successfully connected to database using PDO
+[2025-04-10 20:01:35] 'users' table exists in the database
+[2025-04-10 20:01:35] Error reporting enabled for local environment
+[2025-04-10 20:01:35] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:01:35] Successfully connected to database using PDO
+[2025-04-10 20:01:35] 'users' table exists in the database
+[2025-04-10 20:01:35] Error reporting enabled for local environment
+[2025-04-10 20:01:36] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:01:36] Successfully connected to database using PDO
+[2025-04-10 20:01:36] 'users' table exists in the database
+[2025-04-10 20:01:36] Error reporting enabled for local environment
+[2025-04-10 20:28:51] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:28:51] Successfully connected to database using PDO
+[2025-04-10 20:28:51] 'users' table exists in the database
+[2025-04-10 20:28:51] Error reporting enabled for local environment
+[2025-04-10 20:28:51] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:28:51] Successfully connected to database using PDO
+[2025-04-10 20:28:51] 'users' table exists in the database
+[2025-04-10 20:28:51] Error reporting enabled for local environment
+[2025-04-10 20:28:51] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:28:51] Successfully connected to database using PDO
+[2025-04-10 20:28:51] 'users' table exists in the database
+[2025-04-10 20:28:51] Error reporting enabled for local environment
+[2025-04-10 20:28:52] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:28:52] Successfully connected to database using PDO
+[2025-04-10 20:28:52] 'users' table exists in the database
+[2025-04-10 20:28:52] Error reporting enabled for local environment
+[2025-04-10 20:28:52] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:28:52] Successfully connected to database using PDO
+[2025-04-10 20:28:52] 'users' table exists in the database
+[2025-04-10 20:28:52] Error reporting enabled for local environment
+[2025-04-10 20:28:52] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:28:52] Successfully connected to database using PDO
+[2025-04-10 20:28:52] 'users' table exists in the database
+[2025-04-10 20:28:52] Error reporting enabled for local environment
+[2025-04-10 20:28:52] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:28:52] Successfully connected to database using PDO
+[2025-04-10 20:28:52] 'users' table exists in the database
+[2025-04-10 20:28:52] Error reporting enabled for local environment
+[2025-04-10 20:28:52] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:28:52] Successfully connected to database using PDO
+[2025-04-10 20:28:52] 'users' table exists in the database
+[2025-04-10 20:28:52] Error reporting enabled for local environment
+[2025-04-10 20:28:52] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:28:52] Successfully connected to database using PDO
+[2025-04-10 20:28:52] 'users' table exists in the database
+[2025-04-10 20:28:52] Error reporting enabled for local environment
+[2025-04-10 20:28:52] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:28:52] Successfully connected to database using PDO
+[2025-04-10 20:28:52] 'users' table exists in the database
+[2025-04-10 20:28:52] Error reporting enabled for local environment
+[2025-04-10 20:28:52] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:28:52] Successfully connected to database using PDO
+[2025-04-10 20:28:52] 'users' table exists in the database
+[2025-04-10 20:28:52] Error reporting enabled for local environment
+[2025-04-10 20:28:53] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:28:53] Successfully connected to database using PDO
+[2025-04-10 20:28:53] 'users' table exists in the database
+[2025-04-10 20:28:53] Error reporting enabled for local environment
+[2025-04-10 20:28:53] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:28:53] Successfully connected to database using PDO
+[2025-04-10 20:28:53] 'users' table exists in the database
+[2025-04-10 20:28:53] Error reporting enabled for local environment
+[2025-04-10 20:28:53] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:28:53] Successfully connected to database using PDO
+[2025-04-10 20:28:53] 'users' table exists in the database
+[2025-04-10 20:28:53] Error reporting enabled for local environment
+[2025-04-10 20:28:53] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:28:53] Successfully connected to database using PDO
+[2025-04-10 20:28:53] 'users' table exists in the database
+[2025-04-10 20:28:53] Error reporting enabled for local environment
+[2025-04-10 20:28:53] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:28:53] Successfully connected to database using PDO
+[2025-04-10 20:28:53] 'users' table exists in the database
+[2025-04-10 20:28:53] Error reporting enabled for local environment
+[2025-04-10 20:36:26] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:36:26] Successfully connected to database using PDO
+[2025-04-10 20:36:26] 'users' table exists in the database
+[2025-04-10 20:36:26] Error reporting enabled for local environment
+[2025-04-10 20:36:26] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:36:26] Successfully connected to database using PDO
+[2025-04-10 20:36:26] 'users' table exists in the database
+[2025-04-10 20:36:26] Error reporting enabled for local environment
+[2025-04-10 20:36:26] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:36:26] Successfully connected to database using PDO
+[2025-04-10 20:36:26] 'users' table exists in the database
+[2025-04-10 20:36:26] Error reporting enabled for local environment
+[2025-04-10 20:36:26] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:36:26] Successfully connected to database using PDO
+[2025-04-10 20:36:26] 'users' table exists in the database
+[2025-04-10 20:36:26] Error reporting enabled for local environment
+[2025-04-10 20:36:26] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:36:26] Successfully connected to database using PDO
+[2025-04-10 20:36:26] 'users' table exists in the database
+[2025-04-10 20:36:26] Error reporting enabled for local environment
+[2025-04-10 20:36:26] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:36:26] Successfully connected to database using PDO
+[2025-04-10 20:36:26] 'users' table exists in the database
+[2025-04-10 20:36:26] Error reporting enabled for local environment
+[2025-04-10 20:36:26] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:36:26] Successfully connected to database using PDO
+[2025-04-10 20:36:26] 'users' table exists in the database
+[2025-04-10 20:36:26] Error reporting enabled for local environment
+[2025-04-10 20:36:26] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:36:26] Successfully connected to database using PDO
+[2025-04-10 20:36:26] 'users' table exists in the database
+[2025-04-10 20:36:26] Error reporting enabled for local environment
+[2025-04-10 20:36:26] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:36:26] Successfully connected to database using PDO
+[2025-04-10 20:36:26] 'users' table exists in the database
+[2025-04-10 20:36:26] Error reporting enabled for local environment
+[2025-04-10 20:36:26] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:36:26] Successfully connected to database using PDO
+[2025-04-10 20:36:26] 'users' table exists in the database
+[2025-04-10 20:36:26] Error reporting enabled for local environment
+[2025-04-10 20:36:26] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:36:26] Successfully connected to database using PDO
+[2025-04-10 20:36:26] 'users' table exists in the database
+[2025-04-10 20:36:26] Error reporting enabled for local environment
+[2025-04-10 20:36:26] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:36:27] Successfully connected to database using PDO
+[2025-04-10 20:36:27] 'users' table exists in the database
+[2025-04-10 20:36:27] Error reporting enabled for local environment
+[2025-04-10 20:36:27] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:36:27] Successfully connected to database using PDO
+[2025-04-10 20:36:27] 'users' table exists in the database
+[2025-04-10 20:36:27] Error reporting enabled for local environment
+[2025-04-10 20:36:27] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:36:27] Successfully connected to database using PDO
+[2025-04-10 20:36:27] 'users' table exists in the database
+[2025-04-10 20:36:27] Error reporting enabled for local environment
+[2025-04-10 20:36:27] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:36:27] Successfully connected to database using PDO
+[2025-04-10 20:36:27] 'users' table exists in the database
+[2025-04-10 20:36:27] Error reporting enabled for local environment
+[2025-04-10 20:36:27] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:36:27] Successfully connected to database using PDO
+[2025-04-10 20:36:27] 'users' table exists in the database
+[2025-04-10 20:36:27] Error reporting enabled for local environment
+[2025-04-10 20:42:28] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:42:28] Successfully connected to database using PDO
+[2025-04-10 20:42:28] 'users' table exists in the database
+[2025-04-10 20:42:28] Error reporting enabled for local environment
+[2025-04-10 20:42:28] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:42:28] Successfully connected to database using PDO
+[2025-04-10 20:42:28] 'users' table exists in the database
+[2025-04-10 20:42:28] Error reporting enabled for local environment
+[2025-04-10 20:42:28] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:42:28] Successfully connected to database using PDO
+[2025-04-10 20:42:28] 'users' table exists in the database
+[2025-04-10 20:42:28] Error reporting enabled for local environment
+[2025-04-10 20:42:28] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:42:28] Successfully connected to database using PDO
+[2025-04-10 20:42:28] 'users' table exists in the database
+[2025-04-10 20:42:28] Error reporting enabled for local environment
+[2025-04-10 20:42:28] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:42:28] Successfully connected to database using PDO
+[2025-04-10 20:42:28] 'users' table exists in the database
+[2025-04-10 20:42:28] Error reporting enabled for local environment
+[2025-04-10 20:42:28] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:42:28] Successfully connected to database using PDO
+[2025-04-10 20:42:28] 'users' table exists in the database
+[2025-04-10 20:42:28] Error reporting enabled for local environment
+[2025-04-10 20:42:28] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:42:28] Successfully connected to database using PDO
+[2025-04-10 20:42:28] 'users' table exists in the database
+[2025-04-10 20:42:28] Error reporting enabled for local environment
+[2025-04-10 20:42:28] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:42:28] Successfully connected to database using PDO
+[2025-04-10 20:42:28] 'users' table exists in the database
+[2025-04-10 20:42:28] Error reporting enabled for local environment
+[2025-04-10 20:42:29] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:42:29] Successfully connected to database using PDO
+[2025-04-10 20:42:29] 'users' table exists in the database
+[2025-04-10 20:42:29] Error reporting enabled for local environment
+[2025-04-10 20:42:29] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:42:29] Successfully connected to database using PDO
+[2025-04-10 20:42:29] 'users' table exists in the database
+[2025-04-10 20:42:29] Error reporting enabled for local environment
+[2025-04-10 20:42:29] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:42:29] Successfully connected to database using PDO
+[2025-04-10 20:42:29] 'users' table exists in the database
+[2025-04-10 20:42:29] Error reporting enabled for local environment
+[2025-04-10 20:42:29] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:42:29] Successfully connected to database using PDO
+[2025-04-10 20:42:29] 'users' table exists in the database
+[2025-04-10 20:42:29] Error reporting enabled for local environment
+[2025-04-10 20:42:29] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:42:29] Successfully connected to database using PDO
+[2025-04-10 20:42:29] 'users' table exists in the database
+[2025-04-10 20:42:29] Error reporting enabled for local environment
+[2025-04-10 20:42:29] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:42:29] Successfully connected to database using PDO
+[2025-04-10 20:42:29] 'users' table exists in the database
+[2025-04-10 20:42:29] Error reporting enabled for local environment
+[2025-04-10 20:42:29] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:42:29] Successfully connected to database using PDO
+[2025-04-10 20:42:29] 'users' table exists in the database
+[2025-04-10 20:42:29] Error reporting enabled for local environment
+[2025-04-10 20:42:29] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:42:29] Successfully connected to database using PDO
+[2025-04-10 20:42:29] 'users' table exists in the database
+[2025-04-10 20:42:29] Error reporting enabled for local environment
+[2025-04-10 20:42:29] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:42:29] Successfully connected to database using PDO
+[2025-04-10 20:42:29] 'users' table exists in the database
+[2025-04-10 20:42:29] Error reporting enabled for local environment
+[2025-04-10 20:42:29] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:42:29] Successfully connected to database using PDO
+[2025-04-10 20:42:29] 'users' table exists in the database
+[2025-04-10 20:42:29] Error reporting enabled for local environment
+[2025-04-10 20:42:29] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:42:29] Successfully connected to database using PDO
+[2025-04-10 20:42:29] 'users' table exists in the database
+[2025-04-10 20:42:29] Error reporting enabled for local environment
+[2025-04-10 20:42:29] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:42:29] Successfully connected to database using PDO
+[2025-04-10 20:42:29] 'users' table exists in the database
+[2025-04-10 20:42:29] Error reporting enabled for local environment
+[2025-04-10 20:47:19] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:19] Successfully connected to database using PDO
+[2025-04-10 20:47:19] 'users' table exists in the database
+[2025-04-10 20:47:19] Error reporting enabled for local environment
+[2025-04-10 20:47:19] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:19] Successfully connected to database using PDO
+[2025-04-10 20:47:19] 'users' table exists in the database
+[2025-04-10 20:47:19] Error reporting enabled for local environment
+[2025-04-10 20:47:19] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:19] Successfully connected to database using PDO
+[2025-04-10 20:47:19] 'users' table exists in the database
+[2025-04-10 20:47:19] Error reporting enabled for local environment
+[2025-04-10 20:47:19] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:19] Successfully connected to database using PDO
+[2025-04-10 20:47:19] 'users' table exists in the database
+[2025-04-10 20:47:19] Error reporting enabled for local environment
+[2025-04-10 20:47:19] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:19] Successfully connected to database using PDO
+[2025-04-10 20:47:19] 'users' table exists in the database
+[2025-04-10 20:47:19] Error reporting enabled for local environment
+[2025-04-10 20:47:19] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:19] Successfully connected to database using PDO
+[2025-04-10 20:47:19] 'users' table exists in the database
+[2025-04-10 20:47:19] Error reporting enabled for local environment
+[2025-04-10 20:47:19] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:19] Successfully connected to database using PDO
+[2025-04-10 20:47:19] 'users' table exists in the database
+[2025-04-10 20:47:19] Error reporting enabled for local environment
+[2025-04-10 20:47:19] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:20] Successfully connected to database using PDO
+[2025-04-10 20:47:20] 'users' table exists in the database
+[2025-04-10 20:47:20] Error reporting enabled for local environment
+[2025-04-10 20:47:20] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:20] Successfully connected to database using PDO
+[2025-04-10 20:47:20] 'users' table exists in the database
+[2025-04-10 20:47:20] Error reporting enabled for local environment
+[2025-04-10 20:47:20] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:20] Successfully connected to database using PDO
+[2025-04-10 20:47:20] 'users' table exists in the database
+[2025-04-10 20:47:20] Error reporting enabled for local environment
+[2025-04-10 20:47:20] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:20] Successfully connected to database using PDO
+[2025-04-10 20:47:20] 'users' table exists in the database
+[2025-04-10 20:47:20] Error reporting enabled for local environment
+[2025-04-10 20:47:20] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:20] Successfully connected to database using PDO
+[2025-04-10 20:47:20] 'users' table exists in the database
+[2025-04-10 20:47:20] Error reporting enabled for local environment
+[2025-04-10 20:47:20] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:20] Successfully connected to database using PDO
+[2025-04-10 20:47:20] 'users' table exists in the database
+[2025-04-10 20:47:20] Error reporting enabled for local environment
+[2025-04-10 20:47:20] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:20] Successfully connected to database using PDO
+[2025-04-10 20:47:20] 'users' table exists in the database
+[2025-04-10 20:47:20] Error reporting enabled for local environment
+[2025-04-10 20:47:20] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:20] Successfully connected to database using PDO
+[2025-04-10 20:47:20] 'users' table exists in the database
+[2025-04-10 20:47:20] Error reporting enabled for local environment
+[2025-04-10 20:47:20] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:20] Successfully connected to database using PDO
+[2025-04-10 20:47:20] 'users' table exists in the database
+[2025-04-10 20:47:20] Error reporting enabled for local environment
+[2025-04-10 20:47:20] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:20] Successfully connected to database using PDO
+[2025-04-10 20:47:20] 'users' table exists in the database
+[2025-04-10 20:47:20] Error reporting enabled for local environment
+[2025-04-10 20:47:20] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:20] Successfully connected to database using PDO
+[2025-04-10 20:47:20] 'users' table exists in the database
+[2025-04-10 20:47:20] Error reporting enabled for local environment
+[2025-04-10 20:47:20] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:20] Successfully connected to database using PDO
+[2025-04-10 20:47:20] 'users' table exists in the database
+[2025-04-10 20:47:20] Error reporting enabled for local environment
+[2025-04-10 20:47:20] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:20] Successfully connected to database using PDO
+[2025-04-10 20:47:20] 'users' table exists in the database
+[2025-04-10 20:47:20] Error reporting enabled for local environment
+[2025-04-10 20:47:20] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:20] Successfully connected to database using PDO
+[2025-04-10 20:47:20] 'users' table exists in the database
+[2025-04-10 20:47:20] Error reporting enabled for local environment
+[2025-04-10 20:47:20] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:20] Successfully connected to database using PDO
+[2025-04-10 20:47:20] 'users' table exists in the database
+[2025-04-10 20:47:20] Error reporting enabled for local environment
+[2025-04-10 20:47:20] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:47:20] Successfully connected to database using PDO
+[2025-04-10 20:47:20] 'users' table exists in the database
+[2025-04-10 20:47:20] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment
+[2025-04-10 20:48:59] Attempting to connect to database: Host=localhost, User=root, DB=virtual_library
+[2025-04-10 20:48:59] Successfully connected to database using PDO
+[2025-04-10 20:48:59] 'users' table exists in the database
+[2025-04-10 20:48:59] Error reporting enabled for local environment

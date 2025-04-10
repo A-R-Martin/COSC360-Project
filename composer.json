@@ -1,0 +1,8 @@
+{
+    "require-dev": {
+        "phpunit/phpunit": "*"
+    },
+    "require": {
+        "guzzlehttp/guzzle": "*"
+    }
+}
